@@ -280,7 +280,7 @@
 
 <!-- HEADER -->
 <header>
-  <div class="header-inner">    <div class="logo">🌶️Comida<span class="dot-accent">dle</span></div>
+  <div class="header-inner">    <div class="logo">🌶️ Comida<span class="dot-accent">dle</span></div>
     <div class="header-actions">
       <div class="date-pill" id="date-pill"></div>
 <button class="icon-btn" id="how-open-btn" title="Cómo jugar">
@@ -330,13 +330,13 @@
   </div>
   <div class="side-menu-section">
     <div class="side-menu-label">Jugar</div>
-    <button class="side-menu-item" id="sm-duel">
+    <div class="side-menu-item" style="opacity:0.45;cursor:not-allowed">
       <div class="side-menu-item-icon">⚔️</div>
       <div class="side-menu-item-info">
         <div class="side-menu-item-name">Modo Duelo</div>
-        <div class="side-menu-item-desc">Reta a un amigo al mismo plato</div>
+        <div class="side-menu-item-desc">🔒 Próximamente...</div>
       </div>
-    </button>
+    </div>
   </div>
   <div class="side-menu-section">
     <div class="side-menu-label">Comunidad</div>
@@ -1046,571 +1046,314 @@ function renderYesterday(){
   const yStr=yesterday.toISOString().slice(0,10);
   const yDayOfYear=Math.floor((yesterday-new Date(yesterday.getFullYear(),0,0))/86400000);
   const yYear=yesterday.getFullYear();
-  const yDishes=shuffleWithSeed(ALL_DISHES,yYear*999983+37);
-  const yDish=yDishes[yDayOfYear%yDishes.length];
-  let savedY=null;try{savedY=JSON.parse(localStorage.getItem("comidadle_"+yStr))}catch(e){}
-  if(!savedY||!savedY.done){el.innerHTML="";return;}
-  const yWon=savedY.log[savedY.log.length-1]===true;
-  const yEmoji=yWon?"✅":"❌";
-  el.innerHTML=`<div class="yesterday-card"><div class="yesterday-emoji">${yDish.emoji}</div><div class="yesterday-info"><div class="yesterday-label">Ayer</div><div class="yesterday-name">${yDish.name}</div><div class="yesterday-country">${yDish.flag} ${yDish.country}</div></div><div class="yesterday-result">${yEmoji}</div></div>`;
-}
-
-// Countdown timer
-function startCountdown(){
-  const el=document.getElementById("countdown-time");
-  if(!el)return;
-  function tick(){
-    const n=new Date(),midnight=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1);
-    const diff=midnight-n;
-    const h=String(Math.floor(diff/3600000)).padStart(2,"0");
-    const m=String(Math.floor(diff%3600000/60000)).padStart(2,"0");
-    const s=String(Math.floor(diff%60000/1000)).padStart(2,"0");
-    if(el)el.textContent=`${h}:${m}:${s}`;
-  }
-  tick();setInterval(tick,1000);
-}
-
-function saveState(){try{localStorage.setItem(getStateKey(currentDishIndex),JSON.stringify({log,wrong:[...wrong],done}))}catch(e){}}
-
-const MONTHS=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
-document.getElementById("date-pill").textContent=`${now.getDate()} ${MONTHS[now.getMonth()]} · Día ${dayOfYear}`;
-
-function renderTabs(){
-  const el=document.getElementById("dish-tabs");
-  if(!el)return;
-  el.innerHTML=DAILY_DISHES.map((d,i)=>{
-    const s=loadDishState(i);
-    const isActive=i===currentDishIndex;
-    const isDone=s.done;
-    const won=isDone&&s.log[s.log.length-1]===true;
-    return `<button class="dish-tab${isActive?" active":""}${isDone?" completed":""}" data-i="${i}">
-      ${isDone?(won?"✅":"❌"):"🌶️"} Plato ${i+1}
-    </button>`;
-  }).join("");
-  el.querySelectorAll(".dish-tab").forEach(btn=>{
-    btn.addEventListener("click",()=>switchDish(+btn.dataset.i));
+  const yAllDishes=shuffleWithSeed(ALL_DISHES,yYear*999983+37);
+  const yDishes=[
+    yAllDishes[(yDayOfYear*3)%yAllDishes.length],
+    yAllDishes[(yDayOfYear*3+1)%yAllDishes.length],
+    yAllDishes[(yDayOfYear*3+2)%yAllDishes.length],
+  ];
+  const yStates=yDishes.map((_,i)=>{
+    let s=null;try{s=JSON.parse(localStorage.getItem("comidadle_"+yStr+"_"+i))}catch(e){}
+    return s;
   });
+  const anyPlayed=yStates.some(s=>s&&s.done);
+  if(!anyPlayed){el.innerHTML="";return;}
+  const results=yStates.map(s=>{
+    if(!s||!s.done)return"⬜";
+    return s.log[s.log.length-1]===true?"✅":"❌";
+  });
+  el.innerHTML=`<div class="yesterday-card">
+    <div class="yesterday-emoji">${yDishes[0].emoji}</div>
+    <div class="yesterday-info">
+      <div class="yesterday-label">Ayer</div>
+      <div class="yesterday-name">${results.join(" ")} — 3 platos</div>
+      <div class="yesterday-country">${yDishes.map(d=>d.flag).join(" ")}</div>
+    </div>
+  </div>`;
 }
 
+
+
+
+// ═══════════════════════════════════════════════════════════
+// SOUNDS
+// ═══════════════════════════════════════════════════════════
+let audioCtx=null;
+function getAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx;}
+function playCorrect(){try{const c=getAudio(),notes=[523,659,784,1047];notes.forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type="sine";o.frequency.value=f;const s=c.currentTime+i*.1;g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(.18,s+.02);g.gain.exponentialRampToValueAtTime(.001,s+.25);o.start(s);o.stop(s+.25);})}catch(e){}}
+function playWrong(){try{const c=getAudio(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type="sawtooth";o.frequency.setValueAtTime(220,c.currentTime);o.frequency.linearRampToValueAtTime(150,c.currentTime+.15);g.gain.setValueAtTime(.15,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.2);o.start(c.currentTime);o.stop(c.currentTime+.2);}catch(e){}}
+function playWin(){try{const c=getAudio(),m=[523,659,784,659,784,1047];m.forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type="sine";o.frequency.value=f;const s=c.currentTime+i*.12;g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(.2,s+.03);g.gain.exponentialRampToValueAtTime(.001,s+.3);o.start(s);o.stop(s+.3);})}catch(e){}}
+function playLose(){try{const c=getAudio(),n=[392,349,330,294];n.forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type="sine";o.frequency.value=f;const s=c.currentTime+i*.13;g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(.15,s+.03);g.gain.exponentialRampToValueAtTime(.001,s+.3);o.start(s);o.stop(s+.3);})}catch(e){}}
+
+// ═══════════════════════════════════════════════════════════
+// CONFETTI
+// ═══════════════════════════════════════════════════════════
+function launchConfetti(){const canvas=document.createElement("canvas");canvas.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999";document.body.appendChild(canvas);const ctx=canvas.getContext("2d");canvas.width=window.innerWidth;canvas.height=window.innerHeight;const colors=["#FF6B35","#FFB627","#22C55E","#FFF3E0","#FF4444","#4ADE80","#FBBF24"];const pieces=Array.from({length:120},()=>({x:Math.random()*canvas.width,y:Math.random()*canvas.height-canvas.height,w:Math.random()*10+5,h:Math.random()*6+3,color:colors[Math.floor(Math.random()*colors.length)],rot:Math.random()*Math.PI*2,rotSpeed:(Math.random()-.5)*.15,vx:(Math.random()-.5)*3,vy:Math.random()*4+2,opacity:1}));let frame=0;function draw(){ctx.clearRect(0,0,canvas.width,canvas.height);pieces.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.rot+=p.rotSpeed;if(frame>120)p.opacity-=.012;ctx.save();ctx.globalAlpha=Math.max(0,p.opacity);ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.color;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();});frame++;if(frame<200)requestAnimationFrame(draw);else canvas.remove();}draw();}
+
+// ═══════════════════════════════════════════════════════════
+// ESTADÍSTICAS DETALLADAS
+// ═══════════════════════════════════════════════════════════
+const ATTEMPTS_KEY="comidadle_attempts";
+function getAttemptsData(){try{return JSON.parse(localStorage.getItem(ATTEMPTS_KEY))||{1:0,2:0,3:0,4:0,5:0,6:0,fail:0};}catch(e){return{1:0,2:0,3:0,4:0,5:0,6:0,fail:0};}}
+function recordAttempt(won,attempts){const data=getAttemptsData();if(won)data[attempts]=(data[attempts]||0)+1;else data.fail=(data.fail||0)+1;try{localStorage.setItem(ATTEMPTS_KEY,JSON.stringify(data));}catch(e){}}
+function renderStatsContent(){
+  const el=document.getElementById("stats-content");if(!el)return;
+  const streak=streakData;const pct=streak.played>0?Math.round(streak.wins/streak.played*100):0;
+  const attData=getAttemptsData();const maxVal=Math.max(...[1,2,3,4,5,6].map(n=>attData[n]||0),attData.fail||0,1);
+  const bars=[1,2,3,4,5,6].map(n=>{const val=attData[n]||0,w=maxVal>0?Math.round((val/maxVal)*100):0;return`<div class="bar-row"><div class="bar-label">${n}</div><div class="bar-track"><div class="bar-fill${val===0?" zero":""}" style="width:${Math.max(w,val>0?8:0)}%">${val>0?`<span class="bar-count">${val}</span>`:""}</div></div></div>`;}).join("");
+  const fv=attData.fail||0,fw=maxVal>0?Math.round((fv/maxVal)*100):0;
+  el.innerHTML=`<div class="stats-grid"><div class="stat-card accent"><div class="stat-card-num">🔥${streak.streak}</div><div class="stat-card-label">Racha actual</div></div><div class="stat-card gold"><div class="stat-card-num">${streak.best}</div><div class="stat-card-label">Mejor racha</div></div><div class="stat-card green"><div class="stat-card-num">${pct}%</div><div class="stat-card-label">% Victorias</div></div><div class="stat-card"><div class="stat-card-num">${streak.played}</div><div class="stat-card-label">Partidas</div></div></div><div class="attempts-chart"><div class="attempts-chart-title">Distribución de intentos</div>${bars}<div class="bar-row"><div class="bar-label" style="color:var(--red)">✗</div><div class="bar-track"><div class="bar-fill${fv===0?" zero":""}" style="width:${Math.max(fw,fv>0?8:0)}%;background:${fv>0?"var(--red)":"var(--surface2)"}">${fv>0?`<span class="bar-count">${fv}</span>`:""}</div></div></div></div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// SUPABASE RANKING
+// ═══════════════════════════════════════════════════════════
+const SB_URL="https://dacgheuzlhybesnqjqzn.supabase.co";
+const SB_KEY="sb_publishable_hZ1V7TNXiAFlENYGfdESyQ_9zXDq5U7";
+const SB_HEADERS={"Content-Type":"application/json","apikey":SB_KEY,"Authorization":"Bearer "+SB_KEY};
+const USERNAME_KEY="comidadle_username";
+const USER_ID_KEY="comidadle_userid";
+let myUsername=localStorage.getItem(USERNAME_KEY)||"";
+let myUserId=localStorage.getItem(USER_ID_KEY)||"";
+async function sbFetch(path,options={}){const res=await fetch(SB_URL+path,{headers:SB_HEADERS,...options});if(!res.ok)throw new Error(await res.text());return res.json().catch(()=>null);}
+async function upsertRanking(){if(!myUsername)return;const data={streak:streakData.streak,best_streak:streakData.best,wins:streakData.wins,played:streakData.played,updated_at:new Date().toISOString()};if(myUserId){await sbFetch(`/rest/v1/ranking?id=eq.${myUserId}`,{method:"PATCH",body:JSON.stringify(data)});}else{const result=await sbFetch("/rest/v1/ranking?select=id",{method:"POST",headers:{...SB_HEADERS,"Prefer":"return=representation"},body:JSON.stringify({...data,username:myUsername})});if(result&&result[0]){myUserId=result[0].id;localStorage.setItem(USER_ID_KEY,myUserId);}}}
+async function fetchRanking(){return await sbFetch("/rest/v1/ranking?select=*&order=best_streak.desc&limit=50");}
+async function syncRanking(){try{await upsertRanking();}catch(e){}}
+
+// ═══════════════════════════════════════════════════════════
+// NOTIFICACIONES LOCALES
+// ═══════════════════════════════════════════════════════════
+const NOTIF_KEY="comidadle_notif";
+function scheduleStreakNotification(){if(!("Notification"in window))return;const now2=new Date();const target=new Date(now2.getFullYear(),now2.getMonth(),now2.getDate(),21,0,0);if(target<=now2)target.setDate(target.getDate()+1);const delay=target-now2;setTimeout(()=>{const todayKey="comidadle_"+new Date().toISOString().slice(0,10)+"_0";let ts=null;try{ts=JSON.parse(localStorage.getItem(todayKey));}catch(e){}if(!ts||!ts.done){new Notification("🔥 Comidadle",{body:"¡Tu racha está en peligro! Queda poco para medianoche.",tag:"comidadle-streak"});}},delay);}
+async function askNotificationPermission(){if(!("Notification"in window))return;if(Notification.permission==="granted"){scheduleStreakNotification();return;}if(Notification.permission==="denied")return;const banner=document.createElement("div");banner.id="notif-banner";banner.style.cssText=`position:fixed;bottom:1rem;left:50%;transform:translateX(-50%);width:calc(100% - 2rem);max-width:480px;background:#1C1208;border:1px solid rgba(255,150,50,0.4);border-radius:12px;padding:1rem 1.25rem;display:flex;align-items:center;gap:12px;z-index:50;box-shadow:0 4px 24px rgba(0,0,0,0.4)`;banner.innerHTML=`<div style="font-size:28px;flex-shrink:0">🔥</div><div style="flex:1"><div style="font-size:14px;font-weight:600;color:#FFF3E0;margin-bottom:2px">¿Activar avisos de racha?</div><div style="font-size:12px;color:#9A7050">Te avisamos a las 21:00 si aún no has jugado</div></div><div style="display:flex;gap:6px;flex-shrink:0"><button id="notif-yes" style="background:#FF6B35;color:#fff;border:none;border-radius:8px;padding:.45rem .875rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer">¡Sí!</button><button id="notif-no" style="background:#251A0D;color:#9A7050;border:1px solid rgba(255,150,50,0.2);border-radius:8px;padding:.45rem .875rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;cursor:pointer">No</button></div>`;document.body.appendChild(banner);document.getElementById("notif-yes").addEventListener("click",async()=>{banner.remove();const permission=await Notification.requestPermission();if(permission==="granted")scheduleStreakNotification();localStorage.setItem(NOTIF_KEY,permission);});document.getElementById("notif-no").addEventListener("click",()=>{banner.remove();localStorage.setItem(NOTIF_KEY,"dismissed");});}
+
+// ═══════════════════════════════════════════════════════════
+// TABS (3 platos por día)
+// ═══════════════════════════════════════════════════════════
+function renderTabs(){
+  const el=document.getElementById("dish-tabs");if(!el)return;
+  el.innerHTML=DAILY_DISHES.map((d,i)=>{const s=loadDishState(i);const isActive=i===currentDishIndex;const isDone=s.done;const won=isDone&&s.log[s.log.length-1]===true;return`<button class="dish-tab${isActive?" active":""}${isDone?" completed":""}" data-i="${i}">${isDone?(won?"✅":"❌"):"🌶️"} Plato ${i+1}</button>`;}).join("");
+  el.querySelectorAll(".dish-tab").forEach(btn=>{btn.addEventListener("click",()=>switchDish(+btn.dataset.i));});
+}
 function switchDish(idx){
   if(idx===currentDishIndex)return;
-  currentDishIndex=idx;
-  dish=DAILY_DISHES[idx];
-  const s=loadDishState(idx);
-  log=s.log; wrong=s.wrong; done=s.done;
-  // Clear result box
+  currentDishIndex=idx;dish=DAILY_DISHES[idx];
+  const s=loadDishState(idx);log=s.log;wrong=s.wrong;done=s.done;
   document.getElementById("result").innerHTML="";
   document.getElementById("infinite-section").innerHTML="";
-  renderTabs();
-  renderAll();
+  renderTabs();renderAll();
 }
 
+// ═══════════════════════════════════════════════════════════
+// UPDATE BADGE
+// ═══════════════════════════════════════════════════════════
+function isHardActive(){return cfg.fewAttempts||cfg.moreCountries||cfg.noHints;}
 function updateBadge(){
-  const r=document.getElementById("header-hard-row");
-  const m=document.getElementById("hard-multiplier");
-  if(!r)return;
+  const r=document.getElementById("header-hard-row");const m=document.getElementById("hard-multiplier");if(!r)return;
   const count=[cfg.fewAttempts,cfg.moreCountries,cfg.noHints].filter(Boolean).length;
-  if(count>0){
-    r.style.display="flex";
-    if(m)m.textContent="x"+count;
-  }else{
-    r.style.display="none";
-  }
+  if(count>0){r.style.display="flex";if(m)m.textContent="x"+count;}else{r.style.display="none";}
 }
-
+// ═══════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════
 function renderAll(){
   const MAX=getMaxAttempts(),opts=getOpts();
   document.getElementById("subtitle-attempts").textContent=`Adivina el país de origen — ${MAX} intento${MAX!==1?"s":""}`;
   document.getElementById("dish-emoji").textContent=dish.emoji;
-  const nameEl=document.getElementById("dish-name");if(done){nameEl.textContent=dish.name}else{nameEl.innerHTML=dish.name.replace(buildBlurRegex(dish.country),m=>`<span style="filter:blur(5px);user-select:none;pointer-events:none">${m}</span>`)}
+  document.getElementById("dish-name").textContent="";
+  const nameEl=document.getElementById("dish-name");
+  if(done){nameEl.textContent=dish.name}else{nameEl.innerHTML=dish.name.replace(buildBlurRegex(dish.country),m=>`<span style="filter:blur(5px);user-select:none;pointer-events:none">${m}</span>`);}
   const descEl=document.getElementById("dish-desc");
   descEl.textContent=dish.desc;descEl.style.display=cfg.noDesc?"none":"";
   const dotsEl=document.getElementById("dots");dotsEl.innerHTML="";
-  for(let i=0;i<MAX;i++){const d=document.createElement("div");d.className="dot"+(i<log.length?(log[i]?" correct":" wrong"):"");dotsEl.appendChild(d)}
+  for(let i=0;i<MAX;i++){const d=document.createElement("div");d.className="dot"+(i<log.length?(log[i]?" correct":" wrong"):"");dotsEl.appendChild(d);}
   const hintsEl=document.getElementById("hints");hintsEl.innerHTML="";
-  if(!cfg.noHints){let n=done?dish.hints.length:cfg.progressive?Math.min(log.length+1,dish.hints.length):dish.hints.length;for(let i=0;i<n;i++){const h=document.createElement("div");h.className="hint";h.innerHTML=`<strong>Pista ${i+1}</strong> — ${dish.hints[i]}`;hintsEl.appendChild(h)}}
+  if(!cfg.noHints){let n=done?dish.hints.length:cfg.progressive?Math.min(log.length+1,dish.hints.length):dish.hints.length;for(let i=0;i<n;i++){const h=document.createElement("div");h.className="hint";h.innerHTML=`<strong>Pista ${i+1}</strong> — ${dish.hints[i]}`;hintsEl.appendChild(h);}}
   const gridEl=document.getElementById("grid");gridEl.innerHTML="";
-  opts.forEach(c=>{const btn=document.createElement("button");btn.className="country-btn";btn.innerHTML=`<span>${getFlag(c)}</span><span>${c}</span>`;if(done){btn.disabled=true;if(c===dish.country)btn.classList.add("correct-answer")}else if(wrong.has(c)){btn.disabled=true}else{btn.addEventListener("click",()=>handleGuess(c,btn))}gridEl.appendChild(btn)});
-  if(done&&!document.querySelector(".result-box"))showResult(log[log.length-1]===true,false)
+  opts.forEach(c=>{const btn=document.createElement("button");btn.className="country-btn";btn.innerHTML=`<span>${getFlag(c)}</span><span>${c}</span>`;if(done){btn.disabled=true;if(c===dish.country)btn.classList.add("correct-answer");}else if(wrong.has(c)){btn.disabled=true;}else{btn.addEventListener("click",()=>handleGuess(c,btn));}gridEl.appendChild(btn);});
+  if(done&&!document.querySelector(".result-box"))showResult(log[log.length-1]===true,false);
 }
+
+// ═══════════════════════════════════════════════════════════
+// GAME LOGIC
+// ═══════════════════════════════════════════════════════════
+function saveState(){try{localStorage.setItem(getStateKey(currentDishIndex),JSON.stringify({log,wrong:[...wrong],done}))}catch(e){}}
 
 function handleGuess(c,btn){
   if(done)return;const MAX=getMaxAttempts();
-  if(c===dish.country){playCorrect();log.push(true);done=true;saveState();renderAll();showResult(true,true)}
-  else{playWrong();log.push(false);wrong.add(c);btn.disabled=true;btn.classList.add("shake");setTimeout(()=>btn.classList.remove("shake"),400);if(log.length>=MAX){done=true;saveState();renderAll();showResult(false,true)}else{saveState();renderAll()}}
+  if(c===dish.country){playCorrect();log.push(true);done=true;saveState();renderAll();showResult(true,true);}
+  else{playWrong();log.push(false);wrong.add(c);btn.disabled=true;btn.classList.add("shake");setTimeout(()=>btn.classList.remove("shake"),400);if(log.length>=MAX){done=true;saveState();renderAll();showResult(false,true);}else{saveState();renderAll();}}
 }
 
 let shareText="";
 function showResult(won,animate){
   const resultEl=document.getElementById("result");if(resultEl.querySelector(".result-box"))return;
   updateStreak(won);syncRanking();renderTabs();
-  if(animate){recordAttempt(won, log.length);}
-  if(animate){if(won){setTimeout(()=>{launchConfetti();playWin();},300);}else{setTimeout(()=>playLose(),300);}}
+  if(animate){recordAttempt(won,log.length);}
   const emojiStr=log.map(g=>g?"🟩":"🟥").join("");
   const streakLine=won&&streakData.streak>1?`🔥 Racha de ${streakData.streak} días`:"";
-  const line=won?`¡Acertaste en ${log.length} intento${log.length!==1?"s":""}!`:"¡Mañana más!";
   const hardCount=[cfg.fewAttempts,cfg.moreCountries,cfg.noHints].filter(Boolean).length;
-  const hardLine=hardCount>0?"\n"+`🔥 Modo difícil x${hardCount}`:"";
-  shareText=`🌶️ Comidadle — Plato ${currentDishIndex+1}/3\n${dish.name}\n${emojiStr}\n${line}${streakLine?" · "+streakLine:""}${hardLine}\n👉 aanas440.github.io/comidadle`;
+  const hardLine=hardCount>0?"\n🔥 Modo difícil x"+hardCount:"";
+  shareText=`🌶️ Comidadle — Plato ${currentDishIndex+1}/3\n${dish.name}\n${emojiStr}\n${won?`¡Acertaste en ${log.length} intento${log.length!==1?"s":""}!`:"¡No lo conseguí hoy!"}${streakLine?" · "+streakLine:""}${hardLine}\n👉 aanas440.github.io/comidadle`;
+  const attData=getAttemptsData();const mx=Math.max(...[1,2,3,4,5,6].map(n=>attData[n]||0),attData.fail||0,1);
+  const miniChart=[1,2,3,4,5,6].map(n=>{const v=attData[n]||0,w=mx>0?Math.round((v/mx)*100):0,cur=won&&log.length===n;return`<div class="bar-row"><div class="bar-label" style="font-size:11px">${n}</div><div class="bar-track" style="height:14px"><div class="bar-fill${v===0?" zero":""}" style="width:${Math.max(w,v>0?8:0)}%;${cur?"background:var(--green)":""}">${v>0?`<span class="bar-count" style="font-size:10px">${v}</span>`:""}</div></div></div>`;}).join("");
   const box=document.createElement("div");box.className="result-box";if(!animate)box.style.animation="none";
-  box.innerHTML=`<span class="result-big">${won?"🎉":"😔"}</span><div class="result-title">${won?`¡Correcto! Es ${dish.flag} ${dish.country}`:`Era ${dish.flag} ${dish.country}`}</div><div class="result-sub">${won?`¡Acertaste en ${log.length} intento${log.length!==1?"s":""}!`:"¡Mañana más! Vuelve para un nuevo plato."}</div>${(()=>{const ad=getAttemptsData();const mx=Math.max(...[1,2,3,4,5,6].map(n=>ad[n]||0),ad.fail||0,1);return'<div class="attempts-chart" style="margin:.75rem 0 .5rem"><div class="attempts-chart-title">Distribución de intentos</div>'+[1,2,3,4,5,6].map(n=>{const v=ad[n]||0,w=mx>0?Math.round((v/mx)*100):0,cur=won&&log.length===n;return`<div class="bar-row"><div class="bar-label" style="font-size:11px">${n}</div><div class="bar-track" style="height:14px"><div class="bar-fill${v===0?" zero":""}" style="width:${Math.max(w,v>0?8:0)}%;${cur?"background:var(--green)":""}">${v>0?`<span class="bar-count" style="font-size:10px">${v}</span>`:""}</div></div></div>`}).join("")+'</div>';})()}<div class="emoji-row">${emojiStr}</div>${streakData.streak>1?`<div style="font-size:13px;color:var(--accent);font-weight:600;margin-bottom:.75rem">🔥 Racha de ${streakData.streak} días</div>`:""}<div class="countdown-box"><div class="countdown-label">Próximo plato en</div><div class="countdown-time" id="countdown-time">--:--:--</div></div><button class="share-btn" id="share-btn" style="margin-top:.5rem"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Compartir resultado</button><button class="infinite-btn" id="start-infinite-btn" style="margin-top:.5rem">♾️ ¿Seguir jugando? Modo Infinito</button>`;
+  box.innerHTML=`<span class="result-big">${won?"🎉":"😔"}</span><div class="result-title">${won?`¡Correcto! Es ${dish.flag} ${dish.country}`:`Era ${dish.flag} ${dish.country}`}</div><div class="result-sub">${won?`Acertaste en ${log.length} intento${log.length!==1?"s":""}`:'¡Mañana más! Vuelve para un nuevo plato.'}</div><div class="attempts-chart" style="margin:.75rem 0 .5rem"><div class="attempts-chart-title">Distribución de intentos</div>${miniChart}</div><div class="emoji-row">${emojiStr}</div>${streakData.streak>1?`<div style="font-size:13px;color:var(--accent);font-weight:600;margin-bottom:.75rem">🔥 Racha de ${streakData.streak} días</div>`:""}<div class="countdown-box"><div class="countdown-label">Próximo plato en</div><div class="countdown-time" id="countdown-time">--:--:--</div></div><button class="share-btn" id="share-btn" style="margin-top:.5rem"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Compartir resultado</button>${currentDishIndex<2&&DAILY_DISHES[currentDishIndex+1]?`<button class="infinite-btn" id="next-dish-btn" style="margin-top:.5rem">Siguiente plato ${currentDishIndex+2}/3 ➜</button>`:""}`;
   resultEl.appendChild(box);
   document.getElementById("share-btn").addEventListener("click",openShareModal);
-  // Ask for notifications after finishing daily game
-  const notifPref = localStorage.getItem(NOTIF_KEY);
-  if(!notifPref) setTimeout(askNotificationPermission, 2000);
-
-  document.getElementById("start-infinite-btn").addEventListener("click",()=>{
-    document.getElementById("start-infinite-btn").style.display="none";
-    startInfinite();
-  });
+  const nextDishBtn=document.getElementById("next-dish-btn");
+  if(nextDishBtn)nextDishBtn.addEventListener("click",()=>switchDish(currentDishIndex+1));
+  if(animate){if(won){setTimeout(()=>{launchConfetti();playWin();},300);}else{setTimeout(()=>playLose(),300);}}
   startCountdown();
 }
 
+// ═══════════════════════════════════════════════════════════
+// SHARE MODAL
+// ═══════════════════════════════════════════════════════════
 function openShareModal(){
   document.getElementById("share-textarea").value=shareText;
   document.getElementById("copy-note").textContent="";
   const cb=document.getElementById("copy-btn");cb.textContent="Copiar al portapapeles";cb.classList.remove("copied");
   openModal("share-modal");
-  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(shareText).then(()=>{cb.textContent="¡Copiado! ✓";cb.classList.add("copied");document.getElementById("copy-note").textContent="Ya está en tu portapapeles, solo pégalo donde quieras."}).catch(()=>{document.getElementById("copy-note").textContent="Selecciona el texto de arriba y cópialo (Ctrl+C / ⌘C)."})}
-  else{document.getElementById("copy-note").textContent="Selecciona el texto de arriba y cópialo (Ctrl+C / ⌘C)."}
+  if(navigator.share){
+    navigator.share({text:shareText}).catch(()=>{});
+    return;
+  }
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(shareText).then(()=>{cb.textContent="¡Copiado! ✓";cb.classList.add("copied");document.getElementById("copy-note").textContent="Ya está en tu portapapeles, solo pégalo donde quieras.";}).catch(()=>{document.getElementById("copy-note").textContent="Selecciona el texto de arriba y cópialo (Ctrl+C / ⌘C).";});}
+  else{document.getElementById("copy-note").textContent="Selecciona el texto de arriba y cópialo (Ctrl+C / ⌘C).";}
 }
 document.getElementById("copy-btn").addEventListener("click",()=>{
   const ta=document.getElementById("share-textarea");ta.select();ta.setSelectionRange(0,99999);
   const cb=document.getElementById("copy-btn");
-  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(shareText).then(()=>{cb.textContent="¡Copiado! ✓";cb.classList.add("copied");document.getElementById("copy-note").textContent="Ya está en tu portapapeles."}).catch(()=>{try{document.execCommand("copy")}catch(e){}cb.textContent="¡Copiado! ✓";cb.classList.add("copied")})}
-  else{try{document.execCommand("copy")}catch(e){}cb.textContent="¡Copiado! ✓";cb.classList.add("copied")}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(shareText).then(()=>{cb.textContent="¡Copiado! ✓";cb.classList.add("copied");document.getElementById("copy-note").textContent="Ya está en tu portapapeles.";}).catch(()=>{try{document.execCommand("copy")}catch(e){}cb.textContent="¡Copiado! ✓";cb.classList.add("copied");});}
+  else{try{document.execCommand("copy")}catch(e){}cb.textContent="¡Copiado! ✓";cb.classList.add("copied");}
 });
 
-function openModal(id){document.getElementById(id).classList.remove("hidden");document.body.style.overflow="hidden"}
-function closeModal(id){document.getElementById(id).classList.add("hidden");document.body.style.overflow=""}
-
-// Side menu
-function openSideMenu() {
-  document.getElementById("side-menu").classList.add("open");
-  document.getElementById("side-overlay").classList.add("open");
-  document.body.style.overflow = "hidden";
+// ═══════════════════════════════════════════════════════════
+// COUNTDOWN
+// ═══════════════════════════════════════════════════════════
+function startCountdown(){
+  const el=document.getElementById("countdown-time");if(!el)return;
+  function tick(){const n=new Date(),midnight=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1);const diff=midnight-n;const h=String(Math.floor(diff/3600000)).padStart(2,"0"),m=String(Math.floor(diff%3600000/60000)).padStart(2,"0"),s=String(Math.floor(diff%60000/1000)).padStart(2,"0");if(el)el.textContent=`${h}:${m}:${s}`;}
+  tick();setInterval(tick,1000);
 }
-function closeSideMenu() {
-  document.getElementById("side-menu").classList.remove("open");
-  document.getElementById("side-overlay").classList.remove("open");
-  document.body.style.overflow = "";
-}
-document.getElementById("menu-open-btn").addEventListener("click", openSideMenu);
-document.getElementById("side-menu-close").addEventListener("click", closeSideMenu);
-document.getElementById("side-overlay").addEventListener("click", closeSideMenu);
-document.getElementById("sm-stats").addEventListener("click", () => { closeSideMenu(); openStats(); });
-document.getElementById("sm-duel").addEventListener("click", () => { closeSideMenu(); openDuel(); });
-document.getElementById("sm-ranking").addEventListener("click", () => { closeSideMenu(); openRanking(); });
-
-document.getElementById("stats-close").addEventListener("click",()=>closeModal("stats-modal"));
-document.getElementById("stats-modal").addEventListener("click",e=>{if(e.target.id==="stats-modal")closeModal("stats-modal")});
-document.getElementById("duel-close").addEventListener("click",()=>closeModal("duel-modal"));
-document.getElementById("duel-modal").addEventListener("click",e=>{if(e.target.id==="duel-modal")closeModal("duel-modal")});
-document.getElementById("ranking-close").addEventListener("click",()=>closeModal("ranking-modal"));
-document.getElementById("ranking-refresh-btn").addEventListener("click",async()=>{
-  document.getElementById("ranking-list").innerHTML='<div class="ranking-empty">Cargando...</div>';
-  try{const rows=await fetchRanking();renderRankingList(rows);}catch(e){}
-});
-document.getElementById("ranking-modal").addEventListener("click",e=>{if(e.target.id==="ranking-modal")closeModal("ranking-modal")});
-document.getElementById("how-open-btn").addEventListener("click",()=>openModal("how-modal"));
-document.getElementById("cfg-open-btn").addEventListener("click",()=>openModal("cfg-modal"));
-document.getElementById("how-close").addEventListener("click",()=>closeModal("how-modal"));
-document.getElementById("cfg-close").addEventListener("click",()=>closeModal("cfg-modal"));
-document.getElementById("how-play").addEventListener("click",()=>closeModal("how-modal"));
-document.getElementById("share-modal-close").addEventListener("click",()=>closeModal("share-modal"));
-["how-modal","cfg-modal","share-modal"].forEach(id=>{document.getElementById(id).addEventListener("click",e=>{if(e.target.id===id)closeModal(id)})});
 
 // ═══════════════════════════════════════════════════════════
-// MODO INFINITO
+// RANKING UI
 // ═══════════════════════════════════════════════════════════
-let infState = null; // null = not started
-
-function getRandomDish(exclude) {
-  const pool = ALL_DISHES.filter(d => d.name !== exclude);
-  return pool[Math.floor(Math.random() * pool.length)];
+function renderRankingList(rows){
+  const el=document.getElementById("ranking-list");
+  if(!rows||rows.length===0){el.innerHTML='<div class="ranking-empty">¡Sé el primero en el ranking! 🌶️</div>';return;}
+  const medals=["🥇","🥈","🥉"];const posClass=["gold","silver","bronze"];
+  el.innerHTML=`<table class="ranking-table"><thead><tr><th>#</th><th>Jugador</th><th>🔥 Racha</th><th>✅ Victorias</th></tr></thead><tbody>${rows.map((r,i)=>{const isMe=r.id===myUserId;const pos=medals[i]||(i+1);const pClass=posClass[i]||"";const pct=r.played>0?Math.round(r.wins/r.played*100):0;return`<tr class="${isMe?"me":""}"><td><span class="rank-pos ${pClass}">${pos}</span></td><td><span class="rank-name">${r.username}${isMe?" (tú)":""}</span></td><td><span class="rank-streak">x${r.best_streak}</span></td><td><span class="rank-wins">${r.wins}/${r.played} (${pct}%)</span></td></tr>`;}).join("")}</tbody></table>`;
 }
 
-function startInfinite() {
-  const sec = document.getElementById("infinite-section");
-  infState = { wins: 0, total: 0 };
-  loadInfiniteDish(getRandomDish(dish.name));
-}
-
-function loadInfiniteDish(infDish) {
-  const sec = document.getElementById("infinite-section");
-  const MAX = getMaxAttempts();
-  const infOpts = cfg.moreCountries
-    ? shuffleWithSeed(ALL_COUNTRIES, Math.floor(Math.random()*99999))
-    : shuffleWithSeed([infDish.country, ...infDish.dist], infDish.name.split("").reduce((a,c)=>a+c.charCodeAt(0),0) * 7919 ^ SESSION_SEED);
-
-  let infLog = [], infWrong = new Set(), infDone = false;
-
-  function renderInf() {
-    const maskedName = infDone ? infDish.name : infDish.name.replace(buildBlurRegex(infDish.country), m => `<span style="filter:blur(5px);user-select:none">${m}</span>`);
-    const dotsHTML = Array.from({length:MAX},(_,i)=>
-      `<div class="dot${i<infLog.length?(infLog[i]?" correct":" wrong"):""}"></div>`
-    ).join("");
-    const hintsHTML = (!cfg.noHints) ? (() => {
-      const n = infDone ? infDish.hints.length : cfg.progressive ? Math.min(infLog.length+1, infDish.hints.length) : infDish.hints.length;
-      return Array.from({length:n},(_,i)=>`<div class="hint"><strong>Pista ${i+1}</strong> — ${infDish.hints[i]}</div>`).join("");
-    })() : "";
-    const gridHTML = infOpts.map(c => {
-      const disabled = infDone || infWrong.has(c) ? "disabled" : "";
-      const correct = infDone && c === infDish.country ? " correct-answer" : "";
-      return `<button class="country-btn${correct}" ${disabled} data-c="${c}"><span>${getFlag(c)}</span><span>${c}</span></button>`;
-    }).join("");
-
-    sec.innerHTML = `
-      <div class="infinite-section">
-        <div class="infinite-header">
-          <div class="infinite-title">♾️ Modo Infinito</div>
-          <div class="infinite-score">Aciertos: <span>${infState.wins}/${infState.total}</span></div>
-        </div>
-        <div class="dish-card" style="margin-bottom:.875rem">
-          <span class="dish-emoji">${infDish.emoji}</span>
-          <div class="dish-name">${maskedName}</div>
-          ${!cfg.noDesc ? `<div class="dish-desc">${infDish.desc}</div>` : ""}
-        </div>
-        <div class="dots" style="margin-bottom:.875rem">${dotsHTML}</div>
-        ${hintsHTML ? `<div class="hints" style="margin-bottom:.875rem">${hintsHTML}</div>` : ""}
-        <div class="country-grid">${gridHTML}</div>
-        ${infDone ? `<button class="infinite-btn" id="inf-next">Siguiente plato ➜</button>` : ""}
-      </div>`;
-
-    sec.querySelectorAll(".country-btn:not([disabled])").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const c = btn.dataset.c;
-        if (c === infDish.country) {
-          infLog.push(true); infState.wins++; infState.total++; infDone = true; renderInf();
-        } else {
-          infLog.push(false); infWrong.add(c);
-          if (infLog.length >= MAX) { infState.total++; infDone = true; renderInf(); }
-          else renderInf();
-        }
-      });
+function renderUsernameSection(isChanging=false){
+  const el=document.getElementById("ranking-username-section");
+  if(myUsername&&!isChanging){
+    el.innerHTML=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:.75rem;padding:.6rem .875rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm)"><span style="font-size:13px;color:var(--text-muted)">Jugando como</span><span style="font-size:13px;font-weight:700;color:var(--accent);flex:1">${myUsername}</span><button class="ranking-btn" id="change-name-btn" style="font-size:11px;padding:.3rem .6rem">Cambiar</button></div>`;
+    document.getElementById("change-name-btn").addEventListener("click",()=>renderUsernameSection(true));
+  }else{
+    const showCancel=!!myUsername;
+    el.innerHTML=`<div style="margin-bottom:.75rem"><div style="font-size:13px;color:var(--text-muted);margin-bottom:.5rem">${showCancel?"Cambia tu nombre:":"Elige un nombre para aparecer en el ranking:"}</div><input class="username-input" id="username-input" placeholder="Tu nombre o apodo..." maxlength="20" value="${showCancel?myUsername:""}"><div style="display:flex;gap:8px"><button class="ranking-btn primary" id="save-username-btn" style="flex:1">Guardar</button>${showCancel?'<button class="ranking-btn" id="cancel-name-btn">Cancelar</button>':""}</div></div>`;
+    if(showCancel){document.getElementById("cancel-name-btn").addEventListener("click",()=>renderUsernameSection(false));}
+    document.getElementById("save-username-btn").addEventListener("click",async()=>{
+      const val=document.getElementById("username-input").value.trim();if(!val)return;
+      const saveBtn=document.getElementById("save-username-btn");saveBtn.textContent="Comprobando...";saveBtn.disabled=true;
+      try{const existing=await sbFetch(`/rest/v1/ranking?username=eq.${encodeURIComponent(val)}&select=id`);const takenByOther=existing&&existing.length>0&&existing.some(r=>r.id!==myUserId);if(takenByOther){saveBtn.textContent="Guardar";saveBtn.disabled=false;const input=document.getElementById("username-input");input.style.borderColor="var(--red)";input.placeholder="Ese nombre ya está en uso 😅";input.value="";setTimeout(()=>{input.style.borderColor="";},2000);return;}}catch(e){}
+      if(myUserId){try{await sbFetch(`/rest/v1/ranking?id=eq.${myUserId}`,{method:"DELETE"});}catch(e){}myUserId="";localStorage.removeItem(USER_ID_KEY);}
+      myUsername=val;localStorage.setItem(USERNAME_KEY,myUsername);renderUsernameSection(false);
+      document.getElementById("ranking-list").innerHTML='<div class="ranking-empty">Guardando...</div>';
+      await upsertRanking();const rows=await fetchRanking();renderRankingList(rows);
     });
+  }
+}
 
-    const nextBtn = document.getElementById("inf-next");
-    if (nextBtn) nextBtn.addEventListener("click", () => loadInfiniteDish(getRandomDish(infDish.name)));
+// ═══════════════════════════════════════════════════════════
+// STATS
+// ═══════════════════════════════════════════════════════════
+function openStats(){openModal("stats-modal");renderStatsContent();}
+
+// ═══════════════════════════════════════════════════════════
+// INFINITE MODE
+// ═══════════════════════════════════════════════════════════
+function getRandomDish(exclude){const pool=ALL_DISHES.filter(d=>d.name!==exclude);return pool[Math.floor(Math.random()*pool.length)];}
+function startInfinite(){const sec=document.getElementById("infinite-section");loadInfiniteDish(getRandomDish(dish.name));}
+function loadInfiniteDish(infDish){
+  const sec=document.getElementById("infinite-section");
+  if(!sec)return;
+  let infState={wins:0,total:0};
+  const infOpts=cfg.moreCountries?shuffleWithSeed(ALL_COUNTRIES,Math.floor(Math.random()*9999999)):shuffleWithSeed([infDish.country,...infDish.dist],infDish.name.split("").reduce((a,c)=>a+c.charCodeAt(0),0)*7919^SESSION_SEED);
+  let infLog=[],infWrong=new Set(),infDone=false;
+  function renderInf(){
+    const maskedName=infDone?infDish.name:infDish.name.replace(buildBlurRegex(infDish.country),m=>`<span style="filter:blur(5px);user-select:none">${m}</span>`);
+    const dotsHTML=Array.from({length:getMaxAttempts()},(_,i)=>`<div class="dot${i<infLog.length?(infLog[i]?" correct":" wrong"):""}"></div>`).join("");
+    const n=infDone?infDish.hints.length:cfg.progressive?Math.min(infLog.length+1,infDish.hints.length):infDish.hints.length;
+    const hintsHTML=!cfg.noHints?Array.from({length:n},(_,i)=>`<div class="hint"><strong>Pista ${i+1}</strong> — ${infDish.hints[i]}</div>`).join(""):"";
+    const gridHTML=infOpts.map(c=>{const disabled=infDone||infWrong.has(c)?"disabled":"";const correct=infDone&&c===infDish.country?" correct-answer":"";return`<button class="country-btn${correct}" ${disabled} data-c="${c}"><span>${getFlag(c)}</span><span>${c}</span></button>`;}).join("");
+    sec.innerHTML=`<div class="infinite-section"><div class="infinite-header"><div class="infinite-title">♾️ Modo Infinito</div><div class="infinite-score">Aciertos: <span>${infState.wins}/${infState.total}</span></div></div><div class="dish-card" style="margin-bottom:.875rem"><span class="dish-emoji">${infDish.emoji}</span><div class="dish-name">${maskedName}</div>${!cfg.noDesc?`<div class="dish-desc">${infDish.desc}</div>`:""}</div><div class="dots" style="margin-bottom:.875rem">${dotsHTML}</div>${hintsHTML?`<div class="hints" style="margin-bottom:.875rem">${hintsHTML}</div>`:""}<div class="country-grid">${gridHTML}</div>${infDone?`<button class="infinite-btn" id="inf-next">Siguiente plato ➜</button>`:""}`;
+    sec.querySelectorAll(".country-btn:not([disabled])").forEach(btn=>{btn.addEventListener("click",()=>{const c=btn.dataset.c;if(c===infDish.country){playCorrect();infLog.push(true);infState.wins++;infState.total++;infDone=true;renderInf();setTimeout(()=>{launchConfetti();playWin();},300);}else{playWrong();infLog.push(false);infWrong.add(c);if(infLog.length>=getMaxAttempts()){infState.total++;infDone=true;renderInf();setTimeout(()=>playLose(),400);}else renderInf();}});});
+    const nextBtn=document.getElementById("inf-next");if(nextBtn)nextBtn.addEventListener("click",()=>loadInfiniteDish(getRandomDish(infDish.name)));
   }
   renderInf();
 }
 
 // ═══════════════════════════════════════════════════════════
-// SUPABASE RANKING
+// EVENT LISTENERS
 // ═══════════════════════════════════════════════════════════
-const SB_URL = "https://dacgheuzlhybesnqjqzn.supabase.co";
-const SB_KEY = "sb_publishable_hZ1V7TNXiAFlENYGfdESyQ_9zXDq5U7";
-const SB_HEADERS = {"Content-Type":"application/json","apikey":SB_KEY,"Authorization":"Bearer "+SB_KEY};
+document.getElementById("how-open-btn").addEventListener("click",()=>openModal("how-modal"));
+document.getElementById("cfg-open-btn").addEventListener("click",()=>{openModal("cfg-modal");});
+document.getElementById("how-close").addEventListener("click",()=>closeModal("how-modal"));
+document.getElementById("cfg-close").addEventListener("click",()=>closeModal("cfg-modal"));
+document.getElementById("how-play").addEventListener("click",()=>closeModal("how-modal"));
+document.getElementById("share-modal-close").addEventListener("click",()=>closeModal("share-modal"));
+document.getElementById("stats-close").addEventListener("click",()=>closeModal("stats-modal"));
+document.getElementById("ranking-close").addEventListener("click",()=>closeModal("ranking-modal"));
+document.getElementById("duel-close").addEventListener("click",()=>closeModal("duel-modal"));
+["how-modal","cfg-modal","share-modal","stats-modal","ranking-modal","duel-modal"].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener("click",e=>{if(e.target.id===id)closeModal(id);});});
+document.getElementById("menu-open-btn").addEventListener("click",openSideMenu);
+document.getElementById("side-menu-close").addEventListener("click",closeSideMenu);
+document.getElementById("side-overlay").addEventListener("click",closeSideMenu);
+document.getElementById("sm-stats").addEventListener("click",()=>{closeSideMenu();openStats();});
+document.getElementById("sm-ranking").addEventListener("click",()=>{closeSideMenu();openRanking();});
+document.getElementById("ranking-refresh-btn").addEventListener("click",async()=>{document.getElementById("ranking-list").innerHTML='<div class="ranking-empty">Cargando...</div>';try{const rows=await fetchRanking();renderRankingList(rows);}catch(e){}});
+document.getElementById("ranking-modal").addEventListener("click",e=>{if(e.target.id==="ranking-modal")closeModal("ranking-modal");});
 
-const USERNAME_KEY = "comidadle_username";
-const USER_ID_KEY  = "comidadle_userid";
-let myUsername = localStorage.getItem(USERNAME_KEY) || "";
-let myUserId   = localStorage.getItem(USER_ID_KEY)  || "";
-
-async function sbFetch(path, options={}) {
-  const res = await fetch(SB_URL + path, { headers: SB_HEADERS, ...options });
-  if (!res.ok) throw new Error(await res.text());
-  return res.json().catch(() => null);
+// ═══════════════════════════════════════════════════════════
+// SIDE MENU
+// ═══════════════════════════════════════════════════════════
+function openSideMenu(){
+  document.getElementById("side-menu").classList.add("open");
+  document.getElementById("side-overlay").classList.add("open");
+  document.body.style.overflow="hidden";
+}
+function closeSideMenu(){
+  document.getElementById("side-menu").classList.remove("open");
+  document.getElementById("side-overlay").classList.remove("open");
+  document.body.style.overflow="";
 }
 
-async function upsertRanking() {
-  if (!myUsername) return;
-  const data = {
-    streak: streakData.streak,
-    best_streak: streakData.best,
-    wins: streakData.wins,
-    played: streakData.played,
-    updated_at: new Date().toISOString(),
-  };
-  if (myUserId) {
-    // Update existing
-    await sbFetch(`/rest/v1/ranking?id=eq.${myUserId}`, {
-      method: "PATCH",
-      body: JSON.stringify(data),
-    });
-  } else {
-    // Insert new
-    const result = await sbFetch("/rest/v1/ranking?select=id", {
-      method: "POST",
-      headers: {...SB_HEADERS, "Prefer":"return=representation"},
-      body: JSON.stringify({...data, username: myUsername}),
-    });
-    if (result && result[0]) {
-      myUserId = result[0].id;
-      localStorage.setItem(USER_ID_KEY, myUserId);
-    }
-  }
-}
-
-async function fetchRanking() {
-  return await sbFetch("/rest/v1/ranking?select=*&order=best_streak.desc&limit=50");
-}
-
-function renderRankingList(rows) {
-  const el = document.getElementById("ranking-list");
-  if (!rows || rows.length === 0) {
-    el.innerHTML = '<div class="ranking-empty">¡Sé el primero en el ranking! 🌶️</div>';
-    return;
-  }
-  const medals = ["🥇","🥈","🥉"];
-  const posClass = ["gold","silver","bronze"];
-  el.innerHTML = `<table class="ranking-table">
-    <thead><tr>
-      <th>#</th><th>Jugador</th><th>🔥 Racha</th><th>✅ Victorias</th>
-    </tr></thead>
-    <tbody>${rows.map((r,i) => {
-      const isMe = r.id === myUserId;
-      const pos = medals[i] || (i+1);
-      const pClass = posClass[i] || "";
-      const pct = r.played > 0 ? Math.round(r.wins/r.played*100) : 0;
-      return `<tr class="${isMe?"me":""}">
-        <td><span class="rank-pos ${pClass}">${pos}</span></td>
-        <td><span class="rank-name">${r.username}${isMe?" (tú)":""}</span></td>
-        <td><span class="rank-streak">x${r.best_streak}</span></td>
-        <td><span class="rank-wins">${r.wins}/${r.played} (${pct}%)</span></td>
-      </tr>`;
-    }).join("")}</tbody>
-  </table>`;
-}
-
-function renderUsernameSection(isChanging=false) {
-  const el = document.getElementById("ranking-username-section");
-  if (myUsername && !isChanging) {
-    el.innerHTML = `<div style="display:flex;align-items:center;gap:8px;margin-bottom:.75rem;padding:.6rem .875rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm)">
-      <span style="font-size:13px;color:var(--text-muted)">Jugando como</span>
-      <span style="font-size:13px;font-weight:700;color:var(--accent);flex:1">${myUsername}</span>
-      <button class="ranking-btn" id="change-name-btn" style="font-size:11px;padding:.3rem .6rem">Cambiar</button>
-    </div>`;
-    document.getElementById("change-name-btn").addEventListener("click", () => {
-      renderUsernameSection(true);
-    });
-  } else {
-    const showCancel = !!myUsername; // show cancel only if already had a name
-    el.innerHTML = `<div style="margin-bottom:.75rem">
-      <div style="font-size:13px;color:var(--text-muted);margin-bottom:.5rem">${showCancel?"Cambia tu nombre:":"Elige un nombre para aparecer en el ranking:"}</div>
-      <input class="username-input" id="username-input" placeholder="Tu nombre o apodo..." maxlength="20" value="${showCancel?myUsername:""}">
-      <div style="display:flex;gap:8px">
-        <button class="ranking-btn primary" id="save-username-btn" style="flex:1">Guardar</button>
-        ${showCancel?'<button class="ranking-btn" id="cancel-name-btn">Cancelar</button>':""}
-      </div>
-    </div>`;
-    if(showCancel){
-      document.getElementById("cancel-name-btn").addEventListener("click", () => {
-        renderUsernameSection(false);
-      });
-    }
-    document.getElementById("save-username-btn").addEventListener("click", async () => {
-      const val = document.getElementById("username-input").value.trim();
-      if (!val) return;
-      const saveBtn = document.getElementById("save-username-btn");
-      saveBtn.textContent = "Comprobando...";
-      saveBtn.disabled = true;
-
-      // Check if name already taken by someone else
-      try {
-        const existing = await sbFetch(`/rest/v1/ranking?username=eq.${encodeURIComponent(val)}&select=id`);
-        const takenByOther = existing && existing.length > 0 && existing.some(r => r.id !== myUserId);
-        if (takenByOther) {
-          saveBtn.textContent = "Guardar";
-          saveBtn.disabled = false;
-          const input = document.getElementById("username-input");
-          input.style.borderColor = "var(--red)";
-          input.placeholder = "Ese nombre ya está en uso 😅";
-          input.value = "";
-          setTimeout(() => { input.style.borderColor = ""; }, 2000);
-          return;
-        }
-      } catch(e) {}
-
-      // Delete old entry if exists
-      if (myUserId) {
-        try {
-          await sbFetch(`/rest/v1/ranking?id=eq.${myUserId}`, { method: "DELETE" });
-        } catch(e) {}
-        myUserId = "";
-        localStorage.removeItem(USER_ID_KEY);
-      }
-      myUsername = val;
-      localStorage.setItem(USERNAME_KEY, myUsername);
-      renderUsernameSection(false);
-      document.getElementById("ranking-list").innerHTML='<div class="ranking-empty">Guardando...</div>';
-      await upsertRanking();
-      const rows = await fetchRanking();
-      renderRankingList(rows);
-    });
-  }
-}
-
-async function openRanking() {
+// ═══════════════════════════════════════════════════════════
+// OPEN RANKING / STATS
+// ═══════════════════════════════════════════════════════════
+async function openRanking(){
   openModal("ranking-modal");
   renderUsernameSection();
-  document.getElementById("ranking-list").innerHTML = '<div class="ranking-empty">Cargando...</div>';
-  try {
-    const rows = await fetchRanking();
-    renderRankingList(rows);
-  } catch(e) {
-    document.getElementById("ranking-list").innerHTML = '<div class="ranking-empty">Error cargando el ranking 😔</div>';
-  }
+  document.getElementById("ranking-list").innerHTML='<div class="ranking-empty">Cargando...</div>';
+  try{const rows=await fetchRanking();renderRankingList(rows);}
+  catch(e){document.getElementById("ranking-list").innerHTML='<div class="ranking-empty">Error cargando el ranking 😔</div>';}
 }
 
 // ═══════════════════════════════════════════════════════════
-// SOUNDS
+// MODAL HELPERS
 // ═══════════════════════════════════════════════════════════
-let audioCtx=null;
-function getAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx}
-function playCorrect(){try{const c=getAudio(),notes=[523,659,784,1047];notes.forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type="sine";o.frequency.value=f;const s=c.currentTime+i*.1;g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(.18,s+.02);g.gain.exponentialRampToValueAtTime(.001,s+.25);o.start(s);o.stop(s+.25)})}catch(e){}}
-function playWrong(){try{const c=getAudio(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type="sawtooth";o.frequency.setValueAtTime(220,c.currentTime);o.frequency.linearRampToValueAtTime(150,c.currentTime+.15);g.gain.setValueAtTime(.15,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.2);o.start(c.currentTime);o.stop(c.currentTime+.2)}catch(e){}}
-function playWin(){try{const c=getAudio(),m=[523,659,784,659,784,1047];m.forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type="sine";o.frequency.value=f;const s=c.currentTime+i*.12;g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(.2,s+.03);g.gain.exponentialRampToValueAtTime(.001,s+.3);o.start(s);o.stop(s+.3)})}catch(e){}}
-function playLose(){try{const c=getAudio(),n=[392,349,330,294];n.forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type="sine";o.frequency.value=f;const s=c.currentTime+i*.13;g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(.15,s+.03);g.gain.exponentialRampToValueAtTime(.001,s+.3);o.start(s);o.stop(s+.3)})}catch(e){}}
-
-// ═══════════════════════════════════════════════════════════
-// CONFETTI
-// ═══════════════════════════════════════════════════════════
-function launchConfetti(){const canvas=document.createElement("canvas");canvas.id="confetti-canvas";canvas.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999";document.body.appendChild(canvas);const ctx=canvas.getContext("2d");canvas.width=window.innerWidth;canvas.height=window.innerHeight;const colors=["#FF6B35","#FFB627","#22C55E","#FFF3E0","#FF4444","#4ADE80","#FBBF24"];const pieces=Array.from({length:120},()=>({x:Math.random()*canvas.width,y:Math.random()*canvas.height-canvas.height,w:Math.random()*10+5,h:Math.random()*6+3,color:colors[Math.floor(Math.random()*colors.length)],rot:Math.random()*Math.PI*2,rotSpeed:(Math.random()-.5)*.15,vx:(Math.random()-.5)*3,vy:Math.random()*4+2,opacity:1}));let frame=0;function draw(){ctx.clearRect(0,0,canvas.width,canvas.height);pieces.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.rot+=p.rotSpeed;if(frame>120)p.opacity-=.012;ctx.save();ctx.globalAlpha=Math.max(0,p.opacity);ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.color;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore()});frame++;if(frame<200)requestAnimationFrame(draw);else canvas.remove()}draw()}
-
-// ═══════════════════════════════════════════════════════════
-// NOTIFICACIONES LOCALES
-// ═══════════════════════════════════════════════════════════
-const NOTIF_KEY = "comidadle_notif";
-
-function scheduleStreakNotification() {
-  if(!("Notification" in window)) return;
-  // Schedule for 21:00 today
-  const now = new Date();
-  const target = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 21, 0, 0);
-  if(target <= now) target.setDate(target.getDate() + 1); // if past 21:00, schedule for tomorrow
-  const delay = target - now;
-  setTimeout(() => {
-    // Only notify if they haven't played today
-    const todayKey = "comidadle_" + new Date().toISOString().slice(0,10);
-    let todaySaved = null;
-    try { todaySaved = JSON.parse(localStorage.getItem(todayKey)); } catch(e) {}
-    if(!todaySaved || !todaySaved.done) {
-      new Notification("🔥 Comidadle", {
-        body: "¡Tu racha está en peligro! Queda poco para medianoche.",
-        icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌶️</text></svg>",
-        badge: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌶️</text></svg>",
-        tag: "comidadle-streak",
-      });
-    }
-  }, delay);
+function openModal(id){
+  const el=document.getElementById(id);
+  if(el){el.classList.remove("hidden");document.body.style.overflow="hidden";}
 }
-
-async function askNotificationPermission() {
-  if(!("Notification" in window)) return;
-  if(Notification.permission === "granted") {
-    scheduleStreakNotification();
-    return;
-  }
-  if(Notification.permission === "denied") return;
-  // Show custom prompt first
-  const banner = document.createElement("div");
-  banner.id = "notif-banner";
-  banner.style.cssText = `position:fixed;bottom:1rem;left:50%;transform:translateX(-50%);width:calc(100% - 2rem);max-width:480px;background:#1C1208;border:1px solid rgba(255,150,50,0.4);border-radius:12px;padding:1rem 1.25rem;display:flex;align-items:center;gap:12px;z-index:50;box-shadow:0 4px 24px rgba(0,0,0,0.4);animation:fadeUp .35s ease`;
-  banner.innerHTML = `
-    <div style="font-size:28px;flex-shrink:0">🔥</div>
-    <div style="flex:1">
-      <div style="font-size:14px;font-weight:600;color:#FFF3E0;margin-bottom:2px">¿Activar avisos de racha?</div>
-      <div style="font-size:12px;color:#9A7050">Te avisamos a las 21:00 si aún no has jugado</div>
-    </div>
-    <div style="display:flex;gap:6px;flex-shrink:0">
-      <button id="notif-yes" style="background:#FF6B35;color:#fff;border:none;border-radius:8px;padding:.45rem .875rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer">¡Sí!</button>
-      <button id="notif-no" style="background:#251A0D;color:#9A7050;border:1px solid rgba(255,150,50,0.2);border-radius:8px;padding:.45rem .875rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;cursor:pointer">No</button>
-    </div>`;
-  document.body.appendChild(banner);
-
-  document.getElementById("notif-yes").addEventListener("click", async () => {
-    banner.remove();
-    const permission = await Notification.requestPermission();
-    if(permission === "granted") scheduleStreakNotification();
-    localStorage.setItem(NOTIF_KEY, permission);
-  });
-  document.getElementById("notif-no").addEventListener("click", () => {
-    banner.remove();
-    localStorage.setItem(NOTIF_KEY, "dismissed");
-  });
-}
-
-// ═══════════════════════════════════════════════════════════
-// ESTADÍSTICAS DETALLADAS
-// ═══════════════════════════════════════════════════════════
-const ATTEMPTS_KEY = "comidadle_attempts";
-
-function getAttemptsData() {
-  try { return JSON.parse(localStorage.getItem(ATTEMPTS_KEY)) || {1:0,2:0,3:0,4:0,5:0,6:0,fail:0}; }
-  catch(e) { return {1:0,2:0,3:0,4:0,5:0,6:0,fail:0}; }
-}
-
-function recordAttempt(won, attempts) {
-  const data = getAttemptsData();
-  if (won) data[attempts] = (data[attempts] || 0) + 1;
-  else data.fail = (data.fail || 0) + 1;
-  try { localStorage.setItem(ATTEMPTS_KEY, JSON.stringify(data)); } catch(e) {}
-}
-
-function openStats() {
-  openModal("stats-modal");
-  renderStatsContent();
-}
-
-function renderStatsContent() {
-  const el = document.getElementById("stats-content");
-  const streak = streakData;
-  const pct = streak.played > 0 ? Math.round(streak.wins / streak.played * 100) : 0;
-  const attData = getAttemptsData();
-  const maxVal = Math.max(...[1,2,3,4,5,6].map(n => attData[n]||0), attData.fail||0, 1);
-
-  const bars = [1,2,3,4,5,6].map(n => {
-    const val = attData[n] || 0;
-    const w = maxVal > 0 ? Math.round((val/maxVal)*100) : 0;
-    return `<div class="bar-row">
-      <div class="bar-label">${n}</div>
-      <div class="bar-track">
-        <div class="bar-fill${val===0?" zero":""}" style="width:${Math.max(w,val>0?8:0)}%">
-          ${val > 0 ? `<span class="bar-count">${val}</span>` : ""}
-        </div>
-      </div>
-    </div>`;
-  }).join("");
-
-  const failVal = attData.fail || 0;
-  const failW = maxVal > 0 ? Math.round((failVal/maxVal)*100) : 0;
-  const failBar = `<div class="bar-row">
-    <div class="bar-label" style="color:var(--red)">✗</div>
-    <div class="bar-track">
-      <div class="bar-fill${failVal===0?" zero":""}" style="width:${Math.max(failW,failVal>0?8:0)}%;background:${failVal>0?"var(--red)":"var(--surface2)"}">
-        ${failVal > 0 ? `<span class="bar-count">${failVal}</span>` : ""}
-      </div>
-    </div>
-  </div>`;
-
-  el.innerHTML = `
-    <div class="stats-grid">
-      <div class="stat-card accent">
-        <div class="stat-card-num">🔥${streak.streak}</div>
-        <div class="stat-card-label">Racha actual</div>
-      </div>
-      <div class="stat-card gold">
-        <div class="stat-card-num">${streak.best}</div>
-        <div class="stat-card-label">Mejor racha</div>
-      </div>
-      <div class="stat-card green">
-        <div class="stat-card-num">${pct}%</div>
-        <div class="stat-card-label">% Victorias</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-card-num">${streak.played}</div>
-        <div class="stat-card-label">Partidas</div>
-      </div>
-    </div>
-    <div class="attempts-chart">
-      <div class="attempts-chart-title">Distribución de intentos</div>
-      ${bars}
-      ${failBar}
-    </div>
-    ${streak.played === 0 ? `<div style="text-align:center;font-size:13px;color:var(--text-muted);padding:1rem">¡Juega tu primera partida para ver tus estadísticas! 🌶️</div>` : ""}`;
+function closeModal(id){
+  const el=document.getElementById(id);
+  if(el){el.classList.add("hidden");document.body.style.overflow="";}
 }
 
 const toggleMap={"few-attempts-toggle":"fewAttempts","more-countries-toggle":"moreCountries","no-hints-toggle":"noHints","prog-toggle":"progressive","no-desc-toggle":"noDesc"};
