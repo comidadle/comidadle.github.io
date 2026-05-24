@@ -523,14 +523,29 @@ async function renderReviews() {
   const adminBtn = document.getElementById("admin-login-btn");
   if (adminBtn) {
     adminBtn.addEventListener("click", () => {
-      const pass = prompt("Contraseña de admin:");
-      if (pass === ADMIN_PASS) {
-        isAdmin = true;
-        localStorage.setItem(ADMIN_KEY, "1");
-        renderReviews();
-      } else if (pass !== null) {
-        alert("Contraseña incorrecta");
-      }
+      // Replace button with inline form
+      const wrapper = adminBtn.parentElement;
+      wrapper.innerHTML = `<div style="display:flex;gap:6px;align-items:center;justify-content:flex-end;margin-bottom:.5rem">
+        <input id="admin-pass-input" type="password" placeholder="Contraseña..." style="background:var(--surface2);border:1px solid var(--border-strong);border-radius:var(--r-sm);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;padding:.4rem .75rem;width:160px;outline:none">
+        <button id="admin-pass-confirm" style="background:var(--accent);border:none;border-radius:var(--r-sm);color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;padding:.4rem .75rem;cursor:pointer">Entrar</button>
+        <button id="admin-pass-cancel" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text-muted);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;padding:.4rem .6rem;cursor:pointer">✕</button>
+      </div>`;
+      document.getElementById("admin-pass-input").focus();
+      document.getElementById("admin-pass-cancel").addEventListener("click", ()=>renderReviews());
+      const confirm = ()=>{
+        const val = document.getElementById("admin-pass-input").value;
+        if(val === ADMIN_PASS){
+          isAdmin = true;
+          localStorage.setItem(ADMIN_KEY, "1");
+          renderReviews();
+        } else {
+          document.getElementById("admin-pass-input").style.borderColor="var(--red)";
+          document.getElementById("admin-pass-input").value="";
+          document.getElementById("admin-pass-input").placeholder="Contraseña incorrecta ❌";
+        }
+      };
+      document.getElementById("admin-pass-confirm").addEventListener("click", confirm);
+      document.getElementById("admin-pass-input").addEventListener("keydown", e=>{ if(e.key==="Enter") confirm(); });
     });
   }
 
