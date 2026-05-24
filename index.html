@@ -192,6 +192,15 @@
     .review-name{font-size:13px;font-weight:700;color:var(--text)}
     .review-stars{font-size:14px;letter-spacing:1px}
     .review-date{font-size:11px;color:var(--text-muted)}
+    .reply-card{background:var(--surface);border-left:2px solid var(--border-strong);padding:.625rem .75rem;margin-top:.4rem;border-radius:0 var(--r-sm) var(--r-sm) 0}
+    .reply-name{font-size:12px;font-weight:700;color:var(--text)}
+    .reply-admin-badge{background:var(--accent);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:99px;letter-spacing:.03em;margin-left:5px;vertical-align:middle}
+    .reply-text{font-size:12px;color:var(--text-muted);margin-top:2px;line-height:1.5}
+    .reply-date{font-size:10px;color:var(--text-muted);margin-top:2px}
+    .reply-toggle-btn{background:none;border:none;color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;padding:.25rem 0;font-family:'Plus Jakarta Sans',sans-serif}
+    .reply-input-row{display:flex;gap:6px;margin-top:.5rem}
+    .reply-input{flex:1;background:var(--surface2);border:1px solid var(--border-strong);border-radius:var(--r-sm);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;padding:.4rem .65rem;outline:none}
+    .reply-send-btn{background:var(--accent);border:none;border-radius:var(--r-sm);color:#fff;font-size:12px;font-weight:600;padding:.4rem .75rem;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap}
     .review-comment{font-size:13px;color:var(--text-muted);line-height:1.55}
     .review-textarea{width:100%;background:var(--surface2);border:1px solid var(--border-strong);border-radius:var(--r-sm);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;padding:.75rem;resize:none;margin:.5rem 0;line-height:1.6;min-height:80px}
     .ranking-empty{text-align:center;padding:2rem;color:var(--text-muted);font-size:13px}
@@ -596,23 +605,36 @@ async function renderReviews() {
     const avg = rows.reduce((a, r) => a + r.stars, 0) / rows.length;
     document.getElementById("avg-stars").textContent = starsHTML(Math.round(avg));
     document.getElementById("avg-text").textContent = `${avg.toFixed(1)} de 5 · ${rows.length} reseña${rows.length !== 1 ? "s" : ""}`;
-    listEl.innerHTML = rows.map(r => {
+    // Fetch reply counts for all reviews
+    const replyCountMap = {};
+    try {
+      const allReplies = await sbFetch(`/rest/v1/review_replies?select=review_id`);
+      if (allReplies) allReplies.forEach(r => { replyCountMap[r.review_id] = (replyCountMap[r.review_id]||0)+1; });
+    } catch(e) {}
+
+    listEl.innerHTML = "";
+    rows.forEach(r => {
       const isOwn = r.username === myName;
       const canDelete = isAdmin || isOwn;
-      return `<div class="review-card" id="rev-${r.id}">
+      const replyCount = replyCountMap[r.id] || 0;
+      const card = document.createElement("div");
+      card.className = "review-card";
+      card.id = `rev-${r.id}`;
+      card.innerHTML = `
         <div class="review-header">
           <div>
-            <span class="review-name">${r.username}${isAdmin?"":""}</span>
+            <span class="review-name">${r.username}</span>
             <span class="review-stars" style="margin-left:6px">${starsHTML(r.stars)}</span>
           </div>
           <div style="display:flex;align-items:center;gap:8px">
             <span class="review-date">${timeAgo(r.created_at)}</span>
-            ${canDelete?`<button onclick="deleteReviewById('${r.id}','${r.username}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;padding:2px 4px" title="Borrar">🗑️</button>`:""}
+            ${canDelete?`<button onclick="deleteReviewById('${r.id}','${r.username}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;padding:2px 4px">🗑️</button>`:""}
           </div>
         </div>
-        ${r.comment ? `<div class="review-comment">"${r.comment}"</div>` : ""}
-      </div>`;
-    }).join("");
+        ${r.comment ? `<div class="review-comment">"${r.comment}"</div>` : ""}`;
+      listEl.appendChild(card);
+      renderReplySection(r.id, replyCount, card);
+    });
   } catch(e) {
     document.getElementById("reviews-list").innerHTML = '<div class="ranking-empty">Error cargando reseñas 😔</div>';
   }
@@ -665,6 +687,132 @@ async function syncStreakToRanking() {
       })
     });
   } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════════════════
+// REVIEW REPLIES
+// ═══════════════════════════════════════════════════════════
+async function fetchReplies(reviewId) {
+  return await sbFetch(`/rest/v1/review_replies?review_id=eq.${reviewId}&select=*&order=created_at.asc`);
+}
+
+async function submitReply(reviewId, reply) {
+  const name = myUsername || "Anónimo";
+  return await sbFetch("/rest/v1/review_replies", {
+    method: "POST",
+    headers: {...SB_HEADERS, "Prefer": "return=representation"},
+    body: JSON.stringify({ review_id: reviewId, username: name, is_admin: isAdmin, reply })
+  });
+}
+
+async function deleteReply(replyId) {
+  return await sbFetch(`/rest/v1/review_replies?id=eq.${replyId}`, { method: "DELETE" });
+}
+
+function renderReplySection(reviewId, replyCount, container) {
+  const myName = myUsername || "Anónimo";
+  let repliesVisible = false;
+
+  const repliesDiv = document.createElement("div");
+  repliesDiv.id = `replies-${reviewId}`;
+
+  const actionsDiv = document.createElement("div");
+  actionsDiv.style.cssText = "display:flex;align-items:center;gap:12px;margin-top:.4rem";
+
+  // Toggle button (only if there are replies)
+  const toggleBtn = document.createElement("button");
+  toggleBtn.className = "reply-toggle-btn";
+  toggleBtn.textContent = replyCount > 0 ? `Ver respuestas (${replyCount})` : "";
+  toggleBtn.style.display = replyCount > 0 ? "" : "none";
+
+  // Reply button
+  const replyBtn = document.createElement("button");
+  replyBtn.className = "reply-toggle-btn";
+  replyBtn.style.color = "var(--text-muted)";
+  replyBtn.textContent = "Responder";
+
+  actionsDiv.appendChild(toggleBtn);
+  actionsDiv.appendChild(replyBtn);
+  container.appendChild(actionsDiv);
+  container.appendChild(repliesDiv);
+
+  // Toggle replies
+  toggleBtn.addEventListener("click", async () => {
+    if (repliesVisible) {
+      repliesDiv.innerHTML = "";
+      repliesVisible = false;
+      toggleBtn.textContent = `Ver respuestas (${replyCount})`;
+    } else {
+      toggleBtn.textContent = "Cargando...";
+      const rows = await fetchReplies(reviewId).catch(() => []);
+      replyCount = rows.length;
+      repliesDiv.innerHTML = rows.map(r => `
+        <div class="reply-card" id="reply-${r.id}">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <span class="reply-name">${r.username}</span>
+              ${r.is_admin ? '<span class="reply-admin-badge">ADMIN</span>' : ""}
+            </div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span class="reply-date">${timeAgo(r.created_at)}</span>
+              ${isAdmin || r.username === myName ? `<button onclick="deleteReply('${r.id}').then(()=>document.getElementById('reply-${r.id}').remove())" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:12px;padding:2px 4px">🗑️</button>` : ""}
+            </div>
+          </div>
+          <div class="reply-text">${r.reply}</div>
+        </div>`).join("");
+      if (rows.length === 0) repliesDiv.innerHTML = '<div style="font-size:12px;color:var(--text-muted);padding:.4rem 0">Sin respuestas aún</div>';
+      repliesVisible = true;
+      toggleBtn.textContent = "Ocultar respuestas ▲";
+    }
+  });
+
+  // Reply input
+  let inputVisible = false;
+  replyBtn.addEventListener("click", () => {
+    if (inputVisible) { 
+      const row = document.getElementById(`reply-input-row-${reviewId}`);
+      if (row) row.remove();
+      inputVisible = false;
+      replyBtn.style.color = "var(--text-muted)";
+      return;
+    }
+    inputVisible = true;
+    replyBtn.style.color = "var(--accent)";
+    const row = document.createElement("div");
+    row.id = `reply-input-row-${reviewId}`;
+    row.className = "reply-input-row";
+    row.innerHTML = `<input class="reply-input" placeholder="Escribe una respuesta..." maxlength="300"><button class="reply-send-btn">Enviar</button>`;
+    container.appendChild(row);
+    const input = row.querySelector(".reply-input");
+    const send = row.querySelector(".reply-send-btn");
+    input.focus();
+    const doSend = async () => {
+      const val = input.value.trim();
+      if (!val) return;
+      send.textContent = "..."; send.disabled = true;
+      await submitReply(reviewId, val);
+      row.remove(); inputVisible = false;
+      replyCount++;
+      toggleBtn.style.display = "";
+      // Auto-show replies after sending
+      if (!repliesVisible) toggleBtn.click();
+      else {
+        const rows2 = await fetchReplies(reviewId).catch(()=>[]);
+        replyCount = rows2.length;
+        repliesDiv.innerHTML = rows2.map(r => `
+          <div class="reply-card" id="reply-${r.id}">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div><span class="reply-name">${r.username}</span>${r.is_admin?'<span class="reply-admin-badge">ADMIN</span>':""}</div>
+              <div style="display:flex;align-items:center;gap:6px"><span class="reply-date">${timeAgo(r.created_at)}</span>${isAdmin||r.username===myName?`<button onclick="deleteReply('${r.id}').then(()=>document.getElementById('reply-${r.id}').remove())" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:12px;padding:2px 4px">🗑️</button>`:""}</div>
+            </div>
+            <div class="reply-text">${r.reply}</div>
+          </div>`).join("");
+        toggleBtn.textContent = "Ocultar respuestas ▲";
+      }
+    };
+    send.addEventListener("click", doSend);
+    input.addEventListener("keydown", e => { if (e.key === "Enter") doSend(); });
+  });
 }
 
 function checkDuelFromURL(){
