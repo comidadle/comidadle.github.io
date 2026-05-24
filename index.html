@@ -445,6 +445,9 @@
 // REVIEWS
 // ═══════════════════════════════════════════════════════════
 const REVIEWED_KEY = "comidadle_reviewed";
+const ADMIN_KEY = "comidadle_admin";
+const ADMIN_PASS = "11DEDOSENLOSpies";
+let isAdmin = localStorage.getItem(ADMIN_KEY) === "1";
 
 async function fetchReviews() {
   return await sbFetch("/rest/v1/reviews?select=*&order=created_at.desc&limit=50");
@@ -486,9 +489,15 @@ async function renderReviews() {
   const el = document.getElementById("reviews-content");
   if (!el) return;
   const alreadyReviewed = localStorage.getItem(REVIEWED_KEY);
+  const myName = myUsername || "Anónimo";
+
+  const adminBanner = isAdmin
+    ? `<div style="background:rgba(255,182,39,0.12);border:1px solid var(--gold);border-radius:var(--r-sm);padding:.5rem .875rem;margin-bottom:.75rem;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--gold);font-weight:600">👑 Modo Admin <button onclick="isAdmin=false;localStorage.removeItem('${ADMIN_KEY}');renderReviews()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:11px">Cerrar sesión</button></div>`
+    : `<div style="text-align:right;margin-bottom:.5rem"><button id="admin-login-btn" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:11px;text-decoration:underline">¿Eres el admin?</button></div>`;
+
   const avgSection = `<div id="reviews-avg" style="text-align:center;padding:.5rem 0 .75rem;border-bottom:1px solid var(--border);margin-bottom:.875rem"><div id="avg-stars" style="font-size:24px">⭐⭐⭐⭐⭐</div><div id="avg-text" style="font-size:12px;color:var(--text-muted);margin-top:4px">Calculando...</div></div>`;
 
-  const formSection = alreadyReviewed ? "" : `
+  const formSection = alreadyReviewed ? `<div style="text-align:center;font-size:12px;color:var(--text-muted);margin-bottom:.75rem">Ya dejaste una reseña. <button id="delete-my-review-btn" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:12px;text-decoration:underline">Borrarla y escribir otra</button></div>` : `
     <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:1rem;margin-bottom:1rem">
       <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:.5rem">Deja tu reseña</div>
       <div class="stars-input" id="stars-input">
@@ -499,7 +508,22 @@ async function renderReviews() {
       <button class="play-btn" id="submit-review-btn" style="width:100%;margin-top:.25rem" disabled>Enviar reseña</button>
     </div>`;
 
-  el.innerHTML = avgSection + formSection + `<div id="reviews-list"><div class="ranking-empty">Cargando reseñas...</div></div>`;
+  el.innerHTML = adminBanner + avgSection + formSection + `<div id="reviews-list"><div class="ranking-empty">Cargando reseñas...</div></div>`;
+
+  // Admin login
+  const adminBtn = document.getElementById("admin-login-btn");
+  if (adminBtn) {
+    adminBtn.addEventListener("click", () => {
+      const pass = prompt("Contraseña de admin:");
+      if (pass === ADMIN_PASS) {
+        isAdmin = true;
+        localStorage.setItem(ADMIN_KEY, "1");
+        renderReviews();
+      } else if (pass !== null) {
+        alert("Contraseña incorrecta");
+      }
+    });
+  }
 
   // Wire stars
   let selectedStars = 0;
@@ -523,6 +547,18 @@ async function renderReviews() {
     });
   }
 
+  // Delete my review
+  const delMyBtn = document.getElementById("delete-my-review-btn");
+  if (delMyBtn) {
+    delMyBtn.addEventListener("click", async () => {
+      try {
+        await sbFetch(`/rest/v1/reviews?username=eq.${encodeURIComponent(myName)}`, { method: "DELETE" });
+        localStorage.removeItem(REVIEWED_KEY);
+        renderReviews();
+      } catch(e) {}
+    });
+  }
+
   // Load reviews
   try {
     const rows = await fetchReviews();
@@ -536,20 +572,35 @@ async function renderReviews() {
     const avg = rows.reduce((a, r) => a + r.stars, 0) / rows.length;
     document.getElementById("avg-stars").textContent = starsHTML(Math.round(avg));
     document.getElementById("avg-text").textContent = `${avg.toFixed(1)} de 5 · ${rows.length} reseña${rows.length !== 1 ? "s" : ""}`;
-    listEl.innerHTML = rows.map(r => `
-      <div class="review-card">
+    listEl.innerHTML = rows.map(r => {
+      const isOwn = r.username === myName;
+      const canDelete = isAdmin || isOwn;
+      return `<div class="review-card" id="rev-${r.id}">
         <div class="review-header">
           <div>
-            <span class="review-name">${r.username}</span>
+            <span class="review-name">${r.username}${isAdmin?"":""}</span>
             <span class="review-stars" style="margin-left:6px">${starsHTML(r.stars)}</span>
           </div>
-          <span class="review-date">${timeAgo(r.created_at)}</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="review-date">${timeAgo(r.created_at)}</span>
+            ${canDelete?`<button onclick="deleteReviewById('${r.id}','${r.username}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;padding:2px 4px" title="Borrar">🗑️</button>`:""}
+          </div>
         </div>
         ${r.comment ? `<div class="review-comment">"${r.comment}"</div>` : ""}
-      </div>`).join("");
+      </div>`;
+    }).join("");
   } catch(e) {
     document.getElementById("reviews-list").innerHTML = '<div class="ranking-empty">Error cargando reseñas 😔</div>';
   }
+}
+
+async function deleteReviewById(id, username) {
+  try {
+    await sbFetch(`/rest/v1/reviews?id=eq.${id}`, { method: "DELETE" });
+    const myName = myUsername || "Anónimo";
+    if (username === myName) localStorage.removeItem(REVIEWED_KEY);
+    renderReviews();
+  } catch(e) {}
 }
 
 // ── Delete from ranking ──
