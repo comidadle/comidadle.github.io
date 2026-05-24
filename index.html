@@ -605,14 +605,17 @@ async function deleteReviewById(id, username) {
 
 // ── Delete from ranking ──
 async function deleteFromRanking() {
-  if (!myUserId) return;
+  if (!myUsername) return;
   if (!confirm("¿Seguro que quieres eliminarte del ranking?")) return;
   try {
-    await sbFetch(`/rest/v1/ranking?id=eq.${myUserId}`, { method: "DELETE" });
+    // Delete by username AND by id to make sure it's gone
+    if (myUserId) await sbFetch(`/rest/v1/ranking?id=eq.${myUserId}`, { method: "DELETE" }).catch(()=>{});
+    await sbFetch(`/rest/v1/ranking?username=eq.${encodeURIComponent(myUsername)}`, { method: "DELETE" }).catch(()=>{});
     myUserId = ""; myUsername = "";
     localStorage.removeItem(USER_ID_KEY);
     localStorage.removeItem(USERNAME_KEY);
-    renderUsernameSection();
+    renderUsernameSection(false);
+    await new Promise(r => setTimeout(r, 500)); // wait for DB
     const rows = await fetchRanking();
     renderRankingList(rows);
   } catch(e) {}
@@ -830,7 +833,11 @@ function renderUsernameSection(isChanging=false){
       const val=document.getElementById("username-input").value.trim();if(!val)return;
       const saveBtn=document.getElementById("save-username-btn");saveBtn.textContent="Comprobando...";saveBtn.disabled=true;
       try{const existing=await sbFetch(`/rest/v1/ranking?username=eq.${encodeURIComponent(val)}&select=id`);if(existing&&existing.some(r=>r.id!==myUserId)){saveBtn.textContent="Guardar";saveBtn.disabled=false;const inp=document.getElementById("username-input");inp.style.borderColor="var(--red)";inp.placeholder="Ese nombre ya está en uso 😅";inp.value="";setTimeout(()=>inp.style.borderColor="",2000);return;}}catch(e){}
-      if(myUserId){try{await sbFetch(`/rest/v1/ranking?id=eq.${myUserId}`,{method:"DELETE"});}catch(e){}myUserId="";localStorage.removeItem(USER_ID_KEY);}
+      if(myUserId||myUsername){
+        try{await sbFetch(`/rest/v1/ranking?id=eq.${myUserId}`,{method:"DELETE"});}catch(e){}
+        try{await sbFetch(`/rest/v1/ranking?username=eq.${encodeURIComponent(myUsername)}`,{method:"DELETE"});}catch(e){}
+        myUserId="";localStorage.removeItem(USER_ID_KEY);
+      }
       myUsername=val;localStorage.setItem(USERNAME_KEY,myUsername);renderUsernameSection(false);
       document.getElementById("ranking-list").innerHTML='<div class="ranking-empty">Guardando...</div>';
       await upsertRanking();const rows=await fetchRanking();renderRankingList(rows);
