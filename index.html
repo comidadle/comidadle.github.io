@@ -144,6 +144,8 @@
     .countdown-box{text-align:center;padding:.75rem 0 .25rem}
     .countdown-label{font-size:11px;color:var(--text-muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
     .countdown-time{font-family:'Fraunces',serif;font-size:28px;font-weight:900;color:var(--gold);letter-spacing:2px}
+    @keyframes splashPop{0%{transform:scale(0) rotate(-20deg);opacity:0}100%{transform:scale(1) rotate(0deg);opacity:1}}
+    @keyframes splashFadeOut{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.05)}}
     #confetti-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999}
     .ranking-modal .modal{max-width:480px}
     .ranking-title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
@@ -341,6 +343,13 @@
 </main>
 
 <!-- SIDE MENU -->
+<!-- SPLASH SCREEN -->
+<div id="splash" style="position:fixed;inset:0;background:#100900;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0">
+  <div id="splash-emoji" style="font-size:80px;animation:splashPop .6s cubic-bezier(.34,1.56,.64,1) both">🌶️</div>
+  <div id="splash-title" style="font-family:'Fraunces',serif;font-size:32px;font-weight:900;color:#FFF3E0;opacity:0;transform:translateY(12px);transition:all .5s ease .3s">Comidadle</div>
+  <div id="splash-sub" style="font-size:13px;color:#9A7050;opacity:0;transform:translateY(8px);transition:all .5s ease .5s;margin-top:6px">Adivina de dónde es la comida</div>
+</div>
+
 <div class="side-overlay" id="side-overlay"></div>
 <div class="side-menu" id="side-menu">
   <div class="side-menu-header">
@@ -911,6 +920,23 @@ document.getElementById("ranking-refresh-btn").addEventListener("click",async()=
 document.getElementById("copy-btn").addEventListener("click",()=>{const ta=document.getElementById("share-textarea");ta.select();ta.setSelectionRange(0,99999);const cb=document.getElementById("copy-btn");if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(shareText).then(()=>{cb.textContent="¡Copiado! ✓";cb.classList.add("copied");}).catch(()=>{try{document.execCommand("copy");}catch(e){}cb.textContent="¡Copiado! ✓";cb.classList.add("copied");});}else{try{document.execCommand("copy");}catch(e){}cb.textContent="¡Copiado! ✓";cb.classList.add("copied");}});
 
 // Init
+// Splash screen
+(function(){
+  const splash = document.getElementById("splash");
+  const title = document.getElementById("splash-title");
+  const sub = document.getElementById("splash-sub");
+  // Trigger text fade in
+  requestAnimationFrame(()=>{
+    setTimeout(()=>{ title.style.opacity="1"; title.style.transform="translateY(0)"; },100);
+    setTimeout(()=>{ sub.style.opacity="1"; sub.style.transform="translateY(0)"; },100);
+  });
+  // Hide splash after 1.6s
+  setTimeout(()=>{
+    splash.style.animation="splashFadeOut .5s ease forwards";
+    setTimeout(()=>{ splash.style.display="none"; }, 500);
+  }, 1600);
+})();
+
 if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{});}
 document.getElementById("date-pill").textContent=`${now.getDate()} ${MONTHS[now.getMonth()]} · Día ${dayOfYear}`;
 syncStreakToRanking();
