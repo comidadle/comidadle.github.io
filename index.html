@@ -501,8 +501,8 @@ async function renderReviews() {
   const myName = myUsername || "Anónimo";
 
   const adminBanner = isAdmin
-    ? `<div style="background:rgba(255,182,39,0.12);border:1px solid var(--gold);border-radius:var(--r-sm);padding:.5rem .875rem;margin-bottom:.75rem;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--gold);font-weight:600">👑 Modo Admin <button onclick="isAdmin=false;localStorage.removeItem('${ADMIN_KEY}');renderReviews()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:11px">Cerrar sesión</button></div>`
-    : `<div style="text-align:right;margin-bottom:.5rem"><button id="admin-login-btn" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:11px;text-decoration:underline">¿Eres el admin?</button></div>`;
+    ? `<div style="background:rgba(255,182,39,0.12);border:1px solid var(--gold);border-radius:var(--r-sm);padding:.5rem .875rem;margin-bottom:.75rem;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--gold);font-weight:600">👑 Modo Admin <button onclick="isAdmin=false;localStorage.removeItem('${ADMIN_KEY}');renderReviews()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:12px;padding:.5rem">Cerrar sesión</button></div>`
+    : `<div style="text-align:right;margin-bottom:.5rem"><button id="admin-login-btn" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text-muted);cursor:pointer;font-size:12px;padding:.4rem .75rem;font-family:'Plus Jakarta Sans',sans-serif">🔑 Admin</button></div>`;
 
   const avgSection = `<div id="reviews-avg" style="text-align:center;padding:.5rem 0 .75rem;border-bottom:1px solid var(--border);margin-bottom:.875rem"><div id="avg-stars" style="font-size:24px">⭐⭐⭐⭐⭐</div><div id="avg-text" style="font-size:12px;color:var(--text-muted);margin-top:4px">Calculando...</div></div>`;
 
