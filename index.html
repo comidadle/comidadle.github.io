@@ -173,6 +173,17 @@
     .bar-fill{height:100%;border-radius:99px;background:var(--accent);transition:width .6s cubic-bezier(.4,0,.2,1);display:flex;align-items:center;justify-content:flex-end;padding-right:6px;min-width:0}
     .bar-count{font-size:11px;font-weight:700;color:#fff;white-space:nowrap}
     .bar-fill.zero{background:var(--surface2)}
+    /* Reviews */
+    .stars-input{display:flex;gap:6px;justify-content:center;margin:.75rem 0;font-size:32px;cursor:pointer}
+    .star-btn{background:none;border:none;cursor:pointer;font-size:32px;opacity:.35;transition:opacity .15s,transform .1s}
+    .star-btn.active,.star-btn:hover{opacity:1;transform:scale(1.15)}
+    .review-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.875rem;margin-bottom:.625rem}
+    .review-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem}
+    .review-name{font-size:13px;font-weight:700;color:var(--text)}
+    .review-stars{font-size:14px;letter-spacing:1px}
+    .review-date{font-size:11px;color:var(--text-muted)}
+    .review-comment{font-size:13px;color:var(--text-muted);line-height:1.55}
+    .review-textarea{width:100%;background:var(--surface2);border:1px solid var(--border-strong);border-radius:var(--r-sm);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;padding:.75rem;resize:none;margin:.5rem 0;line-height:1.6;min-height:80px}
     .ranking-empty{text-align:center;padding:2rem;color:var(--text-muted);font-size:13px}
     /* Side Menu */
     .side-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;opacity:0;pointer-events:none;transition:opacity .3s}
@@ -354,6 +365,13 @@
         <div class="side-menu-item-desc">Los mejores jugadores del mundo</div>
       </div>
     </button>
+    <button class="side-menu-item" id="sm-reviews">
+      <div class="side-menu-item-icon">⭐</div>
+      <div class="side-menu-item-info">
+        <div class="side-menu-item-name">Reseñas</div>
+        <div class="side-menu-item-desc">Lo que dice la gente de Comidadle</div>
+      </div>
+    </button>
   </div>
   <div class="side-menu-footer">Hecho con 🌶️ por <strong style="color:#FFF3E0">Anas</strong></div>
 </div>
@@ -364,6 +382,15 @@
     <button class="modal-close" id="stats-close">✕</button>
     <div class="modal-title">📊 Mis Estadísticas</div>
     <div id="stats-content"></div>
+  </div>
+</div>
+
+<!-- REVIEWS MODAL -->
+<div class="modal-overlay hidden" id="reviews-modal">
+  <div class="modal" style="max-height:90vh;overflow-y:auto">
+    <button class="modal-close" id="reviews-close">✕</button>
+    <div class="modal-title">⭐ Reseñas</div>
+    <div id="reviews-content"></div>
   </div>
 </div>
 
@@ -405,6 +432,154 @@
 </footer>
 
 <script>
+
+// ═══════════════════════════════════════════════════════════
+// REVIEWS
+// ═══════════════════════════════════════════════════════════
+const REVIEWED_KEY = "comidadle_reviewed";
+
+async function fetchReviews() {
+  return await sbFetch("/rest/v1/reviews?select=*&order=created_at.desc&limit=50");
+}
+
+async function submitReview(stars, comment) {
+  const name = myUsername || "Anónimo";
+  return await sbFetch("/rest/v1/reviews", {
+    method: "POST",
+    headers: {...SB_HEADERS, "Prefer": "return=representation"},
+    body: JSON.stringify({ username: name, stars, comment })
+  });
+}
+
+async function deleteReview(id) {
+  return await sbFetch(`/rest/v1/reviews?id=eq.${id}`, { method: "DELETE" });
+}
+
+function starsHTML(n) {
+  return "⭐".repeat(n) + "☆".repeat(5 - n);
+}
+
+function timeAgo(dateStr) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `hace ${mins} min`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `hace ${hrs}h`;
+  const days = Math.floor(hrs / 24);
+  return `hace ${days} día${days !== 1 ? "s" : ""}`;
+}
+
+async function openReviews() {
+  openModal("reviews-modal");
+  renderReviews();
+}
+
+async function renderReviews() {
+  const el = document.getElementById("reviews-content");
+  if (!el) return;
+  const alreadyReviewed = localStorage.getItem(REVIEWED_KEY);
+  const avgSection = `<div id="reviews-avg" style="text-align:center;padding:.5rem 0 .75rem;border-bottom:1px solid var(--border);margin-bottom:.875rem"><div id="avg-stars" style="font-size:24px">⭐⭐⭐⭐⭐</div><div id="avg-text" style="font-size:12px;color:var(--text-muted);margin-top:4px">Calculando...</div></div>`;
+
+  const formSection = alreadyReviewed ? "" : `
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:1rem;margin-bottom:1rem">
+      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:.5rem">Deja tu reseña</div>
+      <div class="stars-input" id="stars-input">
+        ${[1,2,3,4,5].map(n=>`<button class="star-btn" data-s="${n}">⭐</button>`).join("")}
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-bottom:.5rem" id="stars-label">Toca para puntuar</div>
+      <textarea class="review-textarea" id="review-comment" placeholder="Cuéntanos qué te parece el juego... (opcional)"></textarea>
+      <button class="play-btn" id="submit-review-btn" style="width:100%;margin-top:.25rem" disabled>Enviar reseña</button>
+    </div>`;
+
+  el.innerHTML = avgSection + formSection + `<div id="reviews-list"><div class="ranking-empty">Cargando reseñas...</div></div>`;
+
+  // Wire stars
+  let selectedStars = 0;
+  if (!alreadyReviewed) {
+    el.querySelectorAll(".star-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        selectedStars = +btn.dataset.s;
+        el.querySelectorAll(".star-btn").forEach((b, i) => b.classList.toggle("active", i < selectedStars));
+        document.getElementById("stars-label").textContent = ["","⭐ Muy malo","⭐⭐ Malo","⭐⭐⭐ Regular","⭐⭐⭐⭐ Bueno","⭐⭐⭐⭐⭐ ¡Excelente!"][selectedStars];
+        document.getElementById("submit-review-btn").disabled = false;
+      });
+    });
+    document.getElementById("submit-review-btn").addEventListener("click", async () => {
+      if (!selectedStars) return;
+      const btn = document.getElementById("submit-review-btn");
+      btn.textContent = "Enviando..."; btn.disabled = true;
+      const comment = document.getElementById("review-comment").value.trim();
+      await submitReview(selectedStars, comment);
+      localStorage.setItem(REVIEWED_KEY, "1");
+      renderReviews();
+    });
+  }
+
+  // Load reviews
+  try {
+    const rows = await fetchReviews();
+    const listEl = document.getElementById("reviews-list");
+    if (!rows || rows.length === 0) {
+      listEl.innerHTML = '<div class="ranking-empty">¡Sé el primero en dejar una reseña! ⭐</div>';
+      document.getElementById("avg-stars").textContent = "—";
+      document.getElementById("avg-text").textContent = "Sin reseñas aún";
+      return;
+    }
+    const avg = rows.reduce((a, r) => a + r.stars, 0) / rows.length;
+    document.getElementById("avg-stars").textContent = starsHTML(Math.round(avg));
+    document.getElementById("avg-text").textContent = `${avg.toFixed(1)} de 5 · ${rows.length} reseña${rows.length !== 1 ? "s" : ""}`;
+    listEl.innerHTML = rows.map(r => `
+      <div class="review-card">
+        <div class="review-header">
+          <div>
+            <span class="review-name">${r.username}</span>
+            <span class="review-stars" style="margin-left:6px">${starsHTML(r.stars)}</span>
+          </div>
+          <span class="review-date">${timeAgo(r.created_at)}</span>
+        </div>
+        ${r.comment ? `<div class="review-comment">"${r.comment}"</div>` : ""}
+      </div>`).join("");
+  } catch(e) {
+    document.getElementById("reviews-list").innerHTML = '<div class="ranking-empty">Error cargando reseñas 😔</div>';
+  }
+}
+
+// ── Delete from ranking ──
+async function deleteFromRanking() {
+  if (!myUserId) return;
+  if (!confirm("¿Seguro que quieres eliminarte del ranking?")) return;
+  try {
+    await sbFetch(`/rest/v1/ranking?id=eq.${myUserId}`, { method: "DELETE" });
+    myUserId = ""; myUsername = "";
+    localStorage.removeItem(USER_ID_KEY);
+    localStorage.removeItem(USERNAME_KEY);
+    renderUsernameSection();
+    const rows = await fetchRanking();
+    renderRankingList(rows);
+  } catch(e) {}
+}
+
+// ── Sync streak to Supabase (resets if didn't play yesterday) ──
+async function syncStreakToRanking() {
+  if (!myUsername || !myUserId) return;
+  // Check if streak should be 0 (didn't play today or yesterday)
+  const yesterday = new Date(now); yesterday.setDate(yesterday.getDate() - 1);
+  const yStr = yesterday.toISOString().slice(0, 10);
+  const lastPlayed = streakData.lastDate;
+  const activeStreak = (lastPlayed === todayStr || lastPlayed === yStr) ? streakData.streak : 0;
+  try {
+    await sbFetch(`/rest/v1/ranking?id=eq.${myUserId}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        streak: activeStreak,
+        best_streak: streakData.best,
+        wins: streakData.wins,
+        played: streakData.played,
+        updated_at: new Date().toISOString()
+      })
+    });
+  } catch(e) {}
+}
 
 function checkDuelFromURL(){
   const params=new URLSearchParams(window.location.search);
@@ -585,8 +760,9 @@ function renderRankingList(rows){
 function renderUsernameSection(isChanging=false){
   const el=document.getElementById("ranking-username-section");
   if(myUsername&&!isChanging){
-    el.innerHTML=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:.75rem;padding:.6rem .875rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm)"><span style="font-size:13px;color:var(--text-muted)">Jugando como</span><span style="font-size:13px;font-weight:700;color:var(--accent);flex:1">${myUsername}</span><button class="ranking-btn" id="change-name-btn" style="font-size:11px;padding:.3rem .6rem">Cambiar</button></div>`;
+    el.innerHTML=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:.75rem;padding:.6rem .875rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm)"><span style="font-size:13px;color:var(--text-muted)">Jugando como</span><span style="font-size:13px;font-weight:700;color:var(--accent);flex:1">${myUsername}</span><button class="ranking-btn" id="change-name-btn" style="font-size:11px;padding:.3rem .6rem">Cambiar</button><button class="ranking-btn" id="delete-rank-btn" style="font-size:11px;padding:.3rem .6rem;color:var(--red);border-color:var(--red)">🗑️</button></div>`;
     document.getElementById("change-name-btn").addEventListener("click",()=>renderUsernameSection(true));
+    document.getElementById("delete-rank-btn").addEventListener("click",deleteFromRanking);
   }else{
     const showCancel=!!myUsername;
     el.innerHTML=`<div style="margin-bottom:.75rem"><div style="font-size:13px;color:var(--text-muted);margin-bottom:.5rem">${showCancel?"Cambia tu nombre:":"Elige un nombre para el ranking:"}</div><input class="username-input" id="username-input" placeholder="Tu nombre o apodo..." maxlength="20" value="${showCancel?myUsername:""}"><div style="display:flex;gap:8px"><button class="ranking-btn primary" id="save-username-btn" style="flex:1">Guardar</button>${showCancel?'<button class="ranking-btn" id="cancel-name-btn">Cancelar</button>':""}</div></div>`;
@@ -662,15 +838,19 @@ document.getElementById("side-menu-close").addEventListener("click",closeSideMen
 document.getElementById("side-overlay").addEventListener("click",closeSideMenu);
 document.getElementById("sm-stats").addEventListener("click",()=>{closeSideMenu();openStats();});
 document.getElementById("sm-ranking").addEventListener("click",()=>{closeSideMenu();openRanking();});
+document.getElementById("sm-reviews").addEventListener("click",()=>{closeSideMenu();openReviews();});
+document.getElementById("reviews-close").addEventListener("click",()=>closeModal("reviews-modal"));
+document.getElementById("reviews-modal").addEventListener("click",e=>{if(e.target.id==="reviews-modal")closeModal("reviews-modal");});
 document.getElementById("ranking-refresh-btn").addEventListener("click",async()=>{document.getElementById("ranking-list").innerHTML='<div class="ranking-empty">Cargando...</div>';try{const rows=await fetchRanking();renderRankingList(rows);}catch(e){}});
 document.getElementById("copy-btn").addEventListener("click",()=>{const ta=document.getElementById("share-textarea");ta.select();ta.setSelectionRange(0,99999);const cb=document.getElementById("copy-btn");if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(shareText).then(()=>{cb.textContent="¡Copiado! ✓";cb.classList.add("copied");}).catch(()=>{try{document.execCommand("copy");}catch(e){}cb.textContent="¡Copiado! ✓";cb.classList.add("copied");});}else{try{document.execCommand("copy");}catch(e){}cb.textContent="¡Copiado! ✓";cb.classList.add("copied");}});
 
 // Init
 document.getElementById("date-pill").textContent=`${now.getDate()} ${MONTHS[now.getMonth()]} · Día ${dayOfYear}`;
+syncStreakToRanking();
 updateBadge();renderYesterday();renderTabs();renderAll();
 if(!localStorage.getItem("comidadle_visited")){openModal("how-modal");localStorage.setItem("comidadle_visited","1");}
 checkDuelFromURL();
 
 </script>
 </body>
-</html>ñ
+</html>
