@@ -12,6 +12,14 @@
     gtag('js', new Date());
     gtag('config', 'G-DB6VQBTDDM');
   </script>
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Comidadle">
+  <meta name="theme-color" content="#FF6B35">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23100900'/><text y='.9em' font-size='75' x='12'>🌶️</text></svg>">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌶️</text></svg>">
   <meta name="description" content="El juego diario de gastronomía hispana. Adivina el país de origen del plato del día en 6 intentos.">
   <meta property="og:title" content="Comidadle 🌶️">
@@ -845,6 +853,7 @@ document.getElementById("ranking-refresh-btn").addEventListener("click",async()=
 document.getElementById("copy-btn").addEventListener("click",()=>{const ta=document.getElementById("share-textarea");ta.select();ta.setSelectionRange(0,99999);const cb=document.getElementById("copy-btn");if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(shareText).then(()=>{cb.textContent="¡Copiado! ✓";cb.classList.add("copied");}).catch(()=>{try{document.execCommand("copy");}catch(e){}cb.textContent="¡Copiado! ✓";cb.classList.add("copied");});}else{try{document.execCommand("copy");}catch(e){}cb.textContent="¡Copiado! ✓";cb.classList.add("copied");}});
 
 // Init
+if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{});}
 document.getElementById("date-pill").textContent=`${now.getDate()} ${MONTHS[now.getMonth()]} · Día ${dayOfYear}`;
 syncStreakToRanking();
 updateBadge();renderYesterday();renderTabs();renderAll();
