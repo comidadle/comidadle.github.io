@@ -398,6 +398,13 @@
         <div class="side-menu-item-desc">Lo que dice la gente de Comidadle</div>
       </div>
     </button>
+    <button class="side-menu-item" id="sm-about">
+      <div class="side-menu-item-icon">🌶️</div>
+      <div class="side-menu-item-info">
+        <div class="side-menu-item-name">Sobre Comidadle</div>
+        <div class="side-menu-item-desc">La historia del juego y su creador</div>
+      </div>
+    </button>
   </div>
   <div class="side-menu-footer">Hecho con 🌶️ por <strong style="color:#FFF3E0">Anas</strong></div>
 </div>
@@ -408,6 +415,46 @@
     <button class="modal-close" id="stats-close">✕</button>
     <div class="modal-title">📊 Mis Estadísticas</div>
     <div id="stats-content"></div>
+  </div>
+</div>
+
+<!-- ABOUT MODAL -->
+<div class="modal-overlay hidden" id="about-modal">
+  <div class="modal">
+    <button class="modal-close" id="about-close">✕</button>
+    <div style="text-align:center;margin-bottom:1.25rem">
+      <div style="font-size:52px;margin-bottom:.5rem">🌶️</div>
+      <div style="font-family:'Fraunces',serif;font-size:24px;font-weight:900;color:var(--text)">Comidadle</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px;letter-spacing:.05em;text-transform:uppercase">Adivina de dónde es la comida</div>
+    </div>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:1rem;margin-bottom:.875rem;font-size:13px;color:var(--text-muted);line-height:1.7">
+      Comidadle nació en <strong style="color:var(--text)">2026</strong> como un juego diario de gastronomía hispana. La idea es simple: cada día aparecen <strong style="color:var(--text)">3 platos diferentes</strong> y tienes que adivinar de qué país es cada uno.
+    </div>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:1rem;margin-bottom:.875rem;font-size:13px;color:var(--text-muted);line-height:1.7">
+      Creado por <strong style="color:var(--accent)">Anas</strong>, un joven desarrollador apasionado por la comida y los juegos. Inspirado en Wordle pero con todo el sabor de Latinoamérica y España.
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:.875rem">
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center">
+        <div style="font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:var(--accent)">318</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Platos</div>
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center">
+        <div style="font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:var(--gold)">20</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Países</div>
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center">
+        <div style="font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:var(--green)">3</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Platos/día</div>
+      </div>
+    </div>
+    <div style="border-top:1px solid var(--border);padding-top:.875rem;display:flex;flex-direction:column;gap:8px">
+      <a href="https://www.tiktok.com/@comidadle" target="_blank" style="display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.65rem .875rem;text-decoration:none;color:var(--text);font-size:13px;font-weight:600">
+        <span style="font-size:20px">🎵</span> @comidadle en TikTok
+      </a>
+      <a href="https://www.instagram.com/_aanas_0" target="_blank" style="display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.65rem .875rem;text-decoration:none;color:var(--text);font-size:13px;font-weight:600">
+        <span style="font-size:20px">📸</span> @_aanas_0 en Instagram
+      </a>
+    </div>
   </div>
 </div>
 
@@ -1077,6 +1124,9 @@ document.getElementById("side-overlay").addEventListener("click",closeSideMenu);
 document.getElementById("sm-stats").addEventListener("click",()=>{closeSideMenu();openStats();});
 document.getElementById("sm-ranking").addEventListener("click",()=>{closeSideMenu();openRanking();});
 document.getElementById("sm-reviews").addEventListener("click",()=>{closeSideMenu();openReviews();});
+document.getElementById("sm-about").addEventListener("click",()=>{closeSideMenu();openModal("about-modal");});
+document.getElementById("about-close").addEventListener("click",()=>closeModal("about-modal"));
+document.getElementById("about-modal").addEventListener("click",e=>{if(e.target.id==="about-modal")closeModal("about-modal");});
 document.getElementById("reviews-close").addEventListener("click",()=>closeModal("reviews-modal"));
 document.getElementById("reviews-modal").addEventListener("click",e=>{if(e.target.id==="reviews-modal")closeModal("reviews-modal");});
 document.getElementById("ranking-refresh-btn").addEventListener("click",async()=>{document.getElementById("ranking-list").innerHTML='<div class="ranking-empty">Cargando...</div>';try{const rows=await fetchRanking();renderRankingList(rows);}catch(e){}});
