@@ -366,7 +366,7 @@
     <button class="side-menu-close" id="side-menu-close">✕</button>
   </div>
   <div class="side-menu-section">
-    <div class="side-menu-label">Jugar</div>
+    <div class="side-menu-label">🕹️ Modos</div>
     <div class="side-menu-item" style="opacity:0.45;cursor:not-allowed">
       <div class="side-menu-item-icon">⚔️</div>
       <div class="side-menu-item-info">
@@ -376,19 +376,29 @@
     </div>
   </div>
   <div class="side-menu-section">
-    <div class="side-menu-label">Comunidad</div>
+    <div class="side-menu-label">📊 Yo</div>
     <button class="side-menu-item" id="sm-stats">
-      <div class="side-menu-item-icon">📊</div>
+      <div class="side-menu-item-icon">📈</div>
       <div class="side-menu-item-info">
         <div class="side-menu-item-name">Mis Estadísticas</div>
         <div class="side-menu-item-desc">Tu racha, victorias y gráfica de intentos</div>
       </div>
     </button>
+  </div>
+  <div class="side-menu-section">
+    <div class="side-menu-label">🌍 Comunidad</div>
     <button class="side-menu-item" id="sm-ranking">
       <div class="side-menu-item-icon">🏆</div>
       <div class="side-menu-item-info">
         <div class="side-menu-item-name">Ranking Global</div>
         <div class="side-menu-item-desc">Los mejores jugadores del mundo</div>
+      </div>
+    </button>
+    <button class="side-menu-item" id="sm-weekly">
+      <div class="side-menu-item-icon">📅</div>
+      <div class="side-menu-item-info">
+        <div class="side-menu-item-name">Ranking Semanal</div>
+        <div class="side-menu-item-desc">Top de la semana, se reinicia cada lunes</div>
       </div>
     </button>
     <button class="side-menu-item" id="sm-reviews">
@@ -398,6 +408,9 @@
         <div class="side-menu-item-desc">Lo que dice la gente de Comidadle</div>
       </div>
     </button>
+  </div>
+  <div class="side-menu-section">
+    <div class="side-menu-label">ℹ️ Info</div>
     <button class="side-menu-item" id="sm-about">
       <div class="side-menu-item-icon">🌶️</div>
       <div class="side-menu-item-info">
@@ -415,6 +428,18 @@
     <button class="modal-close" id="stats-close">✕</button>
     <div class="modal-title">📊 Mis Estadísticas</div>
     <div id="stats-content"></div>
+  </div>
+</div>
+
+<!-- WEEKLY RANKING MODAL -->
+<div class="modal-overlay hidden" id="weekly-modal">
+  <div class="modal ranking-modal">
+    <button class="modal-close" id="weekly-close">✕</button>
+    <div class="modal-title">📅 Ranking Semanal</div>
+    <div style="font-size:11px;color:var(--text-muted);margin-bottom:.75rem" id="weekly-period"></div>
+    <button class="ranking-btn" id="weekly-refresh-btn" style="margin-bottom:.75rem;width:100%">↻ Actualizar</button>
+    <div id="weekly-username-section"></div>
+    <div id="weekly-list"><div class="ranking-empty">Cargando...</div></div>
   </div>
 </div>
 
@@ -737,6 +762,90 @@ async function syncStreakToRanking() {
 }
 
 // ═══════════════════════════════════════════════════════════
+// RANKING SEMANAL
+// ═══════════════════════════════════════════════════════════
+function getWeekKey() {
+  const d = new Date();
+  const day = d.getDay(); // 0=sun, 1=mon...
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday
+  const monday = new Date(d.setDate(diff));
+  return monday.toISOString().slice(0, 10);
+}
+
+const WEEKLY_KEY = "comidadle_weekly";
+const weekKey = getWeekKey();
+let weeklyData = { points: 0, week: "" };
+try {
+  const ws = JSON.parse(localStorage.getItem(WEEKLY_KEY));
+  if (ws && ws.week === weekKey) weeklyData = ws;
+} catch(e) {}
+
+function saveWeekly() { try { localStorage.setItem(WEEKLY_KEY, JSON.stringify(weeklyData)); } catch(e) {} }
+
+function addWeeklyPoints(won, attempts) {
+  if (weeklyData.week !== weekKey) { weeklyData = { points: 0, week: weekKey }; }
+  if (won) weeklyData.points += Math.max(1, 7 - attempts); // 6pts for 1 try, 5 for 2, etc
+  saveWeekly();
+  syncWeeklyRanking();
+}
+
+async function syncWeeklyRanking() {
+  if (!myUsername) return;
+  try {
+    const existing = await sbFetch(`/rest/v1/weekly_ranking?username=eq.${encodeURIComponent(myUsername)}&week=eq.${weekKey}&select=id,points`);
+    if (existing && existing.length > 0) {
+      const cur = existing[0];
+      if (weeklyData.points > (cur.points || 0)) {
+        await sbFetch(`/rest/v1/weekly_ranking?id=eq.${cur.id}`, {
+          method: "PATCH",
+          body: JSON.stringify({ points: weeklyData.points, updated_at: new Date().toISOString() })
+        });
+      }
+    } else {
+      await sbFetch("/rest/v1/weekly_ranking", {
+        method: "POST",
+        headers: {...SB_HEADERS, "Prefer": "return=representation"},
+        body: JSON.stringify({ username: myUsername, week: weekKey, points: weeklyData.points })
+      });
+    }
+  } catch(e) {}
+}
+
+async function fetchWeeklyRanking() {
+  return await sbFetch(`/rest/v1/weekly_ranking?week=eq.${weekKey}&select=*&order=points.desc&limit=50`);
+}
+
+function renderWeeklyList(rows) {
+  const el = document.getElementById("weekly-list");
+  if (!rows || rows.length === 0) { el.innerHTML = '<div class="ranking-empty">¡Sé el primero esta semana! 📅</div>'; return; }
+  const medals = ["🥇","🥈","🥉"], posClass = ["gold","silver","bronze"];
+  el.innerHTML = `<table class="ranking-table"><thead><tr><th>#</th><th>Jugador</th><th>⭐ Puntos</th></tr></thead><tbody>${rows.map((r,i)=>{
+    const isMe = r.username === myUsername;
+    const pos = medals[i] || (i+1), pClass = posClass[i] || "";
+    return `<tr class="${isMe?"me":""}"><td><span class="rank-pos ${pClass}">${pos}</span></td><td><span class="rank-name">${r.username}${isMe?" (tú)":""}</span></td><td><span class="rank-streak">${r.points}pts</span></td></tr>`;
+  }).join("")}</tbody></table>`;
+}
+
+async function openWeekly() {
+  openModal("weekly-modal");
+  // Show week period
+  const monday = new Date(weekKey);
+  const sunday = new Date(monday); sunday.setDate(sunday.getDate() + 6);
+  const fmt = d => `${d.getDate()} ${["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"][d.getMonth()]}`;
+  document.getElementById("weekly-period").textContent = `Semana del ${fmt(monday)} al ${fmt(sunday)} · Tus puntos: ${weeklyData.points}`;
+  // Show username section (reuse ranking username)
+  const el = document.getElementById("weekly-username-section");
+  if (myUsername) {
+    el.innerHTML = `<div style="display:flex;align-items:center;gap:8px;margin-bottom:.75rem;padding:.6rem .875rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm)"><span style="font-size:13px;color:var(--text-muted)">Jugando como</span><span style="font-size:13px;font-weight:700;color:var(--accent)">${myUsername}</span></div>`;
+  } else {
+    el.innerHTML = `<div style="font-size:12px;color:var(--text-muted);margin-bottom:.75rem">Elige un nombre en el Ranking Global para aparecer aquí también.</div>`;
+  }
+  document.getElementById("weekly-list").innerHTML = '<div class="ranking-empty">Cargando...</div>';
+  try { const rows = await fetchWeeklyRanking(); renderWeeklyList(rows); }
+  catch(e) { document.getElementById("weekly-list").innerHTML = '<div class="ranking-empty">Error cargando 😔</div>'; }
+}
+
+// ═══════════════════════════════════════════════════════════
 // REVIEW REPLIES
 // ═══════════════════════════════════════════════════════════
 async function fetchReplies(reviewId) {
@@ -938,7 +1047,8 @@ function launchConfetti(){const canvas=document.createElement("canvas");canvas.s
 
 const ATTEMPTS_KEY="comidadle_attempts";
 function getAttemptsData(){try{return JSON.parse(localStorage.getItem(ATTEMPTS_KEY))||{1:0,2:0,3:0,4:0,5:0,6:0,fail:0};}catch(e){return{1:0,2:0,3:0,4:0,5:0,6:0,fail:0};}}
-function recordAttempt(won,attempts){const data=getAttemptsData();if(won)data[attempts]=(data[attempts]||0)+1;else data.fail=(data.fail||0)+1;try{localStorage.setItem(ATTEMPTS_KEY,JSON.stringify(data));}catch(e){}}
+function recordAttempt(won,attempts){const data=getAttemptsData();if(won)data[attempts]=(data[attempts]||0)+1;else data.fail=(data.fail||0)+1;try{localStorage.setItem(ATTEMPTS_KEY,JSON.stringify(data));}catch(e){}
+addWeeklyPoints(won,attempts);}
 function renderStatsContent(){
   const el=document.getElementById("stats-content");if(!el)return;
   const streak=streakData,pct=streak.played>0?Math.round(streak.wins/streak.played*100):0;
@@ -1123,8 +1233,12 @@ document.getElementById("side-menu-close").addEventListener("click",closeSideMen
 document.getElementById("side-overlay").addEventListener("click",closeSideMenu);
 document.getElementById("sm-stats").addEventListener("click",()=>{closeSideMenu();openStats();});
 document.getElementById("sm-ranking").addEventListener("click",()=>{closeSideMenu();openRanking();});
+document.getElementById("sm-weekly").addEventListener("click",()=>{closeSideMenu();openWeekly();});
 document.getElementById("sm-reviews").addEventListener("click",()=>{closeSideMenu();openReviews();});
 document.getElementById("sm-about").addEventListener("click",()=>{closeSideMenu();openModal("about-modal");});
+document.getElementById("weekly-close").addEventListener("click",()=>closeModal("weekly-modal"));
+document.getElementById("weekly-modal").addEventListener("click",e=>{if(e.target.id==="weekly-modal")closeModal("weekly-modal");});
+document.getElementById("weekly-refresh-btn").addEventListener("click",async()=>{document.getElementById("weekly-list").innerHTML='<div class="ranking-empty">Cargando...</div>';try{const rows=await fetchWeeklyRanking();renderWeeklyList(rows);}catch(e){}});
 document.getElementById("about-close").addEventListener("click",()=>closeModal("about-modal"));
 document.getElementById("about-modal").addEventListener("click",e=>{if(e.target.id==="about-modal")closeModal("about-modal");});
 document.getElementById("reviews-close").addEventListener("click",()=>closeModal("reviews-modal"));
