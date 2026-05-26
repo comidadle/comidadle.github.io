@@ -245,15 +245,15 @@
   <div class="modal">
     <button class="modal-close" id="how-close">✕</button>
     <div class="modal-title">🌶️ Cómo jugar</div>
-    <div class="how-step"><div class="step-num">1</div><div class="step-text">Cada día aparece un <strong>plato diferente</strong> de la gastronomía hispana.</div></div>
+    <div class="how-step"><div class="step-num">1</div><div class="step-text">Cada día aparecen tres <strong>platos diferentes</strong> de la gastronomía hispana.</div></div>
     <div class="how-step"><div class="step-num">2</div><div class="step-text">Elige el <strong>país de origen</strong> de entre las opciones. Tienes <strong>6 intentos</strong> por defecto.</div></div>
     <div class="how-step"><div class="step-num">3</div><div class="step-text">Con cada intento fallido aparece una <strong>pista nueva</strong> que te acerca a la respuesta.</div></div>
     <div class="how-step"><div class="step-num">4</div><div class="step-text">Al terminar se muestran <strong>todas las pistas</strong> y el país correcto queda <strong>resaltado en verde</strong>.</div></div>
     <div class="modal-divider"></div>
-    <div class="emoji-demo">🟩🟥🟥🟩🟥</div>
+    <div class="emoji-demo">🟥🟥🟥🟩</div>
     <div style="font-size:12px;color:var(--text-muted);text-align:center;margin-bottom:.5rem">🟩 Acierto · 🟥 Fallo</div>
     <div class="modal-divider"></div>
-    <div style="font-size:13px;color:var(--text-muted)">Hay un plato nuevo cada día. Puedes hacerlo más difícil en ⚙️ Configuración.</div>
+    <div style="font-size:13px;color:var(--text-muted)">Hay tres platos nuevos cada día. Puedes hacerlo más difícil en ⚙️ Configuración.</div>
     <button class="play-btn" id="how-play">¡A jugar!</button>
   </div>
 </div>
@@ -1481,7 +1481,7 @@ function showResult(won,animate){
   const streakLine=won&&streakData.streak>1?`🔥 Racha de ${streakData.streak} días`:"";
   const hardCount=[cfg.fewAttempts,cfg.moreCountries,cfg.noHints].filter(Boolean).length;
   const hardLine=hardCount>0?"\n🔥 Modo difícil x"+hardCount:"";
-  shareText=`🌶️ Comidadle — Plato ${currentDishIndex+1}/3\n${dish.name}\n${emojiStr}\n${won?`¡Acertaste en ${log.length} intento${log.length!==1?"s":""}!`:"¡No lo conseguí hoy!"}${streakLine?" · "+streakLine:""}${hardLine}\n👉 aanas440.github.io/comidadle`;
+  shareText=`🌶️ Comidadle — Plato ${currentDishIndex+1}/3\n${dish.name}\n${emojiStr}\n${won?`¡Acertaste en ${log.length} intento${log.length!==1?"s":""}!`:"¡No lo conseguí hoy!"}${streakLine?" · "+streakLine:""}${hardLine}\n👉 comidadle.github.io`;
   const box=document.createElement("div");box.className="result-box";if(!animate)box.style.animation="none";
   box.innerHTML=`<span class="result-big">${won?"🎉":"😔"}</span><div class="result-title">${won?`¡Correcto! Es ${dish.flag} ${dish.country}`:`Era ${dish.flag} ${dish.country}`}</div><div class="result-sub">${won?`Acertaste en ${log.length} intento${log.length!==1?"s":""}`:'¡Mañana más! Vuelve para un nuevo plato.'}</div>${animate&&pointsEarned>0?`<div style="text-align:center;margin:.5rem 0;font-size:13px;font-weight:700;color:var(--gold)">+${pointsEarned} puntos esta semana ⭐</div>`:animate&&!won?`<div style="text-align:center;margin:.5rem 0;font-size:12px;color:var(--text-muted)">+0 puntos esta semana</div>`:""}<div class="attempts-chart" style="margin:.75rem 0 .5rem"><div class="attempts-chart-title">Distribución de intentos</div>${miniChart}</div><div class="emoji-row">${emojiStr}</div>${streakData.streak>1?`<div style="font-size:13px;color:var(--accent);font-weight:600;margin-bottom:.75rem">🔥 Racha de ${streakData.streak} días</div>`:""}<div class="countdown-box"><div class="countdown-label">Próximo plato en</div><div class="countdown-time" id="countdown-time">--:--:--</div></div><button class="share-btn" id="share-btn-${currentDishIndex}" style="margin-top:.5rem"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Compartir resultado</button>${currentDishIndex<2?`<button class="infinite-btn" id="next-dish-btn" style="margin-top:.5rem">Siguiente plato ${currentDishIndex+2}/3 ➜</button>`:""}`;
   resultEl.appendChild(box);
