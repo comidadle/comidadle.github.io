@@ -325,10 +325,16 @@
 </header>
 
 <div style="max-width:520px;width:100%;margin:0 auto;padding:.5rem 1.25rem 0;position:relative;z-index:1">
+  <div style="display:flex;justify-content:space-between;align-items:center">
   <button id="menu-open-btn" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;color:var(--text-muted);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;padding:.25rem 0;transition:color .15s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-muted)'">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
     Extras
   </button>
+  <button id="profile-open-btn" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;color:var(--text-muted);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;padding:.25rem 0;transition:color .15s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-muted)'">
+    Perfil
+    <div id="profile-mini-avatar" style="width:22px;height:22px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0">?</div>
+  </button>
+</div>
 </div>
 <main>
   <div class="game">
@@ -428,6 +434,15 @@
     <button class="modal-close" id="stats-close">✕</button>
     <div class="modal-title">📊 Mis Estadísticas</div>
     <div id="stats-content"></div>
+  </div>
+</div>
+
+<!-- PROFILE MODAL -->
+<div class="modal-overlay hidden" id="profile-modal">
+  <div class="modal" style="max-height:90vh;overflow-y:auto">
+    <button class="modal-close" id="profile-close">✕</button>
+    <div class="modal-title">👤 Mi Perfil</div>
+    <div id="profile-content"></div>
   </div>
 </div>
 
@@ -846,6 +861,162 @@ async function openWeekly() {
 }
 
 // ═══════════════════════════════════════════════════════════
+// XP + PERFIL
+// ═══════════════════════════════════════════════════════════
+const XP_KEY = "comidadle_xp";
+const HISTORY_KEY = "comidadle_history";
+let totalXP = 0;
+try { totalXP = parseInt(localStorage.getItem(XP_KEY)) || 0; } catch(e) {}
+
+function addXP(pts) {
+  totalXP += pts;
+  try { localStorage.setItem(XP_KEY, totalXP); } catch(e) {}
+}
+
+function getXPLevel(xp) {
+  if (xp < 50)   return { level: 1, name: "Novato 🌱", next: 50 };
+  if (xp < 150)  return { level: 2, name: "Aprendiz 🍽️", next: 150 };
+  if (xp < 300)  return { level: 3, name: "Conocedor 🌶️", next: 300 };
+  if (xp < 500)  return { level: 4, name: "Experto 🔥", next: 500 };
+  if (xp < 750)  return { level: 5, name: "Maestro ⭐", next: 750 };
+  if (xp < 1000) return { level: 6, name: "Gran Maestro 👑", next: 1000 };
+  return { level: 7, name: "Leyenda 🏆", next: null };
+}
+
+function getHistory() {
+  try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; } catch(e) { return []; }
+}
+
+function addHistory(won, attempts, dishName, dishFlag) {
+  const history = getHistory();
+  history.unshift({ date: new Date().toISOString(), won, attempts, dish: dishName, flag: dishFlag });
+  // Keep only last 21 entries (3 per day x 7 days)
+  const trimmed = history.slice(0, 21);
+  try { localStorage.setItem(HISTORY_KEY, JSON.stringify(trimmed)); } catch(e) {}
+}
+
+function avatarHTML(name, size=56, fontSize=22) {
+  const letter = name ? name[0].toUpperCase() : "?";
+  // Generate consistent color from name
+  const colors = ["#FF6B35","#FFB627","#22C55E","#3B82F6","#8B5CF6","#EC4899","#F97316","#06B6D4"];
+  let hash = 0;
+  for (let i = 0; i < (name||"").length; i++) hash = (name||"").charCodeAt(i) + ((hash << 5) - hash);
+  const color = colors[Math.abs(hash) % colors.length];
+  return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:${fontSize}px;font-weight:700;color:#fff;flex-shrink:0;border:2px solid rgba(255,255,255,0.15)">${letter}</div>`;
+}
+
+function updateMiniAvatar() {
+  const el = document.getElementById("profile-mini-avatar");
+  if (!el) return;
+  if (myUsername) {
+    const colors = ["#FF6B35","#FFB627","#22C55E","#3B82F6","#8B5CF6","#EC4899","#F97316","#06B6D4"];
+    let hash = 0;
+    for (let i = 0; i < myUsername.length; i++) hash = myUsername.charCodeAt(i) + ((hash << 5) - hash);
+    el.style.background = colors[Math.abs(hash) % colors.length];
+    el.textContent = myUsername[0].toUpperCase();
+  } else {
+    el.style.background = "var(--surface2)";
+    el.textContent = "?";
+  }
+}
+
+async function openProfile() {
+  openModal("profile-modal");
+  renderProfile();
+}
+
+function renderProfile() {
+  const el = document.getElementById("profile-content");
+  if (!el) return;
+
+  if (!myUsername) {
+    el.innerHTML = `
+      <div style="text-align:center;padding:1.5rem 0">
+        <div style="font-size:52px;margin-bottom:.75rem">👤</div>
+        <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:.5rem">Sin perfil activo</div>
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:1.25rem;line-height:1.6">Elige un nombre en el Ranking Global para activar tu perfil y empezar a acumular XP.</div>
+        <button class="play-btn" id="go-to-ranking-btn">🏆 Ir al Ranking Global</button>
+      </div>`;
+    document.getElementById("go-to-ranking-btn").addEventListener("click", () => {
+      closeModal("profile-modal");
+      openRanking();
+    });
+    return;
+  }
+
+  const lvlData = getXPLevel(totalXP);
+  const progress = lvlData.next ? Math.round((totalXP / lvlData.next) * 100) : 100;
+  const history = getHistory();
+
+  // Last 7 days history
+  const sevenDaysAgo = new Date(); sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const recentHistory = history.filter(h => new Date(h.date) > sevenDaysAgo);
+
+  el.innerHTML = `
+    <!-- Avatar + name -->
+    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem;padding:1rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r)">
+      ${avatarHTML(myUsername)}
+      <div style="flex:1">
+        <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:900;color:var(--text)">${myUsername}</div>
+        <div style="font-size:12px;color:var(--accent);font-weight:600;margin-top:2px">${lvlData.name}</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:1px">Nivel ${lvlData.level}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:var(--gold)">${totalXP}</div>
+        <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">XP Total</div>
+      </div>
+    </div>
+
+    <!-- XP Progress bar -->
+    ${lvlData.next ? `
+    <div style="margin-bottom:1.25rem">
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:.4rem">
+        <span>Nivel ${lvlData.level}</span>
+        <span>${totalXP}/${lvlData.next} XP → Nivel ${lvlData.level+1}</span>
+      </div>
+      <div style="background:var(--surface2);border-radius:99px;height:8px;overflow:hidden">
+        <div style="width:${progress}%;height:100%;background:linear-gradient(90deg,var(--accent),var(--gold));border-radius:99px;transition:width .6s ease"></div>
+      </div>
+    </div>` : `<div style="text-align:center;font-size:13px;color:var(--gold);font-weight:700;margin-bottom:1.25rem">🏆 ¡Nivel máximo!</div>`}
+
+    <!-- Stats row -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1.25rem">
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center">
+        <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--accent)">🔥${streakData.streak}</div>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:2px">Racha</div>
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center">
+        <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--gold)">${streakData.best}</div>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:2px">Mejor racha</div>
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center">
+        <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--green)">${streakData.played>0?Math.round(streakData.wins/streakData.played*100):0}%</div>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:2px">Victorias</div>
+      </div>
+    </div>
+
+    <!-- History -->
+    <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">Últimos 7 días</div>
+    ${recentHistory.length === 0
+      ? '<div class="ranking-empty" style="padding:1rem">Aún no hay historial esta semana</div>'
+      : recentHistory.map(h => {
+          const d = new Date(h.date);
+          const dateStr = `${d.getDate()} ${["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"][d.getMonth()]}`;
+          return `<div style="display:flex;align-items:center;gap:10px;padding:.6rem .75rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:.4rem">
+            <span style="font-size:20px">${h.flag||"🍽️"}</span>
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:600;color:var(--text)">${h.dish}</div>
+              <div style="font-size:11px;color:var(--text-muted)">${dateStr}</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:13px;font-weight:700;color:${h.won?"var(--green)":"var(--red)"}">${h.won?`✅ ${h.attempts} intento${h.attempts!==1?"s":""}`:"❌"}</div>
+            </div>
+          </div>`;
+        }).join("")
+    }`;
+}
+
+// ═══════════════════════════════════════════════════════════
 // REVIEW REPLIES
 // ═══════════════════════════════════════════════════════════
 async function fetchReplies(reviewId) {
@@ -1057,7 +1228,7 @@ function launchConfetti(){const canvas=document.createElement("canvas");canvas.s
 const ATTEMPTS_KEY="comidadle_attempts";
 function getAttemptsData(){try{return JSON.parse(localStorage.getItem(ATTEMPTS_KEY))||{1:0,2:0,3:0,4:0,5:0,6:0,fail:0};}catch(e){return{1:0,2:0,3:0,4:0,5:0,6:0,fail:0};}}
 function recordAttempt(won,attempts){const data=getAttemptsData();if(won)data[attempts]=(data[attempts]||0)+1;else data.fail=(data.fail||0)+1;try{localStorage.setItem(ATTEMPTS_KEY,JSON.stringify(data));}catch(e){}
-const pts=addWeeklyPoints(won,attempts);return pts;}
+const pts=addWeeklyPoints(won,attempts);if(pts>0)addXP(pts);addHistory(won,attempts,dish.name,dish.flag);updateMiniAvatar();return pts;}
 function renderStatsContent(){
   const el=document.getElementById("stats-content");if(!el)return;
   const streak=streakData,pct=streak.played>0?Math.round(streak.wins/streak.played*100):0;
@@ -1132,7 +1303,7 @@ function showResult(won,animate){
   const streakLine=won&&streakData.streak>1?`🔥 Racha de ${streakData.streak} días`:"";
   const hardCount=[cfg.fewAttempts,cfg.moreCountries,cfg.noHints].filter(Boolean).length;
   const hardLine=hardCount>0?"\n🔥 Modo difícil x"+hardCount:"";
-  shareText=`🌶️ Comidadle — Plato ${currentDishIndex+1}/3\n${dish.name}\n${emojiStr}\n${won?`¡Acertaste en ${log.length} intento${log.length!==1?"s":""}!`:"¡No lo conseguí hoy!"}${streakLine?" · "+streakLine:""}${hardLine}\n👉 comidadle.github.io`;
+  shareText=`🌶️ Comidadle — Plato ${currentDishIndex+1}/3\n${dish.name}\n${emojiStr}\n${won?`¡Acertaste en ${log.length} intento${log.length!==1?"s":""}!`:"¡No lo conseguí hoy!"}${streakLine?" · "+streakLine:""}${hardLine}\n👉 aanas440.github.io/comidadle`;
   const box=document.createElement("div");box.className="result-box";if(!animate)box.style.animation="none";
   box.innerHTML=`<span class="result-big">${won?"🎉":"😔"}</span><div class="result-title">${won?`¡Correcto! Es ${dish.flag} ${dish.country}`:`Era ${dish.flag} ${dish.country}`}</div><div class="result-sub">${won?`Acertaste en ${log.length} intento${log.length!==1?"s":""}`:'¡Mañana más! Vuelve para un nuevo plato.'}</div>${animate&&pointsEarned>0?`<div style="text-align:center;margin:.5rem 0;font-size:13px;font-weight:700;color:var(--gold)">+${pointsEarned} puntos esta semana ⭐</div>`:animate&&!won?`<div style="text-align:center;margin:.5rem 0;font-size:12px;color:var(--text-muted)">+0 puntos esta semana</div>`:""}<div class="attempts-chart" style="margin:.75rem 0 .5rem"><div class="attempts-chart-title">Distribución de intentos</div>${miniChart}</div><div class="emoji-row">${emojiStr}</div>${streakData.streak>1?`<div style="font-size:13px;color:var(--accent);font-weight:600;margin-bottom:.75rem">🔥 Racha de ${streakData.streak} días</div>`:""}<div class="countdown-box"><div class="countdown-label">Próximo plato en</div><div class="countdown-time" id="countdown-time">--:--:--</div></div><button class="share-btn" id="share-btn-${currentDishIndex}" style="margin-top:.5rem"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Compartir resultado</button>${currentDishIndex<2?`<button class="infinite-btn" id="next-dish-btn" style="margin-top:.5rem">Siguiente plato ${currentDishIndex+2}/3 ➜</button>`:""}`;
   resultEl.appendChild(box);
@@ -1247,6 +1418,9 @@ document.getElementById("sm-ranking").addEventListener("click",()=>{closeSideMen
 document.getElementById("sm-weekly").addEventListener("click",()=>{closeSideMenu();openWeekly();});
 document.getElementById("sm-reviews").addEventListener("click",()=>{closeSideMenu();openReviews();});
 document.getElementById("sm-about").addEventListener("click",()=>{closeSideMenu();openModal("about-modal");});
+document.getElementById("profile-open-btn").addEventListener("click",()=>openProfile());
+document.getElementById("profile-close").addEventListener("click",()=>closeModal("profile-modal"));
+document.getElementById("profile-modal").addEventListener("click",e=>{if(e.target.id==="profile-modal")closeModal("profile-modal");});
 document.getElementById("weekly-close").addEventListener("click",()=>closeModal("weekly-modal"));
 document.getElementById("weekly-modal").addEventListener("click",e=>{if(e.target.id==="weekly-modal")closeModal("weekly-modal");});
 document.getElementById("weekly-refresh-btn").addEventListener("click",async()=>{document.getElementById("weekly-list").innerHTML='<div class="ranking-empty">Cargando...</div>';try{const rows=await fetchWeeklyRanking();renderWeeklyList(rows);}catch(e){}});
@@ -1277,6 +1451,7 @@ document.getElementById("copy-btn").addEventListener("click",()=>{const ta=docum
 
 if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{});}
 document.getElementById("date-pill").textContent=`${now.getDate()} ${MONTHS[now.getMonth()]} · Día ${dayOfYear}`;
+updateMiniAvatar();
 syncStreakToRanking();
 updateBadge();renderYesterday();renderTabs();renderAll();
 if(!localStorage.getItem("comidadle_visited")){openModal("how-modal");localStorage.setItem("comidadle_visited","1");}
