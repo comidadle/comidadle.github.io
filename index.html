@@ -437,6 +437,16 @@
   </div>
 </div>
 
+<!-- OWNER MODAL -->
+<div class="modal-overlay hidden" id="owner-modal">
+  <div class="modal" style="max-height:90vh;overflow-y:auto;border:1px solid var(--gold)">
+    <button class="modal-close" id="owner-close">✕</button>
+    <div class="modal-title" style="color:var(--gold)">👑 Panel del Owner</div>
+    <div style="font-size:11px;color:var(--text-muted);margin-bottom:.75rem">Acceso exclusivo — Comidadle</div>
+    <div id="owner-content"><div class="ranking-empty">Cargando...</div></div>
+  </div>
+</div>
+
 <!-- PROFILE MODAL -->
 <div class="modal-overlay hidden" id="profile-modal">
   <div class="modal" style="max-height:90vh;overflow-y:auto">
@@ -552,7 +562,11 @@
 const REVIEWED_KEY = "comidadle_reviewed";
 const ADMIN_KEY = "comidadle_admin";
 const ADMIN_PASS = "11DEDOSENLOSpies";
+const OWNER_KEY = "comidadle_owner";
+const OWNER_PASS = "Carmenchuelaa";
 let isAdmin = localStorage.getItem(ADMIN_KEY) === "1";
+let isOwner = localStorage.getItem(OWNER_KEY) === "1";
+if (isOwner) isAdmin = true; // Owner has all admin powers
 
 async function fetchReviews() {
   return await sbFetch("/rest/v1/reviews?select=*&order=created_at.desc&limit=50");
@@ -596,7 +610,15 @@ async function renderReviews() {
   const alreadyReviewed = localStorage.getItem(REVIEWED_KEY);
   const myName = myUsername || "Anónimo";
 
-  const adminBanner = isAdmin
+  const adminBanner = isOwner
+    ? `<div style="background:rgba(255,182,39,0.15);border:1px solid var(--gold);border-radius:var(--r-sm);padding:.5rem .875rem;margin-bottom:.75rem;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--gold);font-weight:600">
+        👑 Owner Mode
+        <div style="display:flex;gap:6px">
+          <button onclick="openOwnerPanel()" style="background:rgba(255,182,39,0.2);border:1px solid var(--gold);color:var(--gold);border-radius:6px;padding:3px 10px;cursor:pointer;font-size:11px;font-weight:700">Panel</button>
+          <button onclick="isOwner=false;isAdmin=false;localStorage.removeItem('${OWNER_KEY}');localStorage.removeItem('${ADMIN_KEY}');renderReviews()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:12px;padding:.25rem">✕</button>
+        </div>
+      </div>`
+    : isAdmin
     ? `<div style="background:rgba(255,182,39,0.12);border:1px solid var(--gold);border-radius:var(--r-sm);padding:.5rem .875rem;margin-bottom:.75rem;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--gold);font-weight:600">👑 Modo Admin <button onclick="isAdmin=false;localStorage.removeItem('${ADMIN_KEY}');renderReviews()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:12px;padding:.5rem">Cerrar sesión</button></div>`
     : `<div style="text-align:right;margin-bottom:.5rem"><button id="admin-login-btn" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text-muted);cursor:pointer;font-size:12px;padding:.4rem .75rem;font-family:'Plus Jakarta Sans',sans-serif">🔑 Admin</button></div>`;
 
@@ -630,7 +652,12 @@ async function renderReviews() {
       document.getElementById("admin-pass-cancel").addEventListener("click", ()=>renderReviews());
       const confirm = ()=>{
         const val = document.getElementById("admin-pass-input").value;
-        if(val === ADMIN_PASS){
+        if(val === OWNER_PASS){
+          isOwner = true; isAdmin = true;
+          localStorage.setItem(OWNER_KEY, "1");
+          localStorage.setItem(ADMIN_KEY, "1");
+          renderReviews();
+        } else if(val === ADMIN_PASS){
           isAdmin = true;
           localStorage.setItem(ADMIN_KEY, "1");
           renderReviews();
@@ -858,6 +885,155 @@ async function openWeekly() {
   document.getElementById("weekly-list").innerHTML = '<div class="ranking-empty">Cargando...</div>';
   try { const rows = await fetchWeeklyRanking(); renderWeeklyList(rows); }
   catch(e) { document.getElementById("weekly-list").innerHTML = '<div class="ranking-empty">Error cargando 😔</div>'; }
+}
+
+// ═══════════════════════════════════════════════════════════
+// OWNER PANEL
+// ═══════════════════════════════════════════════════════════
+
+// ── Announcements ──
+async function fetchAnnouncement() {
+  try {
+    const rows = await sbFetch("/rest/v1/announcements?active=eq.true&order=created_at.desc&limit=1");
+    return rows && rows[0] ? rows[0] : null;
+  } catch(e) { return null; }
+}
+
+async function showAnnouncementBanner() {
+  const ann = await fetchAnnouncement();
+  if (!ann) return;
+  const seen = localStorage.getItem("comidadle_ann_" + ann.id);
+  if (seen) return;
+  const banner = document.createElement("div");
+  banner.style.cssText = "position:fixed;top:0;left:0;right:0;background:var(--accent);color:#fff;padding:.75rem 1.25rem;display:flex;align-items:center;gap:10px;z-index:998;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600";
+  banner.innerHTML = `<span style="flex:1">📢 ${ann.message}</span><button onclick="this.parentElement.remove();localStorage.setItem('comidadle_ann_${ann.id}','1')" style="background:rgba(0,0,0,0.2);border:none;color:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px">✕</button>`;
+  document.body.prepend(banner);
+}
+
+async function postAnnouncement(msg) {
+  // Deactivate old ones
+  try { await sbFetch("/rest/v1/announcements?active=eq.true", { method: "PATCH", body: JSON.stringify({ active: false }) }); } catch(e) {}
+  await sbFetch("/rest/v1/announcements", {
+    method: "POST",
+    headers: {...SB_HEADERS, "Prefer": "return=minimal"},
+    body: JSON.stringify({ message: msg, active: true })
+  });
+}
+
+async function clearAnnouncement() {
+  await sbFetch("/rest/v1/announcements?active=eq.true", { method: "PATCH", body: JSON.stringify({ active: false }) });
+}
+
+// ── Bans ──
+async function banUser(username, reason) {
+  await sbFetch("/rest/v1/banned_users", {
+    method: "POST",
+    headers: {...SB_HEADERS, "Prefer": "return=minimal"},
+    body: JSON.stringify({ username, reason: reason || "Comportamiento inapropiado" })
+  });
+  // Also remove from ranking
+  await sbFetch(`/rest/v1/ranking?username=eq.${encodeURIComponent(username)}`, { method: "DELETE" }).catch(()=>{});
+  await sbFetch(`/rest/v1/weekly_ranking?username=eq.${encodeURIComponent(username)}`, { method: "DELETE" }).catch(()=>{});
+}
+
+async function unbanUser(username) {
+  await sbFetch(`/rest/v1/banned_users?username=eq.${encodeURIComponent(username)}`, { method: "DELETE" });
+}
+
+async function fetchBannedUsers() {
+  return await sbFetch("/rest/v1/banned_users?select=*&order=created_at.desc");
+}
+
+async function checkIfBanned() {
+  if (!myUsername) return;
+  try {
+    const rows = await sbFetch(`/rest/v1/banned_users?username=eq.${encodeURIComponent(myUsername)}&select=username`);
+    if (rows && rows.length > 0) {
+      document.body.innerHTML = `<div style="position:fixed;inset:0;background:#100900;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Plus Jakarta Sans',sans-serif;text-align:center;padding:2rem">
+        <div style="font-size:52px;margin-bottom:1rem">🚫</div>
+        <div style="font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:#FFF3E0;margin-bottom:.5rem">Cuenta suspendida</div>
+        <div style="font-size:14px;color:#9A7050;line-height:1.6">Tu cuenta ha sido suspendida del ranking de Comidadle.<br>Puedes seguir jugando pero no aparecerás en el ranking.</div>
+      </div>`;
+    }
+  } catch(e) {}
+}
+
+// ── Owner Panel ──
+async function openOwnerPanel() {
+  openModal("owner-modal");
+  renderOwnerPanel();
+}
+
+async function renderOwnerPanel() {
+  const el = document.getElementById("owner-content");
+  if (!el) return;
+  el.innerHTML = '<div class="ranking-empty">Cargando panel...</div>';
+
+  const [ann, banned, rankingRows] = await Promise.all([
+    fetchAnnouncement(),
+    fetchBannedUsers().catch(()=>[]),
+    fetchRanking().catch(()=>[])
+  ]);
+
+  el.innerHTML = `
+    <!-- Announcement section -->
+    <div style="margin-bottom:1.25rem">
+      <div style="font-size:11px;font-weight:700;color:var(--gold);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">📢 Anuncio Global</div>
+      ${ann ? `<div style="background:rgba(255,107,53,0.1);border:1px solid var(--accent);border-radius:var(--r-sm);padding:.75rem;margin-bottom:.5rem;font-size:13px;color:var(--text)">${ann.message}<button onclick="clearAnnouncement().then(renderOwnerPanel)" style="float:right;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:12px">✕ Quitar</button></div>` : ""}
+      <textarea id="ann-input" class="review-textarea" placeholder="Escribe un anuncio para todos los jugadores..." style="min-height:60px"></textarea>
+      <button class="play-btn" id="ann-send-btn" style="width:100%;margin-top:.25rem">📢 Publicar anuncio</button>
+    </div>
+
+    <!-- Ban section -->
+    <div style="margin-bottom:1.25rem">
+      <div style="font-size:11px;font-weight:700;color:var(--red,#ef4444);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">🔒 Banear usuario del ranking</div>
+      <div style="display:flex;gap:6px;margin-bottom:.5rem">
+        <input id="ban-username-input" class="username-input" placeholder="Nombre del usuario..." style="margin:0;flex:1">
+        <button class="ranking-btn" id="ban-btn" style="color:var(--red,#ef4444);border-color:var(--red,#ef4444);white-space:nowrap">🔒 Banear</button>
+      </div>
+      <input id="ban-reason-input" class="username-input" placeholder="Razón del ban (opcional)..." style="margin:0;width:100%;box-sizing:border-box">
+    </div>
+
+    <!-- Banned users list -->
+    ${banned && banned.length > 0 ? `
+    <div style="margin-bottom:1.25rem">
+      <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">Usuarios baneados (${banned.length})</div>
+      ${banned.map(b=>`<div style="display:flex;align-items:center;gap:8px;padding:.5rem .75rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:.35rem">
+        <span style="flex:1;font-size:13px;font-weight:600;color:var(--text)">${b.username}</span>
+        <span style="font-size:11px;color:var(--text-muted)">${b.reason||""}</span>
+        <button onclick="unbanUser('${b.username}').then(renderOwnerPanel)" style="background:none;border:none;color:var(--green);cursor:pointer;font-size:12px;font-weight:600">Desbanear</button>
+      </div>`).join("")}
+    </div>` : ""}
+
+    <!-- Ranking overview -->
+    <div>
+      <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">📊 Ranking Global (${rankingRows?rankingRows.length:0} jugadores)</div>
+      ${rankingRows ? rankingRows.slice(0,10).map(r=>`<div style="display:flex;align-items:center;gap:8px;padding:.45rem .75rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:.3rem">
+        <span style="flex:1;font-size:13px;font-weight:600;color:var(--text)">${r.username}</span>
+        <span style="font-size:12px;color:var(--text-muted)">🔥${r.best_streak} · ${r.wins}W/${r.played}G</span>
+        <button onclick="banUser('${r.username}','').then(renderOwnerPanel)" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:11px;padding:2px 6px;border:1px solid var(--border);border-radius:4px">Ban</button>
+      </div>`).join("") : ""}
+    </div>`;
+
+  // Wire ann button
+  document.getElementById("ann-send-btn").addEventListener("click", async () => {
+    const msg = document.getElementById("ann-input").value.trim();
+    if (!msg) return;
+    const btn = document.getElementById("ann-send-btn");
+    btn.textContent = "Publicando..."; btn.disabled = true;
+    await postAnnouncement(msg);
+    renderOwnerPanel();
+  });
+
+  // Wire ban button
+  document.getElementById("ban-btn").addEventListener("click", async () => {
+    const name = document.getElementById("ban-username-input").value.trim();
+    const reason = document.getElementById("ban-reason-input").value.trim();
+    if (!name) return;
+    if (!confirm(`¿Banear a "${name}" del ranking?`)) return;
+    await banUser(name, reason);
+    renderOwnerPanel();
+  });
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1228,7 +1404,9 @@ function launchConfetti(){const canvas=document.createElement("canvas");canvas.s
 const ATTEMPTS_KEY="comidadle_attempts";
 function getAttemptsData(){try{return JSON.parse(localStorage.getItem(ATTEMPTS_KEY))||{1:0,2:0,3:0,4:0,5:0,6:0,fail:0};}catch(e){return{1:0,2:0,3:0,4:0,5:0,6:0,fail:0};}}
 function recordAttempt(won,attempts){const data=getAttemptsData();if(won)data[attempts]=(data[attempts]||0)+1;else data.fail=(data.fail||0)+1;try{localStorage.setItem(ATTEMPTS_KEY,JSON.stringify(data));}catch(e){}
-const pts=addWeeklyPoints(won,attempts);if(pts>0)addXP(pts);addHistory(won,attempts,dish.name,dish.flag);updateMiniAvatar();return pts;}
+const pts=addWeeklyPoints(won,attempts);if(pts>0)addXP(pts);addHistory(won,attempts,dish.name,dish.flag);updateMiniAvatar();
+showAnnouncementBanner();
+checkIfBanned();return pts;}
 function renderStatsContent(){
   const el=document.getElementById("stats-content");if(!el)return;
   const streak=streakData,pct=streak.played>0?Math.round(streak.wins/streak.played*100):0;
@@ -1418,6 +1596,8 @@ document.getElementById("sm-ranking").addEventListener("click",()=>{closeSideMen
 document.getElementById("sm-weekly").addEventListener("click",()=>{closeSideMenu();openWeekly();});
 document.getElementById("sm-reviews").addEventListener("click",()=>{closeSideMenu();openReviews();});
 document.getElementById("sm-about").addEventListener("click",()=>{closeSideMenu();openModal("about-modal");});
+document.getElementById("owner-close").addEventListener("click",()=>closeModal("owner-modal"));
+document.getElementById("owner-modal").addEventListener("click",e=>{if(e.target.id==="owner-modal")closeModal("owner-modal");});
 document.getElementById("profile-open-btn").addEventListener("click",()=>openProfile());
 document.getElementById("profile-close").addEventListener("click",()=>closeModal("profile-modal"));
 document.getElementById("profile-modal").addEventListener("click",e=>{if(e.target.id==="profile-modal")closeModal("profile-modal");});
