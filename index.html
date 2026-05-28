@@ -246,9 +246,9 @@
     <button class="modal-close" id="how-close">✕</button>
     <div class="modal-title">🌶️ Cómo jugar</div>
     <div class="how-step"><div class="step-num">1</div><div class="step-text">Cada día aparecen <strong>3 platos diferentes</strong> de la gastronomía hispana.</div></div>
-    <div class="how-step"><div class="step-num">2</div><div class="step-text">Elige el <strong>país de origen</strong> de entre las opciones. Tienes <strong>6 intentos</strong> por defecto.</div></div>
-    <div class="how-step"><div class="step-num">3</div><div class="step-text">Con cada intento fallido aparece una <strong>pista nueva</strong> que te acerca a la respuesta.</div></div>
-    <div class="how-step"><div class="step-num">4</div><div class="step-text">Al terminar se muestran <strong>todas las pistas</strong> y el país correcto queda <strong>resaltado en verde</strong>.</div></div>
+    <div class="how-step"><div class="step-num">2</div><div class="step-text">Cambia entre platos con las <strong>pestañas</strong> de arriba. Cada plato tiene sus propios intentos.</div></div>
+    <div class="how-step"><div class="step-num">3</div><div class="step-text">Elige el <strong>país de origen</strong> de entre las opciones. Tienes <strong>6 intentos</strong> por defecto.</div></div>
+    <div class="how-step"><div class="step-num">4</div><div class="step-text">Con cada fallo aparece una <strong>pista nueva</strong>. Al terminar se resalta el país correcto en verde.</div></div>
     <div class="modal-divider"></div>
     <div class="emoji-demo">🟥🟥🟥🟩</div>
     <div style="font-size:12px;color:var(--text-muted);text-align:center;margin-bottom:.5rem">🟩 Acierto · 🟥 Fallo</div>
@@ -769,21 +769,15 @@ async function deleteFromRanking() {
   if (!confirm("¿Seguro que quieres eliminarte del ranking?")) return;
   const nameToDelete = myUsername;
   const idToDelete = myUserId;
-  // Clear local state FIRST to prevent re-sync
   myUserId = ""; myUsername = "";
   localStorage.removeItem(USER_ID_KEY);
   localStorage.removeItem(USERNAME_KEY);
-  try {
-    if (idToDelete) await sbFetch(`/rest/v1/ranking?id=eq.${idToDelete}`, { method: "DELETE" }).catch(()=>{});
-    await sbFetch(`/rest/v1/ranking?username=eq.${encodeURIComponent(nameToDelete)}`, { method: "DELETE" }).catch(()=>{});
-    // Also remove from weekly
-    await sbFetch(`/rest/v1/weekly_ranking?username=eq.${encodeURIComponent(nameToDelete)}`, { method: "DELETE" }).catch(()=>{});
-  } catch(e) {}
+  try { await sbFetch(`/rest/v1/ranking?username=eq.${encodeURIComponent(nameToDelete)}`, { method: "DELETE" }); } catch(e) {}
+  try { if(idToDelete) await sbFetch(`/rest/v1/ranking?id=eq.${idToDelete}`, { method: "DELETE" }); } catch(e) {}
+  try { await sbFetch(`/rest/v1/weekly_ranking?username=eq.${encodeURIComponent(nameToDelete)}`, { method: "DELETE" }); } catch(e) {}
   updateMiniAvatar();
   renderUsernameSection(false);
-  await new Promise(r => setTimeout(r, 800));
-  const rows = await fetchRanking();
-  renderRankingList(rows);
+  setTimeout(async()=>{ const rows=await fetchRanking().catch(()=>[]); renderRankingList(rows); }, 1000);
 }
 
 // ── Sync streak to Supabase (resets if didn't play yesterday) ──
@@ -1007,7 +1001,7 @@ let myUsername=localStorage.getItem(USERNAME_KEY)||"",myUserId=localStorage.getI
 async function sbFetch(path,options={}){const res=await fetch(SB_URL+path,{headers:SB_HEADERS,...options});if(!res.ok)throw new Error(await res.text());return res.json().catch(()=>null);}
 async function upsertRanking(){if(!myUsername)return;const data={streak:streakData.streak,best_streak:streakData.best,wins:streakData.wins,played:streakData.played,updated_at:new Date().toISOString()};if(myUserId){await sbFetch(`/rest/v1/ranking?id=eq.${myUserId}`,{method:"PATCH",body:JSON.stringify(data)});}else{const result=await sbFetch("/rest/v1/ranking?select=id",{method:"POST",headers:{...SB_HEADERS,"Prefer":"return=representation"},body:JSON.stringify({...data,username:myUsername})});if(result&&result[0]){myUserId=result[0].id;localStorage.setItem(USER_ID_KEY,myUserId);}}}
 async function fetchRanking(){return await sbFetch("/rest/v1/ranking?select=*&order=best_streak.desc&limit=50");}
-async function syncRanking(){try{await upsertRanking();}catch(e){}}
+async function syncRanking(){if(!myUsername||!myUserId)return;try{await upsertRanking();}catch(e){}}
 // ═══════════════════════════════════════════════════════════
 // RANKING SEMANAL
 // ═══════════════════════════════════════════════════════════
@@ -1030,11 +1024,11 @@ try {
 function saveWeekly() { try { localStorage.setItem(WEEKLY_KEY, JSON.stringify(weeklyData)); } catch(e) {} }
 
 function addWeeklyPoints(won, attempts) {
-  if (weeklyData.week !== weekKey) { weeklyData = { points: 0, week: weekKey }; }
+  if (!weeklyData || weeklyData.week !== weekKey) { weeklyData = { points: 0, week: weekKey }; }
   const earned = won ? Math.max(1, 7 - attempts) : 0;
-  weeklyData.points += earned;
+  if(earned > 0) weeklyData.points += earned;
   saveWeekly();
-  syncWeeklyRanking();
+  if(earned > 0) syncWeeklyRanking();
   return earned;
 }
 
@@ -1103,7 +1097,11 @@ async function openWeekly() {
 // ── Announcements ──
 async function fetchAnnouncement() {
   try {
-    const rows = await sbFetch("/rest/v1/announcements?active=eq.true&order=created_at.desc&limit=1");
+    const res = await fetch(SB_URL + "/rest/v1/announcements?active=eq.true&order=created_at.desc&limit=1", {
+      headers: SB_HEADERS
+    });
+    if (!res.ok) return null;
+    const rows = await res.json();
     return rows && rows[0] ? rows[0] : null;
   } catch(e) { return null; }
 }
@@ -1127,13 +1125,17 @@ async function showAnnouncementBanner() {
 }
 
 async function postAnnouncement(msg) {
-  // Deactivate old ones
-  try { await sbFetch("/rest/v1/announcements?active=eq.true", { method: "PATCH", body: JSON.stringify({ active: false }) }); } catch(e) {}
-  await sbFetch("/rest/v1/announcements", {
-    method: "POST",
-    headers: {...SB_HEADERS, "Prefer": "return=minimal"},
-    body: JSON.stringify({ message: msg, active: true })
-  });
+  try {
+    // Delete old announcements first
+    await sbFetch("/rest/v1/announcements?active=eq.true", { method: "DELETE" });
+  } catch(e) {}
+  try {
+    await sbFetch("/rest/v1/announcements", {
+      method: "POST",
+      headers: {...SB_HEADERS, "Prefer": "return=minimal"},
+      body: JSON.stringify({ message: msg, active: true })
+    });
+  } catch(e) {}
 }
 
 async function clearAnnouncement() {
@@ -1142,14 +1144,18 @@ async function clearAnnouncement() {
 
 // ── Bans ──
 async function banUser(username, reason) {
-  await sbFetch("/rest/v1/banned_users", {
-    method: "POST",
-    headers: {...SB_HEADERS, "Prefer": "return=minimal"},
-    body: JSON.stringify({ username, reason: reason || "Comportamiento inapropiado" })
-  });
-  // Also remove from ranking
-  await sbFetch(`/rest/v1/ranking?username=eq.${encodeURIComponent(username)}`, { method: "DELETE" }).catch(()=>{});
-  await sbFetch(`/rest/v1/weekly_ranking?username=eq.${encodeURIComponent(username)}`, { method: "DELETE" }).catch(()=>{});
+  const finalReason = reason || "Comportamiento inapropiado";
+  // Insert ban (ignore if already banned)
+  try {
+    await sbFetch("/rest/v1/banned_users", {
+      method: "POST",
+      headers: {...SB_HEADERS, "Prefer": "return=minimal"},
+      body: JSON.stringify({ username, reason: finalReason })
+    });
+  } catch(e) {}
+  // Remove from all rankings
+  try { await sbFetch(`/rest/v1/ranking?username=eq.${encodeURIComponent(username)}`, { method: "DELETE" }); } catch(e) {}
+  try { await sbFetch(`/rest/v1/weekly_ranking?username=eq.${encodeURIComponent(username)}`, { method: "DELETE" }); } catch(e) {}
 }
 
 async function unbanUser(username) {
@@ -1163,13 +1169,23 @@ async function fetchBannedUsers() {
 async function checkIfBanned() {
   if (!myUsername) return;
   try {
-    const rows = await sbFetch(`/rest/v1/banned_users?username=eq.${encodeURIComponent(myUsername)}&select=username`);
+    const rows = await sbFetch(`/rest/v1/banned_users?username=eq.${encodeURIComponent(myUsername)}&select=username,reason`);
     if (rows && rows.length > 0) {
-      document.body.innerHTML = `<div style="position:fixed;inset:0;background:#100900;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Plus Jakarta Sans',sans-serif;text-align:center;padding:2rem">
-        <div style="font-size:52px;margin-bottom:1rem">🚫</div>
-        <div style="font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:#FFF3E0;margin-bottom:.5rem">Cuenta suspendida</div>
-        <div style="font-size:14px;color:#9A7050;line-height:1.6">Tu cuenta ha sido suspendida del ranking de Comidadle.<br>Puedes seguir jugando pero no aparecerás en el ranking.</div>
-      </div>`;
+      const reason = rows[0].reason || "Comportamiento inapropiado";
+      // Remove from local storage so they can't re-add themselves
+      myUserId = ""; myUsername = "";
+      localStorage.removeItem(USER_ID_KEY);
+      localStorage.removeItem(USERNAME_KEY);
+      // Show ban screen
+      const banScreen = document.createElement("div");
+      banScreen.style.cssText = "position:fixed;inset:0;background:#100900;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Plus Jakarta Sans',sans-serif;text-align:center;padding:2rem;z-index:9999";
+      banScreen.innerHTML = `
+        <div style="font-size:64px;margin-bottom:1rem">🚫</div>
+        <div style="font-family:'Fraunces',serif;font-size:24px;font-weight:900;color:#FFF3E0;margin-bottom:.5rem">Has sido eliminado del ranking</div>
+        <div style="font-size:13px;color:#9A7050;line-height:1.7;max-width:320px;margin-bottom:1rem">El Owner de Comidadle te ha eliminado del ranking.<br><br><strong style="color:#FFF3E0">Razón:</strong> ${reason}</div>
+        <div style="font-size:12px;color:#555;max-width:300px;line-height:1.6">Puedes seguir jugando normalmente pero no podrás aparecer en el ranking.</div>
+        <button onclick="this.parentElement.remove()" style="margin-top:1.5rem;background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);padding:.65rem 1.5rem;border-radius:var(--r-sm);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px">Entendido</button>`;
+      document.body.appendChild(banScreen);
     }
   } catch(e) {}
 }
