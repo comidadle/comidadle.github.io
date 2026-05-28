@@ -769,6 +769,8 @@ async function deleteFromRanking() {
   if (!confirm("¿Seguro que quieres eliminarte del ranking?")) return;
   const nameToDelete = myUsername;
   const idToDelete = myUserId;
+  isBanned = false;
+  localStorage.removeItem(BANNED_KEY);
   myUserId = ""; myUsername = "";
   localStorage.removeItem(USER_ID_KEY);
   localStorage.removeItem(USERNAME_KEY);
@@ -998,8 +1000,10 @@ const SB_KEY="sb_publishable_hZ1V7TNXiAFlENYGfdESyQ_9zXDq5U7";
 const SB_HEADERS={"Content-Type":"application/json","apikey":SB_KEY,"Authorization":"Bearer "+SB_KEY};
 const USERNAME_KEY="comidadle_username",USER_ID_KEY="comidadle_userid";
 let myUsername=localStorage.getItem(USERNAME_KEY)||"",myUserId=localStorage.getItem(USER_ID_KEY)||"";
+const BANNED_KEY="comidadle_banned";
+let isBanned=localStorage.getItem(BANNED_KEY)==="1";
 async function sbFetch(path,options={}){const res=await fetch(SB_URL+path,{headers:SB_HEADERS,...options});if(!res.ok)throw new Error(await res.text());return res.json().catch(()=>null);}
-async function upsertRanking(){if(!myUsername)return;const data={streak:streakData.streak,best_streak:streakData.best,wins:streakData.wins,played:streakData.played,updated_at:new Date().toISOString()};if(myUserId){await sbFetch(`/rest/v1/ranking?id=eq.${myUserId}`,{method:"PATCH",body:JSON.stringify(data)});}else{const result=await sbFetch("/rest/v1/ranking?select=id",{method:"POST",headers:{...SB_HEADERS,"Prefer":"return=representation"},body:JSON.stringify({...data,username:myUsername})});if(result&&result[0]){myUserId=result[0].id;localStorage.setItem(USER_ID_KEY,myUserId);}}}
+async function upsertRanking(){if(!myUsername||isBanned)return;const data={streak:streakData.streak,best_streak:streakData.best,wins:streakData.wins,played:streakData.played,updated_at:new Date().toISOString()};if(myUserId){await sbFetch(`/rest/v1/ranking?id=eq.${myUserId}`,{method:"PATCH",body:JSON.stringify(data)});}else{const result=await sbFetch("/rest/v1/ranking?select=id",{method:"POST",headers:{...SB_HEADERS,"Prefer":"return=representation"},body:JSON.stringify({...data,username:myUsername})});if(result&&result[0]){myUserId=result[0].id;localStorage.setItem(USER_ID_KEY,myUserId);}}}
 async function fetchRanking(){return await sbFetch("/rest/v1/ranking?select=*&order=best_streak.desc&limit=50");}
 async function syncRanking(){if(!myUsername||!myUserId)return;try{await upsertRanking();}catch(e){}}
 // ═══════════════════════════════════════════════════════════
@@ -1015,11 +1019,12 @@ function getWeekKey() {
 
 const WEEKLY_KEY = "comidadle_weekly";
 const weekKey = getWeekKey();
-let weeklyData = { points: 0, week: "" };
+let weeklyData = { points: 0, week: weekKey };
 try {
   const ws = JSON.parse(localStorage.getItem(WEEKLY_KEY));
   if (ws && ws.week === weekKey) weeklyData = ws;
-} catch(e) {}
+  else weeklyData = { points: 0, week: weekKey };
+} catch(e) { weeklyData = { points: 0, week: weekKey }; }
 
 function saveWeekly() { try { localStorage.setItem(WEEKLY_KEY, JSON.stringify(weeklyData)); } catch(e) {} }
 
@@ -1033,7 +1038,7 @@ function addWeeklyPoints(won, attempts) {
 }
 
 async function syncWeeklyRanking() {
-  if (!myUsername) return;
+  if (!myUsername||isBanned) return;
   try {
     // Check if entry exists
     const existing = await sbFetch(`/rest/v1/weekly_ranking?username=eq.${encodeURIComponent(myUsername)}&week=eq.${weekKey}&select=id,points`);
@@ -1173,6 +1178,8 @@ async function checkIfBanned() {
     if (rows && rows.length > 0) {
       const reason = rows[0].reason || "Comportamiento inapropiado";
       // Remove from local storage so they can't re-add themselves
+      isBanned = true;
+      localStorage.setItem(BANNED_KEY,"1");
       myUserId = ""; myUsername = "";
       localStorage.removeItem(USER_ID_KEY);
       localStorage.removeItem(USERNAME_KEY);
@@ -1274,11 +1281,12 @@ async function renderOwnerPanel() {
 const XP_KEY = "comidadle_xp";
 const HISTORY_KEY = "comidadle_history";
 let totalXP = 0;
-try { totalXP = parseInt(localStorage.getItem(XP_KEY)) || 0; } catch(e) {}
+try { const xpStr = localStorage.getItem(XP_KEY); totalXP = xpStr ? (parseInt(xpStr)||0) : 0; } catch(e) { totalXP = 0; }
 
 function addXP(pts) {
+  if(!pts||pts<=0)return;
   totalXP += pts;
-  try { localStorage.setItem(XP_KEY, totalXP); } catch(e) {}
+  try { localStorage.setItem(XP_KEY, String(totalXP)); } catch(e) {}
 }
 
 function getXPLevel(xp) {
@@ -1437,7 +1445,7 @@ const ATTEMPTS_KEY="comidadle_attempts";
 function getAttemptsData(){try{return JSON.parse(localStorage.getItem(ATTEMPTS_KEY))||{1:0,2:0,3:0,4:0,5:0,6:0,fail:0};}catch(e){return{1:0,2:0,3:0,4:0,5:0,6:0,fail:0};}}
 function recordAttempt(won,attempts){const data=getAttemptsData();if(won)data[attempts]=(data[attempts]||0)+1;else data.fail=(data.fail||0)+1;try{localStorage.setItem(ATTEMPTS_KEY,JSON.stringify(data));}catch(e){}
 const xp=addWeeklyPoints(won,attempts);if(xp>0)addXP(xp);addHistory(won,attempts,dish.name,dish.flag);updateMiniAvatar();
-showAnnouncementBanner();
+setTimeout(showAnnouncementBanner, 2000);
 checkIfBanned();return xp;}
 function renderStatsContent(){
   const el=document.getElementById("stats-content");if(!el)return;
@@ -1548,6 +1556,8 @@ function renderUsernameSection(isChanging=false){
     document.getElementById("delete-rank-btn").addEventListener("click",deleteFromRanking);
   }else{
     const showCancel=!!myUsername;
+    // Double-check localStorage is cleared
+    if(!myUsername){localStorage.removeItem(USERNAME_KEY);localStorage.removeItem(USER_ID_KEY);}
     el.innerHTML=`<div style="margin-bottom:.75rem"><div style="font-size:13px;color:var(--text-muted);margin-bottom:.5rem">${showCancel?"Cambia tu nombre:":"Elige un nombre para el ranking:"}</div><input class="username-input" id="username-input" placeholder="Tu nombre o apodo..." maxlength="20" value="${showCancel?myUsername:""}"><div style="display:flex;gap:8px"><button class="ranking-btn primary" id="save-username-btn" style="flex:1">Guardar</button>${showCancel?'<button class="ranking-btn" id="cancel-name-btn">Cancelar</button>':""}</div></div>`;
     if(showCancel)document.getElementById("cancel-name-btn").addEventListener("click",()=>renderUsernameSection(false));
     document.getElementById("save-username-btn").addEventListener("click",async()=>{
@@ -1559,9 +1569,13 @@ function renderUsernameSection(isChanging=false){
         try{await sbFetch(`/rest/v1/ranking?username=eq.${encodeURIComponent(myUsername)}`,{method:"DELETE"});}catch(e){}
         myUserId="";localStorage.removeItem(USER_ID_KEY);
       }
-      myUsername=val;localStorage.setItem(USERNAME_KEY,myUsername);renderUsernameSection(false);
+      myUsername=val;myUserId="";
+      localStorage.setItem(USERNAME_KEY,myUsername);
+      localStorage.removeItem(USER_ID_KEY);
+      renderUsernameSection(false);
       document.getElementById("ranking-list").innerHTML='<div class="ranking-empty">Guardando...</div>';
-      await upsertRanking();const rows=await fetchRanking();renderRankingList(rows);
+      await upsertRanking();
+      setTimeout(async()=>{const rows=await fetchRanking();renderRankingList(rows);},800);
     });
   }
 }
