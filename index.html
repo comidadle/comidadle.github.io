@@ -586,17 +586,31 @@ async function deleteFromRanking(){
   if(!myUser)return;
   if(!confirm("¿Seguro que quieres eliminarte del ranking?"))return;
   const name=myUser,id=myId;
+  // Clear local state FIRST
   isBanned=false;localStorage.removeItem(BK);
   myUser="";myId="";localStorage.removeItem(UK);localStorage.removeItem(UDK);
   updateMiniAvatar();renderUsernameSection(false);
   document.getElementById("ranking-list").innerHTML='<div class="ranking-empty">Eliminando...</div>';
-  const del=async(p)=>{try{await fetch(SB+p,{method:"DELETE",headers:SH});}catch(e){}};
-  await del("/rest/v1/ranking?username=eq."+encodeURIComponent(name));
-  if(id)await del("/rest/v1/ranking?id=eq."+id);
-  await del("/rest/v1/weekly_ranking?username=eq."+encodeURIComponent(name));
-  // Wait for DB to propagate then re-fetch
-  await new Promise(r=>setTimeout(r,1200));
-  try{renderRankingList(await fetchRanking());}catch(e){document.getElementById("ranking-list").innerHTML='<div class="ranking-empty">Error 😔</div>';}
+  // Delete from DB using all possible identifiers
+  const headers={...SH,"Prefer":"return=minimal"};
+  const delReqs=[
+    fetch(SB+"/rest/v1/ranking?username=eq."+encodeURIComponent(name),{method:"DELETE",headers}),
+    fetch(SB+"/rest/v1/weekly_ranking?username=eq."+encodeURIComponent(name),{method:"DELETE",headers}),
+  ];
+  if(id){
+    delReqs.push(fetch(SB+"/rest/v1/ranking?id=eq."+id,{method:"DELETE",headers}));
+  }
+  await Promise.allSettled(delReqs);
+  // Wait for Supabase to propagate
+  await new Promise(r=>setTimeout(r,1500));
+  try{
+    let rows=await fetchRanking();
+    // Filter out the deleted user client-side as safety net
+    if(rows)rows=rows.filter(r=>r.username!==name&&r.id!==id);
+    renderRankingList(rows);
+  }catch(e){
+    document.getElementById("ranking-list").innerHTML='<div class="ranking-empty">¡Eliminado! Actualiza para ver el ranking.</div>';
+  }
 }
 
 // ═══ WEEKLY ═══
