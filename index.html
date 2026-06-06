@@ -627,11 +627,12 @@ async function syncWeekly(){
   try{
     const ex=await sb("/rest/v1/weekly_ranking?username=eq."+encodeURIComponent(myUser)+"&week=eq."+weekKey+"&select=id,points");
     if(ex&&ex.length>0){
-      if(weekly.points>(ex[0].points||0))await sb("/rest/v1/weekly_ranking?id=eq."+ex[0].id,{method:"PATCH",body:JSON.stringify({points:weekly.points,updated_at:new Date().toISOString()})});
+      // Always update to latest points
+      await sb("/rest/v1/weekly_ranking?id=eq."+ex[0].id,{method:"PATCH",body:JSON.stringify({points:weekly.points,updated_at:new Date().toISOString()})});
     }else{
       await sb("/rest/v1/weekly_ranking",{method:"POST",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({username:myUser,week:weekKey,points:weekly.points})});
     }
-  }catch(e){}
+  }catch(e){console.warn("syncWeekly error:",e);}
 }
 async function fetchWeekly(){return await sb("/rest/v1/weekly_ranking?week=eq."+weekKey+"&select=*&order=points.desc&limit=50");}
 
@@ -925,7 +926,8 @@ function renderUsernameSection(isChanging=false){
       myUser=val;localStorage.setItem(UK,val);if(myId)localStorage.setItem(UDK,myId);else localStorage.removeItem(UDK);
       renderUsernameSection(false);updateMiniAvatar();
       document.getElementById("ranking-list").innerHTML='<div class="ranking-empty">Guardando...</div>';
-      await upsertRanking();if(weekly.points>0)syncWeekly();
+      await upsertRanking();
+      if(weekly.points>=0)syncWeekly().catch(()=>{});
       setTimeout(async()=>{try{renderRankingList(await fetchRanking());}catch(e){}},800);
     };
   }
@@ -981,12 +983,36 @@ function renderAll(){
   if(!cfg.noHints){const n=done?dish.hints.length:cfg.progressive?Math.min(log.length+1,dish.hints.length):dish.hints.length;for(let i=0;i<n;i++){const h=document.createElement("div");h.className="hint";h.innerHTML=`<strong>Pista ${i+1}</strong> — ${dish.hints[i]}`;hintsEl.appendChild(h);}}
   const gridEl=document.getElementById("grid");gridEl.innerHTML="";
   opts.forEach(c=>{const btn=document.createElement("button");btn.className="country-btn";btn.innerHTML=`<span>${getFlag(c)}</span><span>${c}</span>`;if(done){btn.disabled=true;if(c===dish.country)btn.classList.add("correct-answer");}else if(wrong.has(c))btn.disabled=true;else btn.addEventListener("click",()=>handleGuess(c,btn));gridEl.appendChild(btn);});
-  if(done&&!document.querySelector(".result-box"))showResult(log[log.length-1]===true,false);
+  if(done&&!document.querySelector(".result-box"))showResultBox(log[log.length-1]===true,0);
 }
 function handleGuess(c,btn){
   if(done)return;const MAX=getMax();
-  if(c===dish.country){playCorrect();log.push(true);done=true;saveState();renderAll();showResult(true,true);}
-  else{playWrong();log.push(false);wrong.add(c);btn.disabled=true;btn.classList.add("shake");setTimeout(()=>btn.classList.remove("shake"),400);if(log.length>=MAX){done=true;saveState();renderAll();showResult(false,true);}else{saveState();renderAll();}}
+  if(c===dish.country){
+    playCorrect();log.push(true);done=true;saveState();
+    // Record attempt and award XP BEFORE renderAll (which calls showResult with animate=false)
+    const earnedXP=recordAttempt(true,log.length);
+    updateStreak(true);syncRanking();
+    // Show XP toast
+    if(earnedXP>0){
+      const t=document.createElement("div");
+      t.style.cssText="position:fixed;top:40%;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;font-family:'Fraunces',serif;font-size:26px;font-weight:900;padding:.65rem 1.75rem;border-radius:99px;z-index:9999;pointer-events:none;box-shadow:0 4px 20px rgba(34,197,94,.5);animation:toastUp 1.4s ease forwards";
+      t.textContent="+"+earnedXP+" XP ⭐";
+      document.body.appendChild(t);
+      setTimeout(()=>t.remove(),1400);
+    }
+    renderTabs();
+    // Show result box with confetti (animate=false so it doesn't call recordAttempt again)
+    setTimeout(()=>{launchConfetti();playWin();},300);
+    showResultBox(true,earnedXP);
+  }
+  else{playWrong();log.push(false);wrong.add(c);btn.disabled=true;btn.classList.add("shake");setTimeout(()=>btn.classList.remove("shake"),400);if(log.length>=MAX){
+      done=true;saveState();
+      recordAttempt(false,log.length);
+      updateStreak(false);syncRanking();
+      setTimeout(()=>playLose(),300);
+      renderTabs();
+      showResultBox(false,0);
+    }else{saveState();renderAll();}}
 }
 function startCountdown(){
   const el=document.getElementById("countdown-time");if(!el)return;
@@ -994,10 +1020,10 @@ function startCountdown(){
   tick();setInterval(tick,1000);
 }
 let shareText="";
-function showResult(won,animate){
+function showResultBox(won,xpEarned){
   const resultEl=document.getElementById("result");if(resultEl.querySelector(".result-box"))return;
-  updateStreak(won);syncRanking();renderTabs();
-  let xp=0;if(animate)xp=recordAttempt(won,log.length)||0;
+  // xpEarned already calculated and awarded in handleGuess
+  const xp=xpEarned||0;
   const attData=getAttempts(),mx=Math.max(...[1,2,3,4,5,6].map(n=>attData[n]||0),attData.fail||0,1);
   const miniChart=[1,2,3,4,5,6].map(n=>{const v=attData[n]||0,w=mx?Math.round((v/mx)*100):0,cur=won&&log.length===n;return`<div class="bar-row"><div class="bar-label" style="font-size:11px">${n}</div><div class="bar-track" style="height:14px"><div class="bar-fill${v===0?" zero":""}" style="width:${Math.max(w,v>0?8:0)}%;${cur?"background:var(--green)":""}">${v>0?`<span class="bar-count" style="font-size:10px">${v}</span>`:""}</div></div></div>`;}).join("");
   const emojiStr=log.map(g=>g?"🟩":"🟥").join("");
@@ -1009,17 +1035,8 @@ function showResult(won,animate){
   document.getElementById("share-btn-"+currentDish).onclick=openShareModal;
   const ndb=document.getElementById("next-dish-btn");if(ndb)ndb.onclick=()=>switchDish(currentDish+1);
   if(animate){
-    if(won){
-      setTimeout(()=>{launchConfetti();playWin();},300);
-      if(xp>0){
-        // Show floating XP toast
-        const toast=document.createElement("div");
-        toast.style.cssText="position:fixed;bottom:6rem;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;font-family:'Fraunces',serif;font-size:22px;font-weight:900;padding:.6rem 1.5rem;border-radius:99px;z-index:999;pointer-events:none;animation:toastUp .8s ease forwards;box-shadow:0 4px 20px rgba(34,197,94,.4)";
-        toast.textContent="+"+xp+" XP ⭐";
-        document.body.appendChild(toast);
-        setTimeout(()=>toast.remove(),1800);
-      }
-    }else setTimeout(()=>playLose(),300);
+    if(won){setTimeout(()=>{launchConfetti();playWin();},300);}
+    else setTimeout(()=>playLose(),300);
   }
   startCountdown();
   if(!localStorage.getItem("notif_asked"))setTimeout(askNotif,2000);
