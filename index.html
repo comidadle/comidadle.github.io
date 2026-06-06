@@ -834,8 +834,28 @@ function renderUsernameSection(isChanging=false){
     document.getElementById("save-uname").onclick=async()=>{
       const val=document.getElementById("uname-inp").value.trim();if(!val)return;
       const showErr=(msg)=>{const inp=document.getElementById("uname-inp");inp.style.borderColor="var(--red)";inp.value="";inp.placeholder=msg;setTimeout(()=>inp.style.borderColor="",3000);};
-      if(isBanned){showErr("Tu cuenta fue baneada ❌");return;}
       const btn=document.getElementById("save-uname");btn.textContent="Comprobando...";btn.disabled=true;
+      // If locally banned, check if owner has unbanned them in Supabase
+      if(isBanned){
+        try{
+          // Check if any account exists for this device (we use a generic check)
+          // If they're trying a new name, check if that name is banned
+          const bc=await sb("/rest/v1/banned_users?username=eq."+encodeURIComponent(val)+"&select=username,reason");
+          if(bc&&bc.length>0){
+            // Still banned under this name
+            showErr("Baneado: "+(bc[0].reason||"Comportamiento inapropiado")+" ❌");btn.textContent="Guardar";btn.disabled=false;return;
+          } else {
+            // Owner unbanned them - clear local ban flag and show rules warning
+            isBanned=false;localStorage.removeItem(BK);
+            const warn=document.createElement("div");
+            warn.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1.5rem";
+            warn.innerHTML=`<div style="background:var(--surface);border:1px solid var(--gold);border-radius:16px;padding:1.75rem 1.5rem;max-width:380px;width:100%;text-align:center"><div style="font-size:48px;margin-bottom:.75rem">⚠️</div><div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--gold);margin-bottom:.75rem">Segunda oportunidad</div><div style="font-size:13px;color:var(--text-muted);line-height:1.7;margin-bottom:1.25rem">Has sido perdonado por el Owner de Comidadle.<br><br>Recuerda respetar las reglas del juego que puedes ver en la sección <strong style="color:var(--text)">Extras → Reglas</strong>.<br><br>Esta es tu <strong style="color:var(--red)">última oportunidad</strong>. Un nuevo ban será permanente.</div><button id="warn-ok" class="play-btn" style="margin-top:0">Entendido, prometo respetar las reglas</button></div>`;
+            document.body.appendChild(warn);
+            document.getElementById("warn-ok").onclick=()=>{warn.remove();};
+            btn.textContent="Guardar";btn.disabled=false;return;
+          }
+        }catch(e){showErr("Tu cuenta fue baneada ❌");btn.textContent="Guardar";btn.disabled=false;return;}
+      }
       try{const bc=await sb("/rest/v1/banned_users?username=eq."+encodeURIComponent(val)+"&select=username,reason");if(bc&&bc.length>0){isBanned=true;localStorage.setItem(BK,"1");showErr("Baneado: "+(bc[0].reason||"Comportamiento inapropiado")+" ❌");btn.textContent="Guardar";btn.disabled=false;return;}}catch(e){}
       try{const ex=await sb("/rest/v1/ranking?username=eq."+encodeURIComponent(val)+"&select=id");if(ex&&ex.some(r=>r.id!==myId)){showErr("Ese nombre ya está en uso 😅");btn.textContent="Guardar";btn.disabled=false;return;}}catch(e){}
       if(myUser&&myUser!==val){const d=p=>fetch(SB+p,{method:"DELETE",headers:SH}).catch(()=>{});await d("/rest/v1/ranking?username=eq."+encodeURIComponent(myUser));await d("/rest/v1/weekly_ranking?username=eq."+encodeURIComponent(myUser));myId="";}
