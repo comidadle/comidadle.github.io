@@ -764,7 +764,7 @@ async function renderOwnerPanel(){
     </div>
     <div id="oc-sug" style="display:none">
       <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem">Sugerencias (${sugs?sugs.length:0})</div>
-      ${sugs&&sugs.length>0?sugs.map(s=>`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;margin-bottom:.4rem"><div style="display:flex;justify-content:space-between;margin-bottom:.3rem"><span style="font-size:12px;font-weight:700;color:var(--accent)">${s.username||"Anónimo"}</span><button onclick="sb('/rest/v1/suggestions?id=eq.${s.id}',{method:'DELETE'}).then(renderOwnerPanel)" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:12px">🗑️</button></div><div style="font-size:13px;color:var(--text);line-height:1.55">${s.message}</div></div>`).join(""):'<div style="font-size:12px;color:var(--text-muted);text-align:center;padding:1rem">Sin sugerencias aún</div>'}
+      ${sugs&&sugs.length>0?sugs.map(s=>`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;margin-bottom:.4rem"><div style="display:flex;justify-content:space-between;margin-bottom:.3rem"><span style="font-size:12px;font-weight:700;color:var(--accent)">${s.username||"Anónimo"}</span><button onclick="deleteSuggestion('${s.id}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:12px">🗑️</button></div><div style="font-size:13px;color:var(--text);line-height:1.55">${s.message}</div></div>`).join(""):'<div style="font-size:12px;color:var(--text-muted);text-align:center;padding:1rem">Sin sugerencias aún</div>'}
     </div>`;
   document.getElementById("ann-send-btn").onclick=async()=>{const msg=document.getElementById("ann-input").value.trim();if(!msg)return;const btn=document.getElementById("ann-send-btn");btn.textContent="Publicando...";btn.disabled=true;await postAnn(msg);renderOwnerPanel();};
   document.getElementById("ban-btn").onclick=async()=>{const name=document.getElementById("ban-name-inp").value.trim(),reason=document.getElementById("ban-reason-inp").value.trim();if(!name||!confirm("¿Banear a '"+name+"'?"))return;await banUser(name,reason);setTimeout(renderOwnerPanel,600);};
@@ -831,12 +831,46 @@ function renderReplies(rid,rc,container){
 }
 
 // ═══ SUGGESTIONS ═══
+async function deleteSuggestion(id){
+  try{await fetch(SB+"/rest/v1/suggestions?id=eq."+id,{method:"DELETE",headers:SH});}catch(e){}
+  renderOwnerPanel();
+}
+
 async function openSuggestionsModal(){openModal("suggestions-modal");renderSuggestions();}
+async function reactSuggestion(sugId,reaction){
+  const name=myUser||"Anónimo";
+  const key="comidadle_sug_react_"+sugId;
+  const prev=localStorage.getItem(key);
+  if(prev===reaction){
+    // Remove reaction
+    try{await fetch(SB+"/rest/v1/suggestion_reactions?suggestion_id=eq."+sugId+"&username=eq."+encodeURIComponent(name),{method:"DELETE",headers:SH});}catch(e){}
+    localStorage.removeItem(key);
+  }else{
+    // Add/change reaction
+    try{await fetch(SB+"/rest/v1/suggestion_reactions?suggestion_id=eq."+sugId+"&username=eq."+encodeURIComponent(name),{method:"DELETE",headers:SH});}catch(e){}
+    try{await sb("/rest/v1/suggestion_reactions",{method:"POST",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({suggestion_id:sugId,username:name,reaction})});}catch(e){}
+    localStorage.setItem(key,reaction);
+  }
+  renderSuggestions();
+}
+
 async function renderSuggestions(){
   const el=document.getElementById("suggestions-content");if(!el)return;
   el.innerHTML=`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:1rem;margin-bottom:1rem"><div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:.5rem">¿Tienes alguna idea?</div><textarea class="review-textarea" id="sug-inp" placeholder="Cuéntanos qué mejorarías o añadirías..." style="min-height:80px"></textarea><button class="play-btn" id="sug-send" style="width:100%;margin-top:.25rem">💡 Enviar idea</button></div><div id="sug-list"><div class="ranking-empty">Cargando...</div></div>`;
   document.getElementById("sug-send").onclick=async()=>{const v=document.getElementById("sug-inp").value.trim();if(!v)return;const btn=document.getElementById("sug-send");btn.textContent="Enviando...";btn.disabled=true;await sb("/rest/v1/suggestions",{method:"POST",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({username:myUser||"Anónimo",message:v})});renderSuggestions();};
-  try{const rows=await sb("/rest/v1/suggestions?select=*&order=created_at.desc&limit=50");const listEl=document.getElementById("sug-list");if(!rows||rows.length===0){listEl.innerHTML='<div class="ranking-empty">¡Sé el primero! 💡</div>';return;}listEl.innerHTML=rows.map(s=>`<div class="review-card"><div class="review-header"><span class="review-name">${s.username||"Anónimo"}</span><span class="review-date">${timeAgo(s.created_at)}</span></div><div class="review-comment" style="font-style:normal">${s.message}</div></div>`).join("");}catch(e){document.getElementById("sug-list").innerHTML='<div class="ranking-empty">Error 😔</div>';}
+  try{
+    const rows=await sb("/rest/v1/suggestions?select=*&order=created_at.desc&limit=50");
+    const listEl=document.getElementById("sug-list");
+    if(!rows||rows.length===0){listEl.innerHTML='<div class="ranking-empty">¡Sé el primero en sugerir algo! 💡</div>';return;}
+    // Fetch reactions
+    let rmap={};
+    try{const reps=await sb("/rest/v1/suggestion_reactions?select=suggestion_id,reaction");if(reps)reps.forEach(r=>{if(!rmap[r.suggestion_id])rmap[r.suggestion_id]={like:0,dislike:0};rmap[r.suggestion_id][r.reaction]++;});}catch(e){}
+    listEl.innerHTML=rows.map(s=>{
+      const rc=rmap[s.id]||{like:0,dislike:0};
+      const myReact=localStorage.getItem("comidadle_sug_react_"+s.id);
+      return`<div class="review-card"><div class="review-header"><span class="review-name">${s.username||"Anónimo"}</span><span class="review-date">${timeAgo(s.created_at)}</span></div><div class="review-comment" style="font-style:normal;margin-bottom:.5rem">${s.message}</div><div style="display:flex;gap:8px"><button onclick="reactSuggestion('${s.id}','like')" style="display:flex;align-items:center;gap:4px;background:${myReact==="like"?"rgba(34,197,94,.15)":"var(--surface)"};border:1px solid ${myReact==="like"?"var(--green)":"var(--border-strong)"};border-radius:6px;padding:4px 10px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;color:${myReact==="like"?"var(--green)":"var(--text-muted)"}">👍 ${rc.like}</button><button onclick="reactSuggestion('${s.id}','dislike')" style="display:flex;align-items:center;gap:4px;background:${myReact==="dislike"?"rgba(240,80,80,.15)":"var(--surface)"};border:1px solid ${myReact==="dislike"?"var(--red)":"var(--border-strong)"};border-radius:6px;padding:4px 10px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;color:${myReact==="dislike"?"var(--red)":"var(--text-muted)"}">👎 ${rc.dislike}</button></div></div>`;
+    }).join("");
+  }catch(e){document.getElementById("sug-list").innerHTML='<div class="ranking-empty">Error 😔</div>';}
 }
 
 // ═══ SOUNDS ═══
