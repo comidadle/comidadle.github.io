@@ -327,8 +327,13 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
 <!-- OWNER PANEL -->
 <div class="modal-overlay hidden" id="owner-modal">
   <div class="modal" style="max-height:90vh;overflow-y:auto;border:1px solid var(--gold)">
-    <button class="modal-close" id="owner-close">✕</button>
-    <div class="modal-title" style="color:var(--gold)">👑 Panel del Owner</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem">
+      <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--gold)">👑 Panel del Owner</div>
+      <div style="display:flex;gap:6px">
+        <button id="owner-minimize" title="Minimizar" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);font-size:14px">—</button>
+        <button id="owner-logout" title="Cerrar sesión" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--red);font-size:14px">✕</button>
+      </div>
+    </div>
     <div id="owner-content"><div class="ranking-empty">Cargando...</div></div>
   </div>
 </div>
@@ -440,6 +445,11 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
 </main>
 
 <!-- SIDE MENU -->
+<!-- FLOATING OWNER BUTTON (shows when logged in as owner) -->
+<div id="owner-float" style="display:none;position:fixed;bottom:1.5rem;right:1.5rem;z-index:500">
+  <button id="owner-float-btn" style="width:52px;height:52px;border-radius:50%;background:var(--gold);border:none;cursor:pointer;font-size:22px;box-shadow:0 4px 20px rgba(255,182,39,.5);transition:transform .15s" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">👑</button>
+</div>
+
 <div class="side-overlay" id="side-overlay"></div>
 <div class="side-menu" id="side-menu">
   <div class="side-menu-header">
@@ -578,7 +588,7 @@ const ALL_DISHES=[{name:"Tacos al Pastor",emoji:"🌮",country:"México",flag:"�
 
 const DEMONYMS={"México":["Mexicano","Mexicana","Mexicanos","Mexicanas"],"España":["Español","Española","Españoles","Españolas"],"Argentina":["Argentino","Argentinas","Argentinos"],"Perú":["Peruano","Peruana","Peruanos","Peruanas"],"Colombia":["Colombiano","Colombiana","Colombianos","Colombianas"],"Venezuela":["Venezolano","Venezolana","Venezolanos","Venezolanas"],"Chile":["Chileno","Chilena","Chilenos","Chilenas"],"Cuba":["Cubano","Cubana","Cubanos","Cubanas"],"El Salvador":["Salvadoreño","Salvadoreña","Salvadoreños","Salvadoreñas"],"Honduras":["Hondureño","Hondureña","Hondureños","Hondureñas"],"Costa Rica":["Costarricense","Tico","Tica"],"Nicaragua":["Nicaragüense","Nicaragüenses"],"Guatemala":["Guatemalteco","Guatemalteca","Guatemaltecos","Guatemaltecas"],"Ecuador":["Ecuatoriano","Ecuatoriana","Ecuatorianos","Ecuatorianas"],"Bolivia":["Boliviano","Boliviana","Bolivianos","Bolivianas"],"Uruguay":["Uruguayo","Uruguaya","Uruguayos","Uruguayas"],"Brasil":["Brasileño","Brasileña","Brasileños","Brasileñas"],"Panamá":["Panameño","Panameña","Panameños","Panameñas"],"Rep. Dominicana":["Dominicano","Dominicana","Dominicanos","Dominicanas"],"Puerto Rico":["Puertorriqueño","Puertorriqueña","Boricua","Boricuas"],"Paraguay":["Paraguayo","Paraguaya","Paraguayos","Paraguayas"]};
 // ═══ VERSION ═══
-const VERSION="1.5.0";
+const VERSION="1.6.0";
 
 // ═══ DATA ═══
 function buildBlurRegex(c){const t=[c,...(DEMONYMS[c]||[])];const e=t.map(x=>x.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).sort((a,b)=>b.length-a.length);return new RegExp(e.join("|"),"gi");}
@@ -909,10 +919,10 @@ async function openReviews(){openModal("reviews-modal");renderReviews();}
 async function renderReviews(){
   const el=document.getElementById("reviews-content");if(!el)return;
   const myName=myUser||"Anónimo",reviewed=localStorage.getItem(RVK);
-  const adminBar=isOwner?`<div style="background:rgba(255,182,39,.15);border:1px solid var(--gold);border-radius:var(--r-sm);padding:.5rem .875rem;margin-bottom:.75rem;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--gold);font-weight:600">👑 Owner Mode<div style="display:flex;gap:6px"><button onclick="openOwnerPanel()" style="background:rgba(255,182,39,.2);border:1px solid var(--gold);color:var(--gold);border-radius:6px;padding:3px 10px;cursor:pointer;font-size:11px;font-weight:700">Panel</button><button onclick="isOwner=false;isAdmin=false;localStorage.removeItem('${OK}');localStorage.removeItem('${AK}');renderReviews()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:12px;padding:.25rem">✕</button></div></div>`:isAdmin?`<div style="background:rgba(255,182,39,.12);border:1px solid var(--gold);border-radius:var(--r-sm);padding:.5rem .875rem;margin-bottom:.75rem;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--gold);font-weight:600">👑 Modo Admin<button onclick="isAdmin=false;localStorage.removeItem('${AK}');renderReviews()" style="background:none;border:none;color:var(--text-muted);cursor:pointer">✕</button></div>`:`<div style="text-align:right;margin-bottom:.5rem"><button id="adm-btn" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text-muted);cursor:pointer;font-size:12px;padding:.4rem .75rem;font-family:'Plus Jakarta Sans',sans-serif">🔑 Admin</button></div>`;
+  const adminBar="";
   const formHtml=reviewed?`<div style="text-align:center;font-size:12px;color:var(--text-muted);margin-bottom:.75rem">Ya dejaste una reseña. <button id="del-my-rv" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:12px;text-decoration:underline">Borrarla y escribir otra</button></div>`:`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:1rem;margin-bottom:1rem"><div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:.5rem">Deja tu reseña</div><div id="stars-row" style="display:flex;gap:6px;justify-content:center;margin:.75rem 0;font-size:32px">${[1,2,3,4,5].map(n=>`<button class="star-btn" data-s="${n}" style="background:none;border:none;cursor:pointer;font-size:32px;opacity:.35;transition:opacity .15s">⭐</button>`).join("")}</div><div style="font-size:11px;color:var(--text-muted);text-align:center;margin-bottom:.5rem" id="stars-lbl">Toca para puntuar</div><textarea class="review-textarea" id="rv-comment" placeholder="Cuéntanos qué te parece... (opcional)"></textarea><button class="play-btn" id="rv-send" style="width:100%;margin-top:.25rem" disabled>Enviar reseña</button></div>`;
   el.innerHTML=`<div id="rv-avg" style="text-align:center;padding:.5rem 0 .75rem;border-bottom:1px solid var(--border);margin-bottom:.875rem"><div id="avg-s" style="font-size:24px">—</div><div id="avg-t" style="font-size:12px;color:var(--text-muted);margin-top:4px">Calculando...</div></div>${adminBar}${formHtml}<div id="rv-list"><div class="ranking-empty">Cargando...</div></div>`;
-  if(!isAdmin&&!isOwner){const ab=document.getElementById("adm-btn");if(ab)ab.onclick=()=>{const w=ab.parentElement;w.innerHTML=`<div style="display:flex;gap:6px;align-items:center;justify-content:flex-end;margin-bottom:.5rem"><input id="adm-pass" type="password" placeholder="Contraseña..." style="background:var(--surface2);border:1px solid var(--border-strong);border-radius:var(--r-sm);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;padding:.4rem .75rem;width:160px;outline:none"><button id="adm-ok" style="background:var(--accent);border:none;border-radius:var(--r-sm);color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;padding:.4rem .75rem;cursor:pointer">Entrar</button><button id="adm-cancel" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text-muted);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;padding:.4rem .6rem;cursor:pointer">✕</button></div>`;document.getElementById("adm-cancel").onclick=()=>renderReviews();const check=()=>{const v=document.getElementById("adm-pass").value;if(v===OP){isOwner=true;isAdmin=true;localStorage.setItem(OK,"1");localStorage.setItem(AK,"1");renderReviews();}else if(v===AP){isAdmin=true;localStorage.setItem(AK,"1");renderReviews();}else{const i=document.getElementById("adm-pass");i.style.borderColor="var(--red)";i.value="";i.placeholder="Contraseña incorrecta ❌";}};document.getElementById("adm-ok").onclick=check;document.getElementById("adm-pass").onkeydown=e=>{if(e.key==="Enter")check();};document.getElementById("adm-pass").focus();};}
+
   const delmr=document.getElementById("del-my-rv");if(delmr)delmr.onclick=async()=>{try{await sb("/rest/v1/reviews?username=eq."+encodeURIComponent(myName),{method:"DELETE"});}catch(e){}localStorage.removeItem(RVK);renderReviews();};
   let selStars=0;
   if(!reviewed){el.querySelectorAll(".star-btn").forEach(btn=>{btn.onclick=()=>{selStars=+btn.dataset.s;el.querySelectorAll(".star-btn").forEach((b,i)=>b.style.opacity=i<selStars?"1":".35");document.getElementById("stars-lbl").textContent=["","⭐ Muy malo","⭐⭐ Malo","⭐⭐⭐ Regular","⭐⭐⭐⭐ Bueno","⭐⭐⭐⭐⭐ ¡Excelente!"][selStars];document.getElementById("rv-send").disabled=false;};});document.getElementById("rv-send").onclick=async()=>{if(!selStars)return;const btn=document.getElementById("rv-send");btn.textContent="Enviando...";btn.disabled=true;const c=document.getElementById("rv-comment").value.trim();await sb("/rest/v1/reviews",{method:"POST",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({username:myName,stars:selStars,comment:c})});localStorage.setItem(RVK,"1");renderReviews();};}
@@ -1439,27 +1449,25 @@ async function buyItem(itemId){
   updateMiniAvatar();
 }
 
-async function equipItem(itemId,category,value,equipKey){
+async function saveEquipToServer(){
   if(!myUser)return;
-  const isEquipped=myEquip[equipKey]===value;
-
-  if(isEquipped){
-    myEquip[equipKey]=null;
-  }else{
-    myEquip[equipKey]=value;
-  }
-  saveEquipLocal();
-
-  // Sync to server: try PATCH first, if not found INSERT
+  const payload={username:myUser,...myEquip};
   try{
-    const ex=await sb("/rest/v1/user_equip?username=eq."+encodeURIComponent(myUser)+"&select=username");
-    if(ex&&ex.length>0){
-      await sb("/rest/v1/user_equip?username=eq."+encodeURIComponent(myUser),{method:"PATCH",body:JSON.stringify(myEquip)});
-    }else{
-      await sb("/rest/v1/user_equip",{method:"POST",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({username:myUser,...myEquip})});
+    // Try PATCH first
+    const r=await fetch(SB+"/rest/v1/user_equip?username=eq."+encodeURIComponent(myUser),{method:"PATCH",headers:{...SH,"Prefer":"return=representation"},body:JSON.stringify(myEquip)});
+    const data=await r.json().catch(()=>[]);
+    if(!data||data.length===0){
+      // No row existed, INSERT
+      await fetch(SB+"/rest/v1/user_equip",{method:"POST",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify(payload)});
     }
   }catch(e){}
+}
 
+async function equipItem(itemId,category,value,equipKey){
+  if(!myUser)return;
+  myEquip[equipKey]=myEquip[equipKey]===value?null:value;
+  saveEquipLocal();
+  await saveEquipToServer();
   updateMiniAvatar();
   renderShop();
 }
@@ -1495,7 +1503,9 @@ async function openPlayerProfile(username){
       sb("/rest/v1/user_equip?username=eq."+encodeURIComponent(username)+"&select=*").catch(()=>[])
     ]);
     const r=rankData&&rankData[0];
-    const eq=equipData&&equipData[0]||{};
+    // Build equip from server data
+    const eq={};
+    if(equipData&&equipData[0]){Object.entries(equipData[0]).forEach(([k,v])=>{if(v!==null&&k!=="username")eq[k]=v;});}
     const pct=r&&r.played>0?Math.round(r.wins/r.played*100):0;
     const isMe=username===myUser;
     el.innerHTML=`
@@ -1667,7 +1677,7 @@ document.getElementById("admin-login-modal").addEventListener("click",e=>{if(e.t
 onC("admin-login-confirm",()=>{
   const val=document.getElementById("admin-login-pass").value;
   const msg=document.getElementById("admin-login-msg");
-  if(val===OP){isOwner=true;isAdmin=true;localStorage.setItem(OK,"1");localStorage.setItem(AK,"1");closeModal("admin-login-modal");openOwnerPanel();}
+  if(val===OP){isOwner=true;isAdmin=true;localStorage.setItem(OK,"1");localStorage.setItem(AK,"1");closeModal("admin-login-modal");document.getElementById("owner-float").style.display="block";openOwnerPanel();}
   else if(val===AP){isAdmin=true;localStorage.setItem(AK,"1");closeModal("admin-login-modal");alert("✅ Modo Admin activado");}
   else{msg.style.color="var(--red)";msg.textContent="Contraseña incorrecta ❌";document.getElementById("admin-login-pass").value="";}
 });
@@ -1681,7 +1691,9 @@ onC("stats-close",()=>closeModal("stats-modal"));
 onC("ranking-close",()=>closeModal("ranking-modal"));onC("ranking-refresh-btn",async()=>{document.getElementById("ranking-list").innerHTML='<div class="ranking-empty">Cargando...</div>';try{renderRankingList(await fetchRanking());}catch(e){}});
 onC("weekly-close",()=>closeModal("weekly-modal"));onC("weekly-refresh-btn",async()=>{document.getElementById("weekly-list").innerHTML='<div class="ranking-empty">Cargando...</div>';try{renderWeeklyList(await fetchWeekly());}catch(e){}});
 onC("profile-close",()=>closeModal("profile-modal"));onC("profile-open-btn",()=>{openProfile();});
-onC("owner-close",()=>closeModal("owner-modal"));
+onC("owner-minimize",()=>{closeModal("owner-modal");if(isOwner){document.getElementById("owner-float").style.display="block";}});
+onC("owner-logout",()=>{isOwner=false;isAdmin=false;localStorage.removeItem(OK);localStorage.removeItem(AK);closeModal("owner-modal");document.getElementById("owner-float").style.display="none";});
+onC("owner-float-btn",()=>openOwnerPanel());
 onC("reviews-close",()=>closeModal("reviews-modal"));
 onC("ann-modal-close",()=>closeModal("ann-modal"));
 onC("suggestions-close",()=>closeModal("suggestions-modal"));
@@ -1731,6 +1743,7 @@ if(myUser){sb("/rest/v1/user_equip?username=eq."+encodeURIComponent(myUser)+"&se
 updateMiniAvatar();updateBadge();
 const vEl=document.getElementById("about-version");if(vEl)vEl.textContent=VERSION;renderYesterday();renderTabs();renderAll();
 if(!localStorage.getItem("comidadle_visited")){openModal("how-modal");localStorage.setItem("comidadle_visited","1");}
+if(isOwner){document.getElementById("owner-float").style.display="block";}
 setTimeout(showAnnBanner,2000);
 setTimeout(checkIfBanned,1000);
 setTimeout(checkXPGifts,3000);
