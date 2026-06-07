@@ -395,6 +395,10 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
     <div class="logo">🌶️ Comida<span class="dot-accent">dle</span></div>
     <div class="header-actions">
       <div class="date-pill" id="date-pill"></div>
+      <button class="icon-btn" id="notif-bell-btn" title="Notificaciones" style="position:relative">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span id="notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;font-size:9px;font-weight:700;border-radius:99px;min-width:16px;height:16px;line-height:16px;text-align:center;padding:0 3px">0</span>
+      </button>
       <button class="icon-btn" id="how-open-btn" title="Cómo jugar"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></button>
       <button class="icon-btn" id="cfg-open-btn" title="Configuración"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     </div>
@@ -475,6 +479,15 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
     </div>
   </div>
 </footer>
+
+<!-- NOTIFICATIONS MODAL -->
+<div class="modal-overlay hidden" id="notif-modal">
+  <div class="modal" style="max-height:90vh;overflow-y:auto">
+    <button class="modal-close" id="notif-close">✕</button>
+    <div class="modal-title">🔔 Notificaciones</div>
+    <div id="notif-content"><div class="ranking-empty">Cargando...</div></div>
+  </div>
+</div>
 
 <!-- SHOP MODAL -->
 <div class="modal-overlay hidden" id="shop-modal">
@@ -829,6 +842,7 @@ async function renderOwnerPanel(){
       <input id="gift-amount-inp" class="username-input" type="number" placeholder="Cantidad de XP..." style="margin:0 0 .5rem;width:100%;box-sizing:border-box" min="1" max="9999">
       <input id="gift-reason-inp" class="username-input" placeholder="Razón (opcional)..." style="margin:0 0 .75rem;width:100%;box-sizing:border-box">
       <button class="play-btn" id="gift-xp-btn" style="margin:0">🎁 Regalar XP</button>
+      <button class="play-btn" id="remove-xp-btn" style="margin:.5rem 0 0;background:var(--surface2);border:1px solid var(--red);color:var(--red)">➖ Quitar XP</button>
       <div id="gift-msg" style="text-align:center;font-size:13px;margin-top:.75rem"></div>
     </div>
     <div id="oc-rank" style="display:none">
@@ -851,10 +865,30 @@ async function renderOwnerPanel(){
     giftBtn.textContent="Enviando...";giftBtn.disabled=true;
     try{
       await sb("/rest/v1/xp_gifts",{method:"POST",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({username:name,amount,reason:reason||"Regalo del Owner"})});
+      // Send notification to recipient
+      await sendNotification(name,"xp_gift","🎁 +"+amount+" XP recibido","El Owner te ha regalado "+amount+" XP"+(reason?" — "+reason:"")+". ¡Sigue jugando!");
       msg.style.color="var(--green)";msg.textContent="✅ +"+amount+" XP enviado a "+name;
       document.getElementById("gift-name-inp").value="";document.getElementById("gift-amount-inp").value="";document.getElementById("gift-reason-inp").value="";
     }catch(e){msg.style.color="var(--red)";msg.textContent="Error enviando XP 😔";}
     giftBtn.textContent="🎁 Regalar XP";giftBtn.disabled=false;
+  };
+  const removeBtn=document.getElementById("remove-xp-btn");
+  if(removeBtn)removeBtn.onclick=async()=>{
+    const name=document.getElementById("gift-name-inp").value.trim();
+    const amount=parseInt(document.getElementById("gift-amount-inp").value)||0;
+    const reason=document.getElementById("gift-reason-inp").value.trim();
+    const msg=document.getElementById("gift-msg");
+    if(!name||amount<=0){msg.style.color="var(--red)";msg.textContent="Pon nombre y cantidad";return;}
+    if(!confirm("¿Quitar "+amount+" XP a '"+name+"'?"))return;
+    removeBtn.textContent="Quitando...";removeBtn.disabled=true;
+    // Store negative gift
+    try{
+      await sb("/rest/v1/xp_gifts",{method:"POST",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({username:name,amount:-amount,reason:reason||"Sanción del Owner"})});
+      await sendNotification(name,"system","⚠️ -"+amount+" XP retirado","El Owner te ha retirado "+amount+" XP"+(reason?" — "+reason:"")+".").catch(()=>{});
+      msg.style.color="var(--red)";msg.textContent="✅ -"+amount+" XP retirado a "+name;
+      document.getElementById("gift-name-inp").value="";document.getElementById("gift-amount-inp").value="";
+    }catch(e){msg.style.color="var(--red)";msg.textContent="Error 😔";}
+    removeBtn.textContent="➖ Quitar XP";removeBtn.disabled=false;
   };
 }
 
@@ -1007,7 +1041,7 @@ async function renderRankingList(rows){
   let equipMap={};
   try{
     const names=rows.slice(0,20).map(r=>r.username);
-    const eqs=await sb("/rest/v1/user_equip?username=in.("+names.map(n=>encodeURIComponent(n)).join(",")+")"+"&select=*");
+    const eqs=await sb("/rest/v1/user_equip?username=in.("+names.map(n=>'"'+n+'"').join(",")+")"+"&select=*");
     if(eqs)eqs.forEach(e=>{equipMap[e.username]=e;});
   }catch(e){}
   const medals=["🥇","🥈","🥉"],pc=["gold","silver","bronze"];
@@ -1089,7 +1123,7 @@ async function renderWeeklyList(rows){
   let equipMap={};
   try{
     const names=rows.slice(0,20).map(r=>r.username);
-    const eqs=await sb("/rest/v1/user_equip?username=in.("+names.map(n=>encodeURIComponent(n)).join(",")+")"+"&select=*");
+    const eqs=await sb("/rest/v1/user_equip?username=in.("+names.map(n=>'"'+n+'"').join(",")+")"+"&select=*");
     if(eqs)eqs.forEach(e=>{equipMap[e.username]=e;});
   }catch(e){}
   const medals=["🥇","🥈","🥉"],pc=["gold","silver","bronze"];
@@ -1386,6 +1420,7 @@ async function buyItem(itemId){
   try{
     await sb("/rest/v1/user_inventory",{method:"POST",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({username:myUser,item_id:itemId})});
     myInventory.push({item_id:itemId});
+    sendNotification(myUser,"purchase","🛒 Compraste "+item.name,"Gastaste "+item.price+" XP en '"+item.name+"'. ¡Ponlo desde la tienda!").catch(()=>{});
   }catch(e){}
 
   updateShopXPBar();
@@ -1547,12 +1582,64 @@ async function checkXPGifts(){
       const t=document.createElement("div");
       t.style.cssText="position:fixed;top:30%;left:50%;transform:translateX(-50%);background:var(--gold);color:#100900;font-family:'Fraunces',serif;font-size:20px;font-weight:900;padding:.75rem 1.75rem;border-radius:99px;z-index:9999;pointer-events:none;box-shadow:0 4px 20px rgba(255,182,39,.5);animation:toastUp 2s ease forwards;text-align:center";
       t.innerHTML="🎁 +"+totalGifted+" XP<br><span style='font-size:13px;font-family:Plus Jakarta Sans,sans-serif'>¡Regalo del Owner!</span>";
+      updateNotifBadge();
       document.body.appendChild(t);
       setTimeout(()=>t.remove(),2000);
       updateMiniAvatar();
     }
   }catch(e){}
 }
+
+
+// ═══ NOTIFICATIONS ═══
+async function fetchNotifications(){
+  if(!myUser)return[];
+  try{return await sb("/rest/v1/notifications?username=eq."+encodeURIComponent(myUser)+"&select=*&order=created_at.desc&limit=50");}
+  catch(e){return[];}
+}
+async function sendNotification(username,type,title,message){
+  try{await sb("/rest/v1/notifications",{method:"POST",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({username,type,title,message})});}catch(e){}
+}
+async function markAllRead(){
+  if(!myUser)return;
+  try{await sb("/rest/v1/notifications?username=eq."+encodeURIComponent(myUser)+"&read=eq.false",{method:"PATCH",body:JSON.stringify({read:true})});}catch(e){}
+}
+async function updateNotifBadge(){
+  if(!myUser){document.getElementById("notif-badge").style.display="none";return;}
+  try{
+    const rows=await sb("/rest/v1/notifications?username=eq."+encodeURIComponent(myUser)+"&read=eq.false&select=id");
+    const count=rows?rows.length:0;
+    const badge=document.getElementById("notif-badge");
+    if(count>0){badge.style.display="";badge.textContent=count>9?"9+":count;}
+    else badge.style.display="none";
+  }catch(e){}
+}
+async function openNotifications(){
+  openModal("notif-modal");
+  await markAllRead();
+  document.getElementById("notif-badge").style.display="none";
+  renderNotifications();
+}
+async function renderNotifications(){
+  const el=document.getElementById("notif-content");if(!el)return;
+  if(!myUser){el.innerHTML='<div class="ranking-empty">Necesitas un nombre en el ranking para recibir notificaciones.</div>';return;}
+  const rows=await fetchNotifications();
+  if(!rows||rows.length===0){el.innerHTML='<div class="ranking-empty">Sin notificaciones aún 🔔</div>';return;}
+  const icons={xp_gift:"🎁",purchase:"🛒",ban:"🚫",unban:"✅",system:"📢"};
+  el.innerHTML=rows.map(n=>{
+    const d=new Date(n.created_at);
+    const dateStr=d.getDate()+" "+MONTHS[d.getMonth()]+" · "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
+    return`<div style="display:flex;gap:10px;padding:.75rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:.4rem">
+      <div style="font-size:24px;flex-shrink:0">${icons[n.type]||"🔔"}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px">${n.title}</div>
+        ${n.message?`<div style="font-size:12px;color:var(--text-muted);line-height:1.5">${n.message}</div>`:""}
+        <div style="font-size:10px;color:var(--text-muted);margin-top:4px">${dateStr}</div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
 
 // ═══ SETTINGS TOGGLES ═══
 [["few-attempts-toggle","fewAttempts"],["more-countries-toggle","moreCountries"],["no-hints-toggle","noHints"],["prog-toggle","progressive"],["no-desc-toggle","noDesc"]].forEach(([id,key])=>{const el=document.getElementById(id);if(el){el.checked=cfg[key];el.onchange=()=>{cfg[key]=el.checked;saveCfg();updateBadge();renderAll();};}});
@@ -1561,6 +1648,9 @@ const syEl=document.getElementById("show-yesterday-toggle");if(syEl){syEl.checke
 // ═══ EVENT LISTENERS ═══
 const on=(id,ev,fn)=>{const el=document.getElementById(id);if(el)el.addEventListener(ev,fn);};
 const onC=(id,fn)=>on(id,"click",fn);
+onC("notif-bell-btn",()=>openNotifications());
+onC("notif-close",()=>closeModal("notif-modal"));
+document.getElementById("notif-modal").addEventListener("click",e=>{if(e.target.id==="notif-modal")closeModal("notif-modal");});
 onC("how-open-btn",()=>openModal("how-modal"));onC("how-close",()=>closeModal("how-modal"));onC("how-play",()=>closeModal("how-modal"));
 onC("cfg-open-btn",()=>openModal("cfg-modal"));onC("cfg-close",()=>closeModal("cfg-modal"));
 onC("share-modal-close",()=>closeModal("share-modal"));
@@ -1612,6 +1702,7 @@ if(!localStorage.getItem("comidadle_visited")){openModal("how-modal");localStora
 setTimeout(showAnnBanner,2000);
 setTimeout(checkIfBanned,1000);
 setTimeout(checkXPGifts,3000);
+setTimeout(updateNotifBadge,2000);
 
 </script>
 </body>
