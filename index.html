@@ -204,6 +204,15 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
 @keyframes popIn{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}
 @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
 @keyframes splashPop{0%{transform:scale(0) rotate(-20deg);opacity:0}100%{transform:scale(1) rotate(0deg);opacity:1}}
+.shop-tab-btn{flex:1;padding:.45rem .5rem;border:none;border-radius:6px;background:transparent;color:var(--text-muted);font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .15s}
+.shop-tab-btn.active{background:var(--accent);color:#fff}
+.shop-item-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.875rem;margin-bottom:.5rem;display:flex;align-items:center;gap:12px}
+.shop-item-card.owned{border-color:var(--green)}
+.shop-item-preview{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;border:2px solid rgba(255,255,255,.15)}
+.avatar-frame-gold{box-shadow:0 0 0 3px #FFB627,0 0 0 5px rgba(255,182,39,.3)}
+.avatar-frame-silver{box-shadow:0 0 0 3px #C0C0C0,0 0 0 5px rgba(192,192,192,.3)}
+.avatar-frame-neon{box-shadow:0 0 0 3px #22C55E,0 0 8px rgba(34,197,94,.6)}
+.avatar-frame-fire{box-shadow:0 0 0 3px #EF4444,0 0 8px rgba(239,68,68,.6)}
 @keyframes toastUp{0%{opacity:0;transform:translateX(-50%) translateY(20px)}20%{opacity:1;transform:translateX(-50%) translateY(0)}80%{opacity:1;transform:translateX(-50%) translateY(0)}100%{opacity:0;transform:translateX(-50%) translateY(-20px)}}
 @keyframes splashFadeOut{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.05)}}
 @media(max-width:380px){.country-btn{font-size:13px;padding:.5rem .6rem}.dish-emoji{font-size:46px}}
@@ -440,6 +449,7 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
   </div>
   <div class="side-menu-section">
     <div class="side-menu-label">ℹ️ Info</div>
+    <button class="side-menu-item" id="sm-shop"><div class="side-menu-item-icon">🛒</div><div><div class="side-menu-item-name">Tienda</div><div class="side-menu-item-desc">Gasta tu XP en items exclusivos</div></div></button>
     <button class="side-menu-item" id="sm-rules"><div class="side-menu-item-icon">📋</div><div><div class="side-menu-item-name">Reglas</div><div class="side-menu-item-desc">Normas de la comunidad y del ranking</div></div></button>
     <button class="side-menu-item" id="sm-about"><div class="side-menu-item-icon">🌶️</div><div><div class="side-menu-item-name">Sobre Comidadle</div><div class="side-menu-item-desc">La historia del juego y su creador</div></div></button>
   </div>
@@ -454,6 +464,34 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
     </div>
   </div>
 </footer>
+
+<!-- SHOP MODAL -->
+<div class="modal-overlay hidden" id="shop-modal">
+  <div class="modal" style="max-height:90vh;overflow-y:auto">
+    <button class="modal-close" id="shop-close">✕</button>
+    <div class="modal-title">🛒 Tienda</div>
+    <div id="shop-xp-bar" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem 1rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between">
+      <div><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700">Tu XP</div><div id="shop-xp-val" style="font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:var(--gold)">0</div></div>
+      <div id="shop-level-badge" style="font-size:12px;font-weight:600;color:var(--accent)"></div>
+    </div>
+    <div style="display:flex;gap:4px;margin-bottom:1rem;background:var(--surface2);border-radius:var(--r-sm);padding:4px;overflow-x:auto">
+      <button onclick="shopTab('colores')" id="st-colores" class="shop-tab-btn active">🎨 Colores</button>
+      <button onclick="shopTab('marcos')" id="st-marcos" class="shop-tab-btn">🖼️ Marcos</button>
+      <button onclick="shopTab('badges')" id="st-badges" class="shop-tab-btn">🏷️ Badges</button>
+      <button onclick="shopTab('titulos')" id="st-titulos" class="shop-tab-btn">📝 Títulos</button>
+      <button onclick="shopTab('emojis')" id="st-emojis" class="shop-tab-btn">😊 Emojis</button>
+    </div>
+    <div id="shop-content"><div class="ranking-empty">Cargando...</div></div>
+  </div>
+</div>
+
+<!-- PLAYER PROFILE MODAL -->
+<div class="modal-overlay hidden" id="player-modal">
+  <div class="modal" style="max-height:90vh;overflow-y:auto">
+    <button class="modal-close" id="player-close">✕</button>
+    <div id="player-content"><div class="ranking-empty">Cargando...</div></div>
+  </div>
+</div>
 
 <!-- REGLAS MODAL -->
 <div class="modal-overlay hidden" id="rules-modal">
@@ -659,13 +697,29 @@ function getHistory(){try{return JSON.parse(localStorage.getItem(HK)||"[]");}cat
 function addHistory(won,attempts,name,flag){const h=getHistory();h.unshift({date:new Date().toISOString(),won,attempts,dish:name,flag});localStorage.setItem(HK,JSON.stringify(h.slice(0,21)));}
 function aColor(n){const c=["#FF6B35","#FFB627","#22C55E","#3B82F6","#8B5CF6","#EC4899","#F97316","#06B6D4"];let h=0;for(let i=0;i<(n||"").length;i++)h=(n||"").charCodeAt(i)+((h<<5)-h);return c[Math.abs(h)%c.length];}
 function updateMiniAvatar(){const el=document.getElementById("profile-mini-avatar");if(!el)return;if(myUser){el.style.background=aColor(myUser);el.textContent=myUser[0].toUpperCase();}else{el.style.background="var(--surface2)";el.textContent="?";}}
-function openProfile(){openModal("profile-modal");renderProfile();}
+function openProfile(){
+  openModal("profile-modal");
+  renderProfile();
+  setTimeout(()=>{
+    if(!myUser)return;
+    const existing=document.getElementById("profile-shop-btn");
+    if(existing)return;
+    const btn=document.createElement("button");
+    btn.id="profile-shop-btn";
+    btn.className="play-btn";
+    btn.style.cssText="margin-top:.75rem;background:var(--surface2);border:1px solid var(--border-strong);color:var(--text)";
+    btn.textContent="🛒 Ir a la Tienda";
+    btn.onclick=()=>{closeModal("profile-modal");openShop();};
+    const c=document.getElementById("profile-content");
+    if(c)c.appendChild(btn);
+  },100);
+}
 function renderProfile(){
   const el=document.getElementById("profile-content");if(!el)return;
   if(!myUser){el.innerHTML=`<div style="text-align:center;padding:1.5rem 0"><div style="font-size:52px;margin-bottom:.75rem">👤</div><div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:.5rem">Sin perfil activo</div><div style="font-size:13px;color:var(--text-muted);margin-bottom:1.25rem;line-height:1.6">Elige un nombre en el Ranking Global para activar tu perfil.</div><button class="play-btn" id="go-rank-btn">🏆 Ir al Ranking</button></div>`;document.getElementById("go-rank-btn").addEventListener("click",()=>{closeModal("profile-modal");openRanking();});return;}
   const lv=getLevel(totalXP),prog=lv.next?Math.round((totalXP/lv.next)*100):100;
   const hist=getHistory().filter(h=>new Date(h.date)>new Date(Date.now()-7*86400000));
-  el.innerHTML=`<div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem;padding:1rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r)"><div style="width:52px;height:52px;border-radius:50%;background:${aColor(myUser)};display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff;flex-shrink:0">${myUser[0].toUpperCase()}</div><div style="flex:1"><div style="font-family:'Fraunces',serif;font-size:18px;font-weight:900;color:var(--text)">${myUser}</div><div style="font-size:12px;color:var(--accent);font-weight:600;margin-top:2px">${lv.name} · Nivel ${lv.l}</div></div><div style="text-align:right"><div style="font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:var(--gold)">${totalXP}</div><div style="font-size:10px;color:var(--text-muted);text-transform:uppercase">XP Total</div></div></div>${lv.next?`<div style="margin-bottom:1.25rem"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:.4rem"><span>Nivel ${lv.l}</span><span>${totalXP}/${lv.next} XP</span></div><div style="background:var(--surface2);border-radius:99px;height:8px;overflow:hidden"><div style="width:${prog}%;height:100%;background:linear-gradient(90deg,var(--accent),var(--gold));border-radius:99px"></div></div></div>`:`<div style="text-align:center;font-size:13px;color:var(--gold);font-weight:700;margin-bottom:1.25rem">🏆 ¡Nivel máximo!</div>`}<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1.25rem"><div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center"><div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--accent)">🔥${streak.streak}</div><div style="font-size:10px;color:var(--text-muted);margin-top:2px">Racha</div></div><div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center"><div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--gold)">${streak.best}</div><div style="font-size:10px;color:var(--text-muted);margin-top:2px">Mejor racha</div></div><div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center"><div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--green)">${streak.played>0?Math.round(streak.wins/streak.played*100):0}%</div><div style="font-size:10px;color:var(--text-muted);margin-top:2px">Victorias</div></div></div><div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">Esta semana</div><div style="background:var(--surface2);border:1px solid var(--green);border-radius:var(--r-sm);padding:1rem;text-align:center;margin-bottom:.75rem"><div style="font-family:'Fraunces',serif;font-size:28px;font-weight:900;color:var(--green)">${weekly.points} XP</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px">Puntos ganados esta semana</div></div>${hist.length===0?"":'<div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">Historial reciente</div>'+hist.slice(0,6).map(h=>`<div style="display:flex;align-items:center;gap:10px;padding:.6rem .75rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:.4rem"><span style="font-size:20px">${h.flag||"🍽️"}</span><div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--text)">${h.dish}</div><div style="font-size:11px;color:var(--text-muted)">${new Date(h.date).getDate()+" "+MONTHS[new Date(h.date).getMonth()]}</div></div><div style="font-size:13px;font-weight:700;color:${h.won?"var(--green)":"var(--red)"}">${h.won?"✅ +"+Math.max(1,7-h.attempts)+"xp":"❌"}</div></div>`).join("")}`;
+  el.innerHTML=`<div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem;padding:1rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r)">${buildAvatar(myUser,myEquip,52,22)}<div style="flex:1"><div style="font-family:'Fraunces',serif;font-size:18px;font-weight:900;color:var(--text)">${myUser}</div><div style="font-size:12px;color:var(--accent);font-weight:600;margin-top:2px">${lv.name} · Nivel ${lv.l}</div>${myEquip.title?`<div style="font-size:11px;color:var(--gold);font-weight:600;margin-top:2px">${myEquip.title}</div>`:""} ${myEquip.badge?`<div style="display:inline-block;background:var(--surface);border:1px solid var(--border);border-radius:99px;padding:2px 8px;font-size:10px;font-weight:600;color:var(--text);margin-top:3px">${myEquip.badge}</div>`:""}</div><div style="text-align:right"><div style="font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:var(--gold)">${totalXP}</div><div style="font-size:10px;color:var(--text-muted);text-transform:uppercase">XP Total</div></div></div>${lv.next?`<div style="margin-bottom:1.25rem"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:.4rem"><span>Nivel ${lv.l}</span><span>${totalXP}/${lv.next} XP</span></div><div style="background:var(--surface2);border-radius:99px;height:8px;overflow:hidden"><div style="width:${prog}%;height:100%;background:linear-gradient(90deg,var(--accent),var(--gold));border-radius:99px"></div></div></div>`:`<div style="text-align:center;font-size:13px;color:var(--gold);font-weight:700;margin-bottom:1.25rem">🏆 ¡Nivel máximo!</div>`}<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1.25rem"><div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center"><div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--accent)">🔥${streak.streak}</div><div style="font-size:10px;color:var(--text-muted);margin-top:2px">Racha</div></div><div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center"><div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--gold)">${streak.best}</div><div style="font-size:10px;color:var(--text-muted);margin-top:2px">Mejor racha</div></div><div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center"><div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--green)">${streak.played>0?Math.round(streak.wins/streak.played*100):0}%</div><div style="font-size:10px;color:var(--text-muted);margin-top:2px">Victorias</div></div></div><div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">Esta semana</div><div style="background:var(--surface2);border:1px solid var(--green);border-radius:var(--r-sm);padding:1rem;text-align:center;margin-bottom:.75rem"><div style="font-family:'Fraunces',serif;font-size:28px;font-weight:900;color:var(--green)">${weekly.points} XP</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px">Puntos ganados esta semana</div></div>${hist.length===0?"":'<div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">Historial reciente</div>'+hist.slice(0,6).map(h=>`<div style="display:flex;align-items:center;gap:10px;padding:.6rem .75rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:.4rem"><span style="font-size:20px">${h.flag||"🍽️"}</span><div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--text)">${h.dish}</div><div style="font-size:11px;color:var(--text-muted)">${new Date(h.date).getDate()+" "+MONTHS[new Date(h.date).getMonth()]}</div></div><div style="font-size:13px;font-weight:700;color:${h.won?"var(--green)":"var(--red)"}">${h.won?"✅ +"+Math.max(1,7-h.attempts)+"xp":"❌"}</div></div>`).join("")}`;
 }
 
 // ═══ ANNOUNCEMENTS ═══
@@ -912,11 +966,35 @@ function renderStats(){
 }
 
 // ═══ RANKING UI ═══
-function renderRankingList(rows){
+async function renderRankingList(rows){
   const el=document.getElementById("ranking-list");if(!el)return;
   if(!rows||rows.length===0){el.innerHTML='<div class="ranking-empty">¡Sé el primero! 🌶️</div>';return;}
+  // Fetch equip data for visible players
+  let equipMap={};
+  try{
+    const names=rows.slice(0,20).map(r=>r.username);
+    const eqs=await sb("/rest/v1/user_equip?username=in.("+names.map(n=>encodeURIComponent(n)).join(",")+")"+"&select=*");
+    if(eqs)eqs.forEach(e=>{equipMap[e.username]=e;});
+  }catch(e){}
   const medals=["🥇","🥈","🥉"],pc=["gold","silver","bronze"];
-  el.innerHTML=`<table class="ranking-table"><thead><tr><th>#</th><th>Jugador</th><th>🔥 Racha</th><th>✅ Victorias</th></tr></thead><tbody>${rows.map((r,i)=>{const isMe=r.id===myId||r.username===myUser,pos=medals[i]||(i+1),pClass=pc[i]||"",pct=r.played>0?Math.round(r.wins/r.played*100):0;return`<tr class="${isMe?"me":""}"><td><span class="rank-pos ${pClass}">${pos}</span></td><td><span class="rank-name">${r.username}${isMe?" (tú)":""}</span></td><td><span class="rank-streak">x${r.best_streak}</span></td><td><span class="rank-wins">${r.wins}/${r.played} (${pct}%)</span></td></tr>`;}).join("")}</tbody></table>`;
+  el.innerHTML=rows.map((r,i)=>{
+    const isMe=r.id===myId||r.username===myUser;
+    const pos=medals[i]||(i+1),pClass=pc[i]||"";
+    const pct=r.played>0?Math.round(r.wins/r.played*100):0;
+    const eq=equipMap[r.username]||{};
+    const color=eq.avatar_color||aColor(r.username);
+    const emoji=eq.emoji||r.username[0]?.toUpperCase()||"?";
+    const frameClass=eq.avatar_frame?"avatar-frame-"+eq.avatar_frame:"";
+    return`<div onclick="openPlayerProfile('${r.username}')" style="display:flex;align-items:center;gap:10px;padding:.65rem .75rem;background:${isMe?"rgba(255,107,53,.08)":"var(--surface2)"};border:1px solid ${isMe?"var(--accent)":"var(--border)"};border-radius:var(--r-sm);margin-bottom:.4rem;cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='${isMe?"var(--accent)":"var(--border)"}'">
+      <span style="font-family:'Fraunces',serif;font-size:16px;font-weight:900;color:${pClass==="gold"?"#FFB627":pClass==="silver"?"#C0C0C0":pClass==="bronze"?"#CD7F32":"var(--text-muted)"};width:22px;flex-shrink:0">${pos}</span>
+      <div class="${frameClass}" style="width:32px;height:32px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0">${emoji}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:700;color:${isMe?"var(--accent)":"var(--text)"};display:flex;align-items:center;gap:5px">${r.username}${isMe?" (tú)":""}</div>
+        ${eq.title||eq.badge?`<div style="font-size:10px;color:var(--text-muted)">${eq.badge||""}${eq.badge&&eq.title?" · ":""}${eq.title||""}</div>`:""}
+      </div>
+      <div style="text-align:right;flex-shrink:0"><div style="font-size:13px;font-weight:700;color:var(--accent)">🔥${r.best_streak}</div><div style="font-size:11px;color:var(--text-muted)">${r.wins}/${r.played} (${pct}%)</div></div>
+    </div>`;
+  }).join("");
 }
 function renderUsernameSection(isChanging=false){
   const el=document.getElementById("ranking-username-section");if(!el)return;
@@ -971,11 +1049,33 @@ async function openRanking(){
   document.getElementById("ranking-list").innerHTML='<div class="ranking-empty">Cargando...</div>';
   try{renderRankingList(await fetchRanking());}catch(e){document.getElementById("ranking-list").innerHTML='<div class="ranking-empty">Error 😔</div>';}
 }
-function renderWeeklyList(rows){
+async function renderWeeklyList(rows){
   const el=document.getElementById("weekly-list");if(!el)return;
   if(!rows||rows.length===0){el.innerHTML='<div class="ranking-empty">¡Sé el primero esta semana! 📅</div>';return;}
+  let equipMap={};
+  try{
+    const names=rows.slice(0,20).map(r=>r.username);
+    const eqs=await sb("/rest/v1/user_equip?username=in.("+names.map(n=>encodeURIComponent(n)).join(",")+")"+"&select=*");
+    if(eqs)eqs.forEach(e=>{equipMap[e.username]=e;});
+  }catch(e){}
   const medals=["🥇","🥈","🥉"],pc=["gold","silver","bronze"];
-  el.innerHTML=`<table class="ranking-table"><thead><tr><th>#</th><th>Jugador</th><th>⭐ XP semana</th></tr></thead><tbody>${rows.map((r,i)=>{const isMe=r.username===myUser,pos=medals[i]||(i+1),pClass=pc[i]||"";return`<tr class="${isMe?"me":""}"><td><span class="rank-pos ${pClass}">${pos}</span></td><td><span class="rank-name">${r.username}${isMe?" (tú)":""}</span></td><td><span class="rank-streak">${r.points}xp</span></td></tr>`;}).join("")}</tbody></table>`;
+  el.innerHTML=rows.map((r,i)=>{
+    const isMe=r.username===myUser;
+    const pos=medals[i]||(i+1),pClass=pc[i]||"";
+    const eq=equipMap[r.username]||{};
+    const color=eq.avatar_color||aColor(r.username);
+    const emoji=eq.emoji||r.username[0]?.toUpperCase()||"?";
+    const frameClass=eq.avatar_frame?"avatar-frame-"+eq.avatar_frame:"";
+    return`<div onclick="openPlayerProfile('${r.username}')" style="display:flex;align-items:center;gap:10px;padding:.65rem .75rem;background:${isMe?"rgba(255,107,53,.08)":"var(--surface2)"};border:1px solid ${isMe?"var(--accent)":"var(--border)"};border-radius:var(--r-sm);margin-bottom:.4rem;cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='${isMe?"var(--accent)":"var(--border)"}'">
+      <span style="font-family:'Fraunces',serif;font-size:16px;font-weight:900;color:${pClass==="gold"?"#FFB627":pClass==="silver"?"#C0C0C0":pClass==="bronze"?"#CD7F32":"var(--text-muted)"};width:22px;flex-shrink:0">${pos}</span>
+      <div class="${frameClass}" style="width:32px;height:32px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0">${emoji}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:700;color:${isMe?"var(--accent)":"var(--text)"}">${r.username}${isMe?" (tú)":""}</div>
+        ${eq.title||eq.badge?`<div style="font-size:10px;color:var(--text-muted)">${eq.badge||""}${eq.badge&&eq.title?" · ":""}${eq.title||""}</div>`:""}
+      </div>
+      <div style="font-family:'Fraunces',serif;font-size:15px;font-weight:900;color:var(--gold);flex-shrink:0">⭐${r.points}</div>
+    </div>`;
+  }).join("");
 }
 async function openWeekly(){
   openModal("weekly-modal");
@@ -1125,6 +1225,208 @@ async function askNotif(){
 }
 function scheduleNotif(){if(!("Notification"in window))return;const n=new Date(),t=new Date(n.getFullYear(),n.getMonth(),n.getDate(),21,0,0);if(t<=n)t.setDate(t.getDate()+1);setTimeout(()=>{let s=null;try{s=JSON.parse(localStorage.getItem(stateKey(0)));}catch(e){}if(!s||!s.done)new Notification("🔥 Comidadle",{body:"¡Tu racha está en peligro!",tag:"comidadle-streak"});},t-n);}
 
+
+// ═══ SHOP + EQUIP ═══
+const EQUIP_KEY="comidadle_equip";
+let myEquip={avatar_color:null,avatar_frame:null,badge:null,title:null,emoji:null};
+try{const e=JSON.parse(localStorage.getItem(EQUIP_KEY)||"{}");myEquip={...myEquip,...e};}catch(e){}
+const saveEquipLocal=()=>localStorage.setItem(EQUIP_KEY,JSON.stringify(myEquip));
+
+let shopItems=[],myInventory=[];
+let currentShopTab="colores";
+const catMap={colores:"color",marcos:"frame",badges:"badge",titulos:"title",emojis:"emoji"};
+
+async function loadShop(){
+  try{shopItems=await sb("/rest/v1/shop_items?select=*&order=price.asc");}catch(e){shopItems=[];}
+  if(myUser){
+    try{myInventory=await sb("/rest/v1/user_inventory?username=eq."+encodeURIComponent(myUser)+"&select=item_id");}catch(e){myInventory=[];}
+    // Load equip from server
+    try{
+      const eq=await sb("/rest/v1/user_equip?username=eq."+encodeURIComponent(myUser)+"&select=*");
+      if(eq&&eq[0]){myEquip={...myEquip,...eq[0]};saveEquipLocal();}
+    }catch(e){}
+  }
+}
+
+async function openShop(){
+  openModal("shop-modal");
+  await loadShop();
+  updateShopXPBar();
+  renderShop();
+}
+
+function updateShopXPBar(){
+  const xpEl=document.getElementById("shop-xp-val");
+  const lvEl=document.getElementById("shop-level-badge");
+  if(xpEl)xpEl.textContent=totalXP+" XP";
+  if(lvEl){const lv=getLevel(totalXP);lvEl.textContent=lv.name+" · Nivel "+lv.l;}
+}
+
+function shopTab(tab){
+  currentShopTab=tab;
+  document.querySelectorAll(".shop-tab-btn").forEach(b=>{b.classList.toggle("active",b.id==="st-"+tab);});
+  renderShop();
+}
+
+function getFrameClass(frame){
+  if(!frame)return"";
+  return"avatar-frame-"+frame;
+}
+
+function renderAvatarPreview(item,owned,equipped){
+  if(item.category==="color"){
+    return`<div class="shop-item-preview" style="background:${item.value};${equipped?"box-shadow:0 0 0 3px var(--green)":""}">${myEquip.emoji||myUser[0]?.toUpperCase()||"?"}</div>`;
+  }else if(item.category==="frame"){
+    return`<div class="shop-item-preview ${equipped?"avatar-frame-"+item.value:""}" style="background:${myEquip.avatar_color||aColor(myUser)}">${myEquip.emoji||myUser[0]?.toUpperCase()||"?"}</div>`;
+  }else if(item.category==="emoji"){
+    return`<div class="shop-item-preview" style="background:${myEquip.avatar_color||aColor(myUser)}">${item.value}</div>`;
+  }else{
+    return`<div style="width:48px;height:48px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">${item.emoji||"🎁"}</div>`;
+  }
+}
+
+function renderShop(){
+  const el=document.getElementById("shop-content");if(!el)return;
+  const cat=catMap[currentShopTab];
+  const items=shopItems.filter(i=>i.category===cat);
+  if(!items.length){el.innerHTML='<div class="ranking-empty">Sin items disponibles</div>';return;}
+  const ownedIds=new Set((myInventory||[]).map(i=>i.item_id));
+  const equipKey={color:"avatar_color",frame:"avatar_frame",badge:"badge",title:"title",emoji:"emoji"}[cat];
+
+  el.innerHTML=items.map(item=>{
+    const owned=ownedIds.has(item.id);
+    const equipped=myEquip[equipKey]===item.value;
+    const preview=renderAvatarPreview(item,owned,equipped);
+    const canAfford=totalXP>=item.price;
+    return`<div class="shop-item-card${owned?" owned":""}">
+      ${preview}
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:700;color:var(--text)">${item.name}</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${item.description||""}</div>
+        ${item.category==="badge"||item.category==="title"?`<div style="margin-top:4px;font-size:12px;font-weight:600;color:var(--accent)">${item.value}</div>`:""}
+        <div style="margin-top:4px;font-size:12px;font-weight:700;color:${owned?"var(--green)":"var(--gold)"}">${owned?"✅ Conseguido":"💰 "+item.price+" XP"}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
+        ${owned
+          ? `<button onclick="equipItem('${item.id}','${cat}','${item.value.replace(/'/g,"\\'")}','${equipKey}')" style="background:${equipped?"var(--surface2)":"var(--accent)"};border:1px solid ${equipped?"var(--border)":"var(--accent)"};color:${equipped?"var(--text-muted)":"#fff"};border-radius:6px;padding:5px 10px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700">${equipped?"Puesto ✓":"Poner"}</button>`
+          : `<button onclick="buyItem('${item.id}')" ${!canAfford?"disabled":""} style="background:${canAfford?"var(--gold)":"var(--surface2)"};border:none;color:${canAfford?"#100900":"var(--text-muted)"};border-radius:6px;padding:5px 10px;cursor:${canAfford?"pointer":"not-allowed"};font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700">${canAfford?"Comprar":"Sin XP"}</button>`
+        }
+      </div>
+    </div>`;
+  }).join("");
+}
+
+async function buyItem(itemId){
+  const item=shopItems.find(i=>i.id===itemId);
+  if(!item)return;
+  if(totalXP<item.price){alert("No tienes suficiente XP 😔");return;}
+  if(!myUser){alert("Pon un nombre en el Ranking Global primero");return;}
+  if(!confirm("¿Comprar '"+item.name+"' por "+item.price+" XP?"))return;
+
+  // Deduct XP
+  totalXP-=item.price;
+  localStorage.setItem(XPK,String(totalXP));
+
+  // Deduct from weekly too (spending XP affects weekly ranking)
+  if(weekly.points>0){
+    weekly.points=Math.max(0,weekly.points-item.price);
+    saveWeekly();
+    syncWeekly().catch(()=>{});
+  }
+
+  // Save to inventory
+  try{
+    await sb("/rest/v1/user_inventory",{method:"POST",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({username:myUser,item_id:itemId})});
+    myInventory.push({item_id:itemId});
+  }catch(e){}
+
+  updateShopXPBar();
+  renderShop();
+  updateMiniAvatar();
+}
+
+async function equipItem(itemId,category,value,equipKey){
+  if(!myUser)return;
+  const isEquipped=myEquip[equipKey]===value;
+
+  if(isEquipped){
+    myEquip[equipKey]=null;
+  }else{
+    myEquip[equipKey]=value;
+  }
+  saveEquipLocal();
+
+  // Sync to server
+  try{
+    await sb("/rest/v1/user_equip",{method:"POST",headers:{...SH,"Prefer":"resolution=merge-duplicates,return=minimal"},body:JSON.stringify({username:myUser,...myEquip})});
+  }catch(e){
+    // Fallback: try upsert via patch
+    try{await sb("/rest/v1/user_equip?username=eq."+encodeURIComponent(myUser),{method:"PATCH",body:JSON.stringify(myEquip)});}catch(e2){}
+  }
+
+  updateMiniAvatar();
+  renderShop();
+}
+
+// ═══ AVATAR WITH EQUIP ═══
+function buildAvatar(name,equip,size=52,fs=22){
+  const color=equip?.avatar_color||aColor(name);
+  const emoji=equip?.emoji||null;
+  const letter=name?name[0].toUpperCase():"?";
+  const frameClass=equip?.avatar_frame?"avatar-frame-"+equip.avatar_frame:"";
+  return`<div class="${frameClass}" style="width:${size}px;height:${size}px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:${fs}px;font-weight:700;color:#fff;flex-shrink:0">${emoji||letter}</div>`;
+}
+
+// Override updateMiniAvatar to use equip
+function updateMiniAvatar(){
+  const el=document.getElementById("profile-mini-avatar");if(!el)return;
+  if(myUser){
+    el.style.background=myEquip.avatar_color||aColor(myUser);
+    el.textContent=myEquip.emoji||myUser[0].toUpperCase();
+  }else{
+    el.style.background="var(--surface2)";el.textContent="?";
+  }
+}
+
+// ═══ PLAYER PROFILE VIEWER ═══
+async function openPlayerProfile(username){
+  openModal("player-modal");
+  const el=document.getElementById("player-content");
+  el.innerHTML='<div class="ranking-empty">Cargando...</div>';
+  try{
+    const [rankData,equipData]=await Promise.all([
+      sb("/rest/v1/ranking?username=eq."+encodeURIComponent(username)+"&select=*"),
+      sb("/rest/v1/user_equip?username=eq."+encodeURIComponent(username)+"&select=*").catch(()=>[])
+    ]);
+    const r=rankData&&rankData[0];
+    const eq=equipData&&equipData[0]||{};
+    const pct=r&&r.played>0?Math.round(r.wins/r.played*100):0;
+    const isMe=username===myUser;
+    el.innerHTML=`
+      <div style="text-align:center;margin-bottom:1.25rem">
+        <div style="display:flex;justify-content:center;margin-bottom:.75rem">${buildAvatar(username,eq,64,26)}</div>
+        <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--text)">${username}${isMe?" (tú)":""}</div>
+        ${eq.title?`<div style="font-size:13px;font-weight:700;color:var(--accent);margin-top:4px">${eq.title}</div>`:""}
+        ${eq.badge?`<div style="display:inline-block;background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:3px 12px;font-size:12px;font-weight:600;color:var(--text);margin-top:6px">${eq.badge}</div>`:""}
+      </div>
+      ${r?`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center">
+          <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--accent)">🔥${r.streak}</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:2px">Racha</div>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center">
+          <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--gold)">${r.best_streak}</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:2px">Mejor racha</div>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center">
+          <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--green)">${pct}%</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:2px">Victorias</div>
+        </div>
+      </div>`:'<div class="ranking-empty">Sin datos de ranking</div>'}`;
+  }catch(e){el.innerHTML='<div class="ranking-empty">Error cargando perfil 😔</div>';}
+}
+
+
 // ═══ SETTINGS TOGGLES ═══
 [["few-attempts-toggle","fewAttempts"],["more-countries-toggle","moreCountries"],["no-hints-toggle","noHints"],["prog-toggle","progressive"],["no-desc-toggle","noDesc"]].forEach(([id,key])=>{const el=document.getElementById(id);if(el){el.checked=cfg[key];el.onchange=()=>{cfg[key]=el.checked;saveCfg();updateBadge();renderAll();};}});
 const syEl=document.getElementById("show-yesterday-toggle");if(syEl){syEl.checked=cfg.showYesterday;syEl.onchange=()=>{cfg.showYesterday=syEl.checked;saveCfg();renderYesterday();};}
@@ -1147,6 +1449,11 @@ onC("about-close",()=>closeModal("about-modal"));
 onC("rules-close",()=>closeModal("rules-modal"));
 onC("rules-ok-btn",()=>closeModal("rules-modal"));
 onC("sm-rules",()=>{closeSideMenu();openModal("rules-modal");});
+onC("sm-shop",()=>{closeSideMenu();openShop();});
+onC("shop-close",()=>closeModal("shop-modal"));
+onC("player-close",()=>closeModal("player-modal"));
+document.getElementById("shop-modal").addEventListener("click",e=>{if(e.target.id==="shop-modal")closeModal("shop-modal");});
+document.getElementById("player-modal").addEventListener("click",e=>{if(e.target.id==="player-modal")closeModal("player-modal");});
 onC("duel-close",()=>closeModal("duel-modal"));
 ["how-modal","cfg-modal","share-modal","stats-modal","ranking-modal","weekly-modal","profile-modal","owner-modal","reviews-modal","ann-modal","suggestions-modal","about-modal","duel-modal","rules-modal"].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener("click",e=>{if(e.target.id===id)closeModal(id);});});
 onC("menu-open-btn",openSideMenu);onC("side-menu-close",closeSideMenu);onC("side-overlay",closeSideMenu);
@@ -1168,6 +1475,8 @@ onC("copy-btn",()=>{document.getElementById("share-textarea").select();const cb=
 
 if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 document.getElementById("date-pill").textContent=_now.getDate()+" "+MONTHS[_now.getMonth()]+" · Día "+dayOfYear;
+// Load equip from server on init
+if(myUser){sb("/rest/v1/user_equip?username=eq."+encodeURIComponent(myUser)+"&select=*").then(eq=>{if(eq&&eq[0]){myEquip={...myEquip,...eq[0]};saveEquipLocal();updateMiniAvatar();}}).catch(()=>{});}
 updateMiniAvatar();updateBadge();renderYesterday();renderTabs();renderAll();
 if(!localStorage.getItem("comidadle_visited")){openModal("how-modal");localStorage.setItem("comidadle_visited","1");}
 setTimeout(showAnnBanner,2000);
