@@ -810,7 +810,7 @@ async function renderOwnerPanel(){
   const tabBtn=(id,label,active)=>`<button onclick="ownerTab('${id}')" id="ot-${id.slice(3)}" style="flex:1;padding:.5rem;border:none;border-radius:6px;background:${active?"var(--accent)":"transparent"};color:${active?"#fff":"var(--text-muted)"};font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer">${label}</button>`;
   el.innerHTML=`
     <div style="display:flex;gap:4px;margin-bottom:1.25rem;background:var(--surface2);border-radius:var(--r-sm);padding:4px">
-      ${tabBtn("oc-ann","📢 Anuncio",true)}${tabBtn("oc-ban","🔒 Bans",false)}${tabBtn("oc-rank","🏆 Ranking",false)}${tabBtn("oc-sug","💡 Ideas",false)}
+      ${tabBtn("oc-ann","📢 Anuncio",true)}${tabBtn("oc-ban","🔒 Bans",false)}${tabBtn("oc-rank","🏆 Ranking",false)}${tabBtn("oc-xp","🎁 XP",false)}${tabBtn("oc-sug","💡 Ideas",false)}
     </div>
     <div id="oc-ann">
       ${ann?`<div style="background:rgba(255,107,53,.08);border:1px solid var(--accent);border-radius:var(--r-sm);padding:1rem;margin-bottom:.875rem"><div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.06em">Anuncio activo</div><div style="font-size:13px;color:var(--text);line-height:1.6;margin-bottom:.75rem">${ann.message}</div><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem"><div style="display:flex;gap:12px;font-size:13px"><span style="color:var(--green);font-weight:700">👍 ${likes.length}</span><span style="color:var(--red);font-weight:700">👎 ${dislikes.length}</span></div><button onclick="clearAnn().then(renderOwnerPanel)" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text-muted);padding:4px 10px;cursor:pointer;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif">✕ Quitar</button></div>${reactions.length>0?`<div style="margin-top:.75rem;border-top:1px solid var(--border);padding-top:.75rem"><div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem">Votos</div><div style="display:flex;flex-wrap:wrap;gap:4px">${reactions.map(r=>`<span style="background:${r.reaction==="like"?"rgba(34,197,94,.15)":"rgba(240,80,80,.15)"};border:1px solid ${r.reaction==="like"?"var(--green)":"var(--red)"};border-radius:99px;padding:2px 8px;font-size:11px;color:${r.reaction==="like"?"var(--green)":"var(--red)"}">${r.reaction==="like"?"👍":"👎"} ${r.username}</span>`).join("")}</div></div>`:""}</div>`:'<div style="font-size:12px;color:var(--text-muted);margin-bottom:.875rem;text-align:center">No hay ningún anuncio activo</div>'}
@@ -1515,12 +1515,12 @@ function renderInfiniteGame(){
     el.querySelectorAll(".country-btn:not([disabled])").forEach(btn=>{
       btn.onclick=()=>{
         const c=btn.dataset.c;
-        if(c===d.country){playCorrect();iLog.push(true);iWins++;infWins++;infTotal++;iDone=true;render();setTimeout(()=>{launchConfetti();playWin();},200);}
+        if(c===d.country){playCorrect();iLog.push(true);infWins++;infTotal++;iDone=true;render();setTimeout(()=>{launchConfetti();playWin();},200);}
         else{playWrong();iLog.push(false);iWrong.add(c);if(iLog.length>=MAX){infTotal++;iDone=true;render();setTimeout(()=>playLose(),300);}else render();}
       };
     });
     const nb=document.getElementById("inf-next-btn");
-    if(nb)nb.onclick=()=>{const pool=ALL_DISHES.filter(x=>x.name!==d.name);infDish=d=pool[Math.floor(Math.random()*pool.length)];iLog=[];iWrong=new Set();iDone=false;renderInfiniteGame();};
+    if(nb)nb.onclick=()=>{const pool=ALL_DISHES.filter(x=>x.name!==d.name);infDish=pool[Math.floor(Math.random()*pool.length)];renderInfiniteGame();};
   }
   render();
 }
@@ -1585,7 +1585,7 @@ onC("player-close",()=>closeModal("player-modal"));
 document.getElementById("shop-modal").addEventListener("click",e=>{if(e.target.id==="shop-modal")closeModal("shop-modal");});
 document.getElementById("player-modal").addEventListener("click",e=>{if(e.target.id==="player-modal")closeModal("player-modal");});
 onC("duel-close",()=>closeModal("duel-modal"));
-["how-modal","cfg-modal","share-modal","stats-modal","ranking-modal","weekly-modal","profile-modal","owner-modal","reviews-modal","ann-modal","suggestions-modal","about-modal","duel-modal","rules-modal"].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener("click",e=>{if(e.target.id===id)closeModal(id);});});
+["how-modal","cfg-modal","share-modal","stats-modal","ranking-modal","weekly-modal","profile-modal","owner-modal","reviews-modal","ann-modal","suggestions-modal","about-modal","duel-modal","rules-modal","infinite-modal","player-modal","shop-modal"].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener("click",e=>{if(e.target.id===id)closeModal(id);});});
 onC("menu-open-btn",openSideMenu);onC("side-menu-close",closeSideMenu);onC("side-overlay",closeSideMenu);
 onC("sm-stats",()=>{closeSideMenu();openStats();});
 onC("sm-ranking",()=>{closeSideMenu();openRanking();});
