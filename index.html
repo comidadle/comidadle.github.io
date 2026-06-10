@@ -297,7 +297,10 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
   <div class="modal">
     <button class="modal-close" id="ranking-close">✕</button>
     <div class="modal-title">🏆 Ranking Global</div>
-    <button class="ranking-btn" id="ranking-refresh-btn" style="margin-bottom:.75rem;width:100%">↻ Actualizar</button>
+    <div style="display:flex;gap:8px;margin-bottom:.75rem">
+      <input id="ranking-search" class="username-input" placeholder="🔍 Buscar jugador..." style="margin:0;flex:1" oninput="filterRanking(this.value)">
+      <button class="ranking-btn" id="ranking-refresh-btn">↻</button>
+    </div>
     <div id="ranking-username-section"></div>
     <div id="ranking-list"><div class="ranking-empty">Cargando...</div></div>
   </div>
@@ -309,7 +312,10 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
     <button class="modal-close" id="weekly-close">✕</button>
     <div class="modal-title">📅 Ranking Semanal</div>
     <div style="font-size:11px;color:var(--text-muted);margin-bottom:.75rem" id="weekly-period"></div>
-    <button class="ranking-btn" id="weekly-refresh-btn" style="margin-bottom:.75rem;width:100%">↻ Actualizar</button>
+    <div style="display:flex;gap:8px;margin-bottom:.75rem">
+      <input id="weekly-search" class="username-input" placeholder="🔍 Buscar jugador..." style="margin:0;flex:1" oninput="filterWeekly(this.value)">
+      <button class="ranking-btn" id="weekly-refresh-btn">↻</button>
+    </div>
     <div id="weekly-username-section"></div>
     <div id="weekly-list"><div class="ranking-empty">Cargando...</div></div>
   </div>
@@ -588,7 +594,7 @@ const ALL_DISHES=[{name:"Tacos al Pastor",emoji:"🌮",country:"México",flag:"�
 
 const DEMONYMS={"México":["Mexicano","Mexicana","Mexicanos","Mexicanas"],"España":["Español","Española","Españoles","Españolas"],"Argentina":["Argentino","Argentinas","Argentinos"],"Perú":["Peruano","Peruana","Peruanos","Peruanas"],"Colombia":["Colombiano","Colombiana","Colombianos","Colombianas"],"Venezuela":["Venezolano","Venezolana","Venezolanos","Venezolanas"],"Chile":["Chileno","Chilena","Chilenos","Chilenas"],"Cuba":["Cubano","Cubana","Cubanos","Cubanas"],"El Salvador":["Salvadoreño","Salvadoreña","Salvadoreños","Salvadoreñas"],"Honduras":["Hondureño","Hondureña","Hondureños","Hondureñas"],"Costa Rica":["Costarricense","Tico","Tica"],"Nicaragua":["Nicaragüense","Nicaragüenses"],"Guatemala":["Guatemalteco","Guatemalteca","Guatemaltecos","Guatemaltecas"],"Ecuador":["Ecuatoriano","Ecuatoriana","Ecuatorianos","Ecuatorianas"],"Bolivia":["Boliviano","Boliviana","Bolivianos","Bolivianas"],"Uruguay":["Uruguayo","Uruguaya","Uruguayos","Uruguayas"],"Brasil":["Brasileño","Brasileña","Brasileños","Brasileñas"],"Panamá":["Panameño","Panameña","Panameños","Panameñas"],"Rep. Dominicana":["Dominicano","Dominicana","Dominicanos","Dominicanas"],"Puerto Rico":["Puertorriqueño","Puertorriqueña","Boricua","Boricuas"],"Paraguay":["Paraguayo","Paraguaya","Paraguayos","Paraguayas"]};
 // ═══ VERSION ═══
-const VERSION="1.8.0";
+const VERSION="1.9.0";
 
 // ═══ DATA ═══
 function buildBlurRegex(c){const t=[c,...(DEMONYMS[c]||[])];const e=t.map(x=>x.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).sort((a,b)=>b.length-a.length);return new RegExp(e.join("|"),"gi");}
@@ -1051,14 +1057,27 @@ function renderStats(){
 }
 
 // ═══ RANKING UI ═══
-async function renderRankingList(rows){
+let _rankingRows=[];
+let _weeklyRows=[];
+
+function filterRanking(q){
+  const filtered=q.trim()?_rankingRows.filter(r=>r.username.toLowerCase().includes(q.toLowerCase())):_rankingRows;
+  renderRankingList(filtered,false);
+}
+function filterWeekly(q){
+  const filtered=q.trim()?_weeklyRows.filter(r=>r.username.toLowerCase().includes(q.toLowerCase())):_weeklyRows;
+  renderWeeklyList(filtered,false);
+}
+
+async function renderRankingList(rows,cache=true){
   const el=document.getElementById("ranking-list");if(!el)return;
-  if(!rows||rows.length===0){el.innerHTML='<div class="ranking-empty">¡Sé el primero! 🌶️</div>';return;}
+  if(cache)_rankingRows=rows||[];
+  if(!rows||rows.length===0){el.innerHTML='<div class="ranking-empty">'+(_rankingRows.length>0?"Sin resultados 🔍":"¡Sé el primero! 🌶️")+'</div>';return;}
   // Fetch equip data for visible players
   let equipMap={};
   try{
-    const eqs=await sb("/rest/v1/user_equip?select=*&limit=100");
-    if(eqs)eqs.forEach(e=>{equipMap[e.username]=e;});
+    const eqs=await sb("/rest/v1/user_equip?select=username,avatar_color,avatar_frame,badge,title,emoji&limit=200");
+    if(eqs)eqs.forEach(e=>{if(e.username)equipMap[e.username]=e;});
   }catch(e){}
   const medals=["🥇","🥈","🥉"],pc=["gold","silver","bronze"];
   el.innerHTML=rows.map((r,i)=>{
@@ -1133,13 +1152,14 @@ async function openRanking(){
   document.getElementById("ranking-list").innerHTML='<div class="ranking-empty">Cargando...</div>';
   try{renderRankingList(await fetchRanking());}catch(e){document.getElementById("ranking-list").innerHTML='<div class="ranking-empty">Error 😔</div>';}
 }
-async function renderWeeklyList(rows){
+async function renderWeeklyList(rows,cache=true){
   const el=document.getElementById("weekly-list");if(!el)return;
-  if(!rows||rows.length===0){el.innerHTML='<div class="ranking-empty">¡Sé el primero esta semana! 📅</div>';return;}
+  if(cache)_weeklyRows=rows||[];
+  if(!rows||rows.length===0){el.innerHTML='<div class="ranking-empty">'+(_weeklyRows.length>0?"Sin resultados 🔍":"¡Sé el primero esta semana! 📅")+'</div>';return;}
   let equipMap={};
   try{
-    const eqs=await sb("/rest/v1/user_equip?select=*&limit=100");
-    if(eqs)eqs.forEach(e=>{equipMap[e.username]=e;});
+    const eqs=await sb("/rest/v1/user_equip?select=username,avatar_color,avatar_frame,badge,title,emoji&limit=200");
+    if(eqs)eqs.forEach(e=>{if(e.username)equipMap[e.username]=e;});
   }catch(e){}
   const medals=["🥇","🥈","🥉"],pc=["gold","silver","bronze"];
   el.innerHTML=rows.map((r,i)=>{
@@ -1149,7 +1169,7 @@ async function renderWeeklyList(rows){
     const color=eq.avatar_color||aColor(r.username);
     const emoji=eq.emoji||r.username[0]?.toUpperCase()||"?";
     const frameClass=eq.avatar_frame?"avatar-frame-"+eq.avatar_frame:"";
-    return`<div onclick="openWeeklyPlayerProfile('${r.username}',${r.points},${i+1})" style="display:flex;align-items:center;gap:10px;padding:.65rem .75rem;background:${isMe?"rgba(255,107,53,.08)":"var(--surface2)"};border:1px solid ${isMe?"var(--accent)":"var(--border)"};border-radius:var(--r-sm);margin-bottom:.4rem;cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='${isMe?"var(--accent)":"var(--border)"}'">
+    return`<div onclick="openWeeklyPlayerProfile('${r.username}')" style="display:flex;align-items:center;gap:10px;padding:.65rem .75rem;background:${isMe?"rgba(255,107,53,.08)":"var(--surface2)"};border:1px solid ${isMe?"var(--accent)":"var(--border)"};border-radius:var(--r-sm);margin-bottom:.4rem;cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='${isMe?"var(--accent)":"var(--border)"}'">
       <span style="font-family:'Fraunces',serif;font-size:16px;font-weight:900;color:${pClass==="gold"?"#FFB627":pClass==="silver"?"#C0C0C0":pClass==="bronze"?"#CD7F32":"var(--text-muted)"};width:22px;flex-shrink:0">${pos}</span>
       <div class="${frameClass}" style="width:32px;height:32px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0">${emoji}</div>
       <div style="flex:1;min-width:0">
@@ -1450,19 +1470,11 @@ async function buyItem(itemId){
 async function saveEquipToServer(){
   if(!myUser)return;
   try{
-    // Upsert using merge-duplicates (username is PRIMARY KEY)
-    const res=await fetch(SB+"/rest/v1/user_equip",{
+    await fetch(SB+"/rest/v1/user_equip?on_conflict=username",{
       method:"POST",
       headers:{...SH,"Prefer":"resolution=merge-duplicates,return=minimal"},
       body:JSON.stringify({username:myUser,...myEquip})
     });
-    if(!res.ok){
-      // Fallback: PATCH
-      await fetch(SB+"/rest/v1/user_equip?username=eq."+encodeURIComponent(myUser),{
-        method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},
-        body:JSON.stringify(myEquip)
-      });
-    }
   }catch(e){console.warn("saveEquip error:",e);}
 }
 
@@ -1714,20 +1726,19 @@ async function openPlayerProfile(username){
   }catch(e){el.innerHTML='<div class="ranking-empty">Error cargando perfil 😔</div>';}
 }
 
-async function openWeeklyPlayerProfile(username,weekPoints,weekPos){
+async function openWeeklyPlayerProfile(username){
   openModal("player-modal");
   const el=document.getElementById("player-content");
   el.innerHTML='<div class="ranking-empty">Cargando...</div>';
   try{
-    const equipData=await sb("/rest/v1/user_equip?username=eq."+encodeURIComponent(username)+"&select=*").catch(()=>[]);
+    const [equipData,rankData]=await Promise.all([
+      sb("/rest/v1/user_equip?username=eq."+encodeURIComponent(username)+"&select=username,avatar_color,avatar_frame,badge,title,emoji").catch(()=>[]),
+      sb("/rest/v1/ranking?username=eq."+encodeURIComponent(username)+"&select=streak,best_streak,wins,played").catch(()=>[])
+    ]);
     const eq={};
     if(equipData&&equipData[0]){Object.entries(equipData[0]).forEach(([k,v])=>{if(v!==null&&k!=="username")eq[k]=v;});}
+    const r=rankData&&rankData[0];
     const isMe=username===myUser;
-    const medals=["🥇","🥈","🥉"];
-    const posStr=medals[weekPos-1]||(weekPos+"º");
-    // Calculate level from weekly points (just for display context)
-    const mon=new Date(weekKey),sun=new Date(mon);sun.setDate(sun.getDate()+6);
-    const fmt=d=>d.getDate()+" "+MONTHS[d.getMonth()];
     el.innerHTML=`
       <div style="text-align:center;margin-bottom:1.25rem">
         <div style="display:flex;justify-content:center;margin-bottom:.75rem">${buildAvatar(username,eq,64,26)}</div>
@@ -1735,25 +1746,31 @@ async function openWeeklyPlayerProfile(username,weekPoints,weekPos){
         ${eq.title?`<div style="font-size:13px;font-weight:700;color:var(--accent);margin-top:4px">${eq.title}</div>`:""}
         ${eq.badge?`<div style="display:inline-block;background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:3px 12px;font-size:12px;font-weight:600;color:var(--text);margin-top:6px">${eq.badge}</div>`:""}
       </div>
-      <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">📅 Semana ${fmt(mon)} – ${fmt(sun)}</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.75rem">
-        <div style="background:rgba(255,182,39,.1);border:1px solid var(--gold);border-radius:var(--r-sm);padding:1rem;text-align:center">
-          <div style="font-family:'Fraunces',serif;font-size:28px;font-weight:900;color:var(--gold)">⭐${weekPoints}</div>
-          <div style="font-size:11px;color:var(--text-muted);margin-top:2px">XP esta semana</div>
+      ${r?`
+      <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">📊 Estadísticas globales</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:.75rem">
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center">
+          <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--accent)">🔥${r.streak}</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:2px">Racha</div>
         </div>
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:1rem;text-align:center">
-          <div style="font-family:'Fraunces',serif;font-size:28px;font-weight:900;color:var(--text)">${posStr}</div>
-          <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Posición semanal</div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center">
+          <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--gold)">${r.best_streak}</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:2px">Mejor racha</div>
         </div>
-      </div>
-      ${eq.avatar_color||eq.avatar_frame||eq.badge||eq.title||eq.emoji?`
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center">
+          <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--green)">${r.played>0?Math.round(r.wins/r.played*100):0}%</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:2px">Victorias</div>
+        </div>
+      </div>`:""}
+      ${eq.badge||eq.title||eq.avatar_frame||eq.emoji?`
       <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">🛒 Items equipados</div>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;display:flex;flex-wrap:wrap;gap:6px">
-        ${eq.badge?`<span style="background:var(--surface);border:1px solid var(--border);border-radius:99px;padding:3px 10px;font-size:12px;font-weight:600;color:var(--text)">${eq.badge}</span>`:""}
-        ${eq.title?`<span style="background:var(--surface);border:1px solid var(--accent);border-radius:99px;padding:3px 10px;font-size:12px;font-weight:600;color:var(--accent)">${eq.title}</span>`:""}
-        ${eq.avatar_frame?`<span style="background:var(--surface);border:1px solid var(--border);border-radius:99px;padding:3px 10px;font-size:12px;color:var(--text-muted)">Marco ${eq.avatar_frame}</span>`:""}
+        ${eq.badge?`<span style="background:var(--surface);border:1px solid var(--border-strong);border-radius:99px;padding:4px 12px;font-size:12px;font-weight:600;color:var(--text)">${eq.badge}</span>`:""}
+        ${eq.title?`<span style="background:var(--surface);border:1px solid var(--accent);border-radius:99px;padding:4px 12px;font-size:12px;font-weight:600;color:var(--accent)">${eq.title}</span>`:""}
+        ${eq.avatar_frame?`<span style="background:var(--surface);border:1px solid var(--gold);border-radius:99px;padding:4px 12px;font-size:12px;color:var(--gold)">Marco ${eq.avatar_frame}</span>`:""}
+        ${eq.emoji?`<span style="background:var(--surface);border:1px solid var(--border);border-radius:99px;padding:4px 12px;font-size:13px">${eq.emoji} Emoji</span>`:""}
       </div>`:""}`;
-  }catch(e){el.innerHTML='<div class="ranking-empty">Error cargando perfil 😔</div>';}
+  }catch(e){el.innerHTML='<div class="ranking-empty">Error 😔</div>';}
 }
 
 // ═══ SETTINGS TOGGLES ═══
