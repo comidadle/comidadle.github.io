@@ -231,17 +231,17 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
 <div class="modal-overlay hidden" id="how-modal">
   <div class="modal">
     <button class="modal-close" id="how-close">✕</button>
-    <div class="modal-title">🌶️ Cómo jugar</div>
-    <div class="how-step"><div class="step-num">1</div><div class="step-text">Cada día aparecen <strong>3 platos diferentes</strong> de la gastronomía hispana.</div></div>
-    <div class="how-step"><div class="step-num">2</div><div class="step-text">Cambia entre platos con las <strong>pestañas</strong> de arriba. Cada plato tiene sus propios intentos.</div></div>
-    <div class="how-step"><div class="step-num">3</div><div class="step-text">Elige el <strong>país de origen</strong>. Tienes <strong>6 intentos</strong> por defecto.</div></div>
-    <div class="how-step"><div class="step-num">4</div><div class="step-text">Con cada fallo aparece una <strong>pista nueva</strong>. Al terminar se resalta el país correcto en verde.</div></div>
+    <div class="modal-title">🌶️ <span data-i18n="how_title">Cómo jugar</span></div>
+    <div class="how-step"><div class="step-num">1</div><div class="step-text"><span data-i18n="how_step1">Cada día aparecen <strong>3 platos diferentes</strong> de la gastronomía hispana.</span></div></div>
+    <div class="how-step"><div class="step-num">2</div><div class="step-text"><span data-i18n="how_step2">Cambia entre platos con las <strong>pestañas</strong> de arriba. Cada plato tiene sus propios intentos.</span></div></div>
+    <div class="how-step"><div class="step-num">3</div><div class="step-text"><span data-i18n="how_step3">Elige el <strong>país de origen</strong>. Tienes <strong>6 intentos</strong> por defecto.</span></div></div>
+    <div class="how-step"><div class="step-num">4</div><div class="step-text"><span data-i18n="how_step4">Con cada fallo aparece una <strong>pista nueva</strong>. Al terminar se resalta el país correcto en verde.</span></div></div>
     <div class="modal-divider"></div>
     <div class="emoji-demo">🟥🟥🟥🟩</div>
     <div style="font-size:12px;color:var(--text-muted);text-align:center;margin-bottom:.5rem">🟩 Acierto · 🟥 Fallo</div>
     <div class="modal-divider"></div>
-    <div style="font-size:13px;color:var(--text-muted)">Hay 3 platos nuevos cada día. Puedes hacerlo más difícil en ⚙️ Configuración.</div>
-    <button class="play-btn" id="how-play">¡A jugar!</button>
+    <div style="font-size:13px;color:var(--text-muted)"><span data-i18n="how_footer">Hay 3 platos nuevos cada día. Puedes hacerlo más difícil en ⚙️ Configuración.</span></div>
+    <button class="play-btn" id="how-play"><span data-i18n="play_btn">¡A jugar!</span></button>
   </div>
 </div>
 
@@ -249,11 +249,21 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
 <div class="modal-overlay hidden" id="cfg-modal">
   <div class="modal">
     <button class="modal-close" id="cfg-close">✕</button>
-    <div class="modal-title">⚙️ Configuración</div>
+    <div class="modal-title"><span data-i18n="settings_title">⚙️ Configuración</span></div>
     <div class="settings-section-label">🔥 Modo difícil</div>
     <div class="setting-row"><div class="setting-info"><div class="setting-label">Menos intentos</div><div class="setting-desc">Solo 3 intentos en vez de 6.</div></div><label class="toggle"><input type="checkbox" id="few-attempts-toggle"><div class="toggle-track"></div></label></div>
     <div class="setting-row"><div class="setting-info"><div class="setting-label">Más países</div><div class="setting-desc">Todos los países en la tabla, no solo 8.</div></div><label class="toggle"><input type="checkbox" id="more-countries-toggle"><div class="toggle-track"></div></label></div>
     <div class="setting-row"><div class="setting-info"><div class="setting-label">Sin pistas</div><div class="setting-desc">No aparecen pistas durante la partida.</div></div><label class="toggle"><input type="checkbox" id="no-hints-toggle"><div class="toggle-track"></div></label></div>
+    <div class="modal-divider"></div>
+    <div class="settings-section-label">🌐 Idioma / Language</div>
+    <div class="setting-row">
+      <div class="setting-info"><div class="setting-label">Idioma · Language</div><div class="setting-desc">Español · English · Français</div></div>
+      <select id="lang-select" style="background:var(--surface2);border:1px solid var(--border-strong);border-radius:var(--r-sm);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;padding:5px 8px;cursor:pointer;outline:none">
+        <option value="es">🇪🇸 Español</option>
+        <option value="en">🇬🇧 English</option>
+        <option value="fr">🇫🇷 Français</option>
+      </select>
+    </div>
     <div class="modal-divider"></div>
     <div class="settings-section-label">🎛️ Preferencias</div>
     <div class="setting-row"><div class="setting-info"><div class="setting-label">Pistas progresivas</div><div class="setting-desc">Las pistas aparecen de una en una con cada fallo.</div></div><label class="toggle"><input type="checkbox" id="prog-toggle" checked><div class="toggle-track"></div></label></div>
@@ -266,10 +276,10 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
 <div class="modal-overlay hidden" id="share-modal">
   <div class="modal">
     <button class="modal-close" id="share-modal-close">✕</button>
-    <div class="modal-title">📤 Compartir resultado</div>
+    <div class="modal-title"><span data-i18n="share_title">📤 Compartir resultado</span></div>
     <div style="font-size:13px;color:var(--text-muted);margin-bottom:.5rem">Copia y comparte donde quieras:</div>
     <textarea class="share-textarea" id="share-textarea" rows="5" readonly></textarea>
-    <button class="copy-btn" id="copy-btn">Copiar al portapapeles</button>
+    <button class="copy-btn" id="copy-btn"><span data-i18n="copy_btn">Copiar al portapapeles</span></button>
     <div style="font-size:12px;color:var(--text-muted);margin-top:.5rem;text-align:center" id="copy-note"></div>
   </div>
 </div>
@@ -296,7 +306,7 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
 <div class="modal-overlay hidden" id="ranking-modal">
   <div class="modal">
     <button class="modal-close" id="ranking-close">✕</button>
-    <div class="modal-title">🏆 Ranking Global</div>
+    <div class="modal-title"><span data-i18n="ranking_title">🏆 Ranking Global</span></div>
     <div style="display:flex;gap:8px;margin-bottom:.75rem">
       <input id="ranking-search" class="username-input" placeholder="🔍 Buscar jugador..." style="margin:0;flex:1" oninput="filterRanking(this.value)">
       <button class="ranking-btn" id="ranking-refresh-btn">↻</button>
@@ -310,7 +320,7 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
 <div class="modal-overlay hidden" id="weekly-modal">
   <div class="modal">
     <button class="modal-close" id="weekly-close">✕</button>
-    <div class="modal-title">📅 Ranking Semanal</div>
+    <div class="modal-title"><span data-i18n="weekly_title">📅 Ranking Semanal</span></div>
     <div style="font-size:11px;color:var(--text-muted);margin-bottom:.75rem" id="weekly-period"></div>
     <div style="display:flex;gap:8px;margin-bottom:.75rem">
       <input id="weekly-search" class="username-input" placeholder="🔍 Buscar jugador..." style="margin:0;flex:1" oninput="filterWeekly(this.value)">
@@ -348,7 +358,7 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
 <div class="modal-overlay hidden" id="reviews-modal">
   <div class="modal" style="max-height:90vh;overflow-y:auto">
     <button class="modal-close" id="reviews-close">✕</button>
-    <div class="modal-title">⭐ Reseñas</div>
+    <div class="modal-title"><span data-i18n="reviews_title">⭐ Reseñas</span></div>
     <div id="reviews-content"></div>
   </div>
 </div>
@@ -406,6 +416,7 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
     <div class="logo">🌶️ Comida<span class="dot-accent">dle</span></div>
     <div class="header-actions">
       <div class="date-pill" id="date-pill"></div>
+
       <button class="icon-btn" id="notif-bell-btn" title="Notificaciones" style="position:relative">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         <span id="notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;font-size:9px;font-weight:700;border-radius:99px;min-width:16px;height:16px;line-height:16px;text-align:center;padding:0 3px">0</span>
@@ -433,7 +444,7 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
   <div class="game">
     <div class="dish-tabs" id="dish-tabs"></div>
     <div class="subtitle">
-      <h1>¿De dónde es esta comida?</h1>
+      <h1><span data-i18n="main_title">¿De dónde es esta comida?</span></h1>
       <p id="subtitle-attempts">Adivina el país de origen — 6 intentos</p>
     </div>
     <div id="yesterday-card"></div>
@@ -594,7 +605,7 @@ const ALL_DISHES=[{name:"Tacos al Pastor",emoji:"🌮",country:"México",flag:"�
 
 const DEMONYMS={"México":["Mexicano","Mexicana","Mexicanos","Mexicanas"],"España":["Español","Española","Españoles","Españolas"],"Argentina":["Argentino","Argentinas","Argentinos"],"Perú":["Peruano","Peruana","Peruanos","Peruanas"],"Colombia":["Colombiano","Colombiana","Colombianos","Colombianas"],"Venezuela":["Venezolano","Venezolana","Venezolanos","Venezolanas"],"Chile":["Chileno","Chilena","Chilenos","Chilenas"],"Cuba":["Cubano","Cubana","Cubanos","Cubanas"],"El Salvador":["Salvadoreño","Salvadoreña","Salvadoreños","Salvadoreñas"],"Honduras":["Hondureño","Hondureña","Hondureños","Hondureñas"],"Costa Rica":["Costarricense","Tico","Tica"],"Nicaragua":["Nicaragüense","Nicaragüenses"],"Guatemala":["Guatemalteco","Guatemalteca","Guatemaltecos","Guatemaltecas"],"Ecuador":["Ecuatoriano","Ecuatoriana","Ecuatorianos","Ecuatorianas"],"Bolivia":["Boliviano","Boliviana","Bolivianos","Bolivianas"],"Uruguay":["Uruguayo","Uruguaya","Uruguayos","Uruguayas"],"Brasil":["Brasileño","Brasileña","Brasileños","Brasileñas"],"Panamá":["Panameño","Panameña","Panameños","Panameñas"],"Rep. Dominicana":["Dominicano","Dominicana","Dominicanos","Dominicanas"],"Puerto Rico":["Puertorriqueño","Puertorriqueña","Boricua","Boricuas"],"Paraguay":["Paraguayo","Paraguaya","Paraguayos","Paraguayas"]};
 // ═══ VERSION ═══
-const VERSION="1.9.0";
+const VERSION="2.2.0";
 
 // ═══ DATA ═══
 function buildBlurRegex(c){const t=[c,...(DEMONYMS[c]||[])];const e=t.map(x=>x.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).sort((a,b)=>b.length-a.length);return new RegExp(e.join("|"),"gi");}
@@ -1272,18 +1283,18 @@ function showResultBox(won, xpEarned){
   const box=document.createElement("div");box.className="result-box";
   box.innerHTML=`
     <span class="result-big">${won?"🎉":"😔"}</span>
-    <div class="result-title">${won?"¡Correcto! Es "+dish.flag+" "+dish.country:"Era "+dish.flag+" "+dish.country}</div>
-    <div class="result-sub">${won?"Acertaste en "+log.length+" intento"+(log.length!==1?"s":""):"¡Mañana más! Vuelve para un nuevo plato."}</div>
+    <div class="result-title">${won?t("result_correct")+" "+dish.flag+" "+dish.country:t("result_wrong")+" "+dish.flag+" "+dish.country}</div>
+    <div class="result-sub">${won?t("result_won",{n:log.length,s:log.length!==1?"s":""}):t("result_lost")}</div>
     ${xp>0?`<div style="text-align:center;margin:.5rem 0;font-size:13px;font-weight:700;color:var(--gold)">+${xp} XP ⭐</div>`:""}
     <div class="attempts-chart" style="margin:.75rem 0 .5rem"><div class="attempts-chart-title">Distribución de intentos</div>${miniChart}</div>
     <div class="emoji-row">${emojiStr}</div>
     ${streak.streak>1?`<div style="font-size:13px;color:var(--accent);font-weight:600;margin-bottom:.75rem">🔥 Racha de ${streak.streak} días</div>`:""}
-    <div class="countdown-box"><div class="countdown-label">Próximo plato en</div><div class="countdown-time" id="countdown-time">--:--:--</div></div>
+    <div class="countdown-box"><div class="countdown-label">${t("countdown_label")}</div><div class="countdown-time" id="countdown-time">--:--:--</div></div>
     <button class="share-btn" id="share-btn-${currentDish}" style="margin-top:.5rem">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-      Compartir
+      ${t("share_btn")}
     </button>
-    ${currentDish<2?`<button class="infinite-btn" id="next-dish-btn" style="margin-top:.5rem">Siguiente plato ${currentDish+2}/3 ➜</button>`:""}`;
+    ${currentDish<2?`<button class="infinite-btn" id="next-dish-btn" style="margin-top:.5rem">${t("next_plate",{n:currentDish+2})}</button>`:""}`;
   resultEl.appendChild(box);
   document.getElementById("share-btn-"+currentDish).onclick=openShareModal;
   const ndb=document.getElementById("next-dish-btn");if(ndb)ndb.onclick=()=>switchDish(currentDish+1);
@@ -1731,13 +1742,9 @@ async function openWeeklyPlayerProfile(username){
   const el=document.getElementById("player-content");
   el.innerHTML='<div class="ranking-empty">Cargando...</div>';
   try{
-    const [equipData,rankData]=await Promise.all([
-      sb("/rest/v1/user_equip?username=eq."+encodeURIComponent(username)+"&select=username,avatar_color,avatar_frame,badge,title,emoji").catch(()=>[]),
-      sb("/rest/v1/ranking?username=eq."+encodeURIComponent(username)+"&select=streak,best_streak,wins,played").catch(()=>[])
-    ]);
+    const equipData=await sb("/rest/v1/user_equip?username=eq."+encodeURIComponent(username)+"&select=username,avatar_color,avatar_frame,badge,title,emoji").catch(()=>[]);
     const eq={};
     if(equipData&&equipData[0]){Object.entries(equipData[0]).forEach(([k,v])=>{if(v!==null&&k!=="username")eq[k]=v;});}
-    const r=rankData&&rankData[0];
     const isMe=username===myUser;
     el.innerHTML=`
       <div style="text-align:center;margin-bottom:1.25rem">
@@ -1746,22 +1753,7 @@ async function openWeeklyPlayerProfile(username){
         ${eq.title?`<div style="font-size:13px;font-weight:700;color:var(--accent);margin-top:4px">${eq.title}</div>`:""}
         ${eq.badge?`<div style="display:inline-block;background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:3px 12px;font-size:12px;font-weight:600;color:var(--text);margin-top:6px">${eq.badge}</div>`:""}
       </div>
-      ${r?`
-      <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">📊 Estadísticas globales</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:.75rem">
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center">
-          <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--accent)">🔥${r.streak}</div>
-          <div style="font-size:10px;color:var(--text-muted);margin-top:2px">Racha</div>
-        </div>
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center">
-          <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--gold)">${r.best_streak}</div>
-          <div style="font-size:10px;color:var(--text-muted);margin-top:2px">Mejor racha</div>
-        </div>
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center">
-          <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--green)">${r.played>0?Math.round(r.wins/r.played*100):0}%</div>
-          <div style="font-size:10px;color:var(--text-muted);margin-top:2px">Victorias</div>
-        </div>
-      </div>`:""}
+
       ${eq.badge||eq.title||eq.avatar_frame||eq.emoji?`
       <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">🛒 Items equipados</div>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;display:flex;flex-wrap:wrap;gap:6px">
@@ -1773,6 +1765,217 @@ async function openWeeklyPlayerProfile(username){
   }catch(e){el.innerHTML='<div class="ranking-empty">Error 😔</div>';}
 }
 
+
+// ═══ TRANSLATIONS ═══
+const LANG_KEY="comidadle_lang";
+let currentLang=localStorage.getItem(LANG_KEY)||"es";
+
+const T={
+  es:{
+    main_title:"¿De dónde es esta comida?",
+    subtitle_attempts:"Adivina el país de origen — {n} intento{s}",
+    how_title:"Cómo jugar",
+    how_step1:"Cada día aparecen <strong>3 platos diferentes</strong> de la gastronomía hispana.",
+    how_step2:"Cambia entre platos con las <strong>pestañas</strong> de arriba. Cada plato tiene sus propios intentos.",
+    how_step3:"Elige el <strong>país de origen</strong>. Tienes <strong>6 intentos</strong> por defecto.",
+    how_step4:"Con cada fallo aparece una <strong>pista nueva</strong>. Al terminar se resalta el país correcto en verde.",
+    how_footer:"Hay 3 platos nuevos cada día. Puedes hacerlo más difícil en ⚙️ Configuración.",
+    play_btn:"¡A jugar!",
+    settings_title:"⚙️ Configuración",
+    share_title:"📤 Compartir resultado",
+    copy_btn:"Copiar al portapapeles",
+    reviews_title:"⭐ Reseñas",
+    ranking_title:"🏆 Ranking Global",
+    weekly_title:"📅 Ranking Semanal",
+    result_correct:"¡Correcto! Es",
+    result_wrong:"Era",
+    result_won:"Acertaste en {n} intento{s}",
+    result_lost:"¡Mañana más! Vuelve para un nuevo plato.",
+    next_plate:"Siguiente plato {n}/3 ➜",
+    share_btn:"Compartir",
+    hint_label:"Pista",
+    countdown_label:"Próximo plato en",
+    attempts_label:"Adivina el país de origen — {n} intento{s}",
+    sm_stats:"Mis Estadísticas",
+    sm_ranking:"Ranking Global",
+    sm_weekly:"Ranking Semanal",
+    sm_reviews:"Reseñas",
+    sm_suggestions:"Sugerencias",
+    sm_shop:"Tienda",
+    sm_infinite:"Modo Infinito",
+    sm_rules:"Reglas",
+    sm_about:"Sobre Comidadle",
+    profile_title:"👤 Mi Perfil",
+    shop_title:"🛒 Tienda",
+    notif_title:"🔔 Notificaciones",
+    save_btn:"Guardar",
+    cancel_btn:"Cancelar",
+    delete_btn:"🗑️",
+    playing_as:"Jugando como",
+    choose_name:"Elige un nombre para el ranking:",
+    streak_label:"Racha",
+    best_streak:"Mejor racha",
+    victories:"Victorias",
+    no_notifs:"Sin notificaciones aún 🔔",
+    extras:"Extras",
+    profile:"Perfil",
+    infinite_title:"♾️ Modo Infinito",
+    rules_title:"📋 Reglas de Comidadle",
+  },
+  en:{
+    main_title:"Where is this food from?",
+    subtitle_attempts:"Guess the country of origin — {n} attempt{s}",
+    how_title:"How to play",
+    how_step1:"Every day <strong>3 different dishes</strong> from Hispanic cuisine appear.",
+    how_step2:"Switch between dishes with the <strong>tabs</strong> above. Each dish has its own attempts.",
+    how_step3:"Choose the <strong>country of origin</strong>. You have <strong>6 attempts</strong> by default.",
+    how_step4:"With each wrong guess a <strong>new hint</strong> appears. At the end the correct country is highlighted in green.",
+    how_footer:"3 new dishes every day. You can make it harder in ⚙️ Settings.",
+    play_btn:"Let's play!",
+    settings_title:"⚙️ Settings",
+    share_title:"📤 Share result",
+    copy_btn:"Copy to clipboard",
+    reviews_title:"⭐ Reviews",
+    ranking_title:"🏆 Global Ranking",
+    weekly_title:"📅 Weekly Ranking",
+    result_correct:"Correct! It's",
+    result_wrong:"It was",
+    result_won:"You got it in {n} attempt{s}",
+    result_lost:"Better luck tomorrow! Come back for a new dish.",
+    next_plate:"Next dish {n}/3 ➜",
+    share_btn:"Share",
+    hint_label:"Hint",
+    countdown_label:"Next dish in",
+    attempts_label:"Guess the country of origin — {n} attempt{s}",
+    sm_stats:"My Stats",
+    sm_ranking:"Global Ranking",
+    sm_weekly:"Weekly Ranking",
+    sm_reviews:"Reviews",
+    sm_suggestions:"Suggestions",
+    sm_shop:"Shop",
+    sm_infinite:"Infinite Mode",
+    sm_rules:"Rules",
+    sm_about:"About Comidadle",
+    profile_title:"👤 My Profile",
+    shop_title:"🛒 Shop",
+    notif_title:"🔔 Notifications",
+    save_btn:"Save",
+    cancel_btn:"Cancel",
+    delete_btn:"🗑️",
+    playing_as:"Playing as",
+    choose_name:"Choose a name for the ranking:",
+    streak_label:"Streak",
+    best_streak:"Best streak",
+    victories:"Wins",
+    no_notifs:"No notifications yet 🔔",
+    extras:"Extras",
+    profile:"Profile",
+    infinite_title:"♾️ Infinite Mode",
+    rules_title:"📋 Comidadle Rules",
+  },
+  fr:{
+    main_title:"D'où vient ce plat ?",
+    subtitle_attempts:"Devinez le pays d'origine — {n} tentative{s}",
+    how_title:"Comment jouer",
+    how_step1:"Chaque jour <strong>3 plats différents</strong> de la gastronomie hispanique apparaissent.",
+    how_step2:"Changez de plat avec les <strong>onglets</strong> en haut. Chaque plat a ses propres tentatives.",
+    how_step3:"Choisissez le <strong>pays d'origine</strong>. Vous avez <strong>6 tentatives</strong> par défaut.",
+    how_step4:"À chaque erreur un <strong>nouvel indice</strong> apparaît. À la fin le bon pays est mis en vert.",
+    how_footer:"3 nouveaux plats chaque jour. Vous pouvez rendre le jeu plus difficile dans ⚙️ Paramètres.",
+    play_btn:"Jouer !",
+    settings_title:"⚙️ Paramètres",
+    share_title:"📤 Partager le résultat",
+    copy_btn:"Copier dans le presse-papiers",
+    reviews_title:"⭐ Avis",
+    ranking_title:"🏆 Classement Global",
+    weekly_title:"📅 Classement Hebdomadaire",
+    result_correct:"Correct ! C'est",
+    result_wrong:"C'était",
+    result_won:"Trouvé en {n} tentative{s}",
+    result_lost:"À demain ! Revenez pour un nouveau plat.",
+    next_plate:"Plat suivant {n}/3 ➜",
+    share_btn:"Partager",
+    hint_label:"Indice",
+    countdown_label:"Prochain plat dans",
+    attempts_label:"Devinez le pays d'origine — {n} tentative{s}",
+    sm_stats:"Mes Statistiques",
+    sm_ranking:"Classement Global",
+    sm_weekly:"Classement Hebdo",
+    sm_reviews:"Avis",
+    sm_suggestions:"Suggestions",
+    sm_shop:"Boutique",
+    sm_infinite:"Mode Infini",
+    sm_rules:"Règles",
+    sm_about:"À propos",
+    profile_title:"👤 Mon Profil",
+    shop_title:"🛒 Boutique",
+    notif_title:"🔔 Notifications",
+    save_btn:"Enregistrer",
+    cancel_btn:"Annuler",
+    delete_btn:"🗑️",
+    playing_as:"Vous jouez en tant que",
+    choose_name:"Choisissez un pseudo pour le classement :",
+    streak_label:"Série",
+    best_streak:"Meilleure série",
+    victories:"Victoires",
+    no_notifs:"Aucune notification 🔔",
+    extras:"Extras",
+    profile:"Profil",
+    infinite_title:"♾️ Mode Infini",
+    rules_title:"📋 Règles de Comidadle",
+  }
+};
+
+function t(key,vars={}){
+  const str=(T[currentLang]||T.es)[key]||(T.es[key]||key);
+  return str.replace(/\{(\w+)\}/g,(_,k)=>vars[k]||"");
+}
+
+function applyLang(){
+  // Update all data-i18n elements
+  document.querySelectorAll("[data-i18n]").forEach(el=>{
+    const key=el.getAttribute("data-i18n");
+    const val=T[currentLang]?.[key]||T.es[key];
+    if(val)el.innerHTML=val;
+  });
+  // Update dynamic elements
+  const sel=document.getElementById("lang-select");
+  if(sel)sel.value=currentLang;
+  // Update main title
+  document.querySelector("[data-i18n='main_title']")&&(document.querySelector("[data-i18n='main_title']").textContent=t("main_title"));
+  // Update subtitle
+  const sub=document.getElementById("subtitle-attempts");
+  if(sub){const MAX=getMax();sub.textContent=t("attempts_label",{n:MAX,s:MAX!==1?"s":""});}
+  // Update menu items
+  const menuMap={
+    "sm-stats":"sm_stats","sm-ranking":"sm_ranking","sm-weekly":"sm_weekly",
+    "sm-reviews":"sm_reviews","sm-suggestions":"sm_suggestions","sm-shop":"sm_shop",
+    "sm-infinite":"sm_infinite","sm-rules":"sm_rules","sm-about":"sm_about"
+  };
+  Object.entries(menuMap).forEach(([id,key])=>{
+    const el=document.querySelector("#"+id+" .side-menu-item-name");
+    if(el)el.textContent=t(key);
+  });
+  // Update extras and profile buttons
+  const menuBtn=document.getElementById("menu-open-btn");
+  if(menuBtn){const span=menuBtn.childNodes[menuBtn.childNodes.length-1];if(span&&span.nodeType===3)menuBtn.childNodes[menuBtn.childNodes.length-1].textContent=t("extras");}
+  const profBtn=document.getElementById("profile-open-btn");
+  if(profBtn){const span=profBtn.childNodes[0];if(span&&span.nodeType===3)profBtn.childNodes[0].textContent=t("profile")+" ";}
+  // Update how-to-play if visible
+  const howSteps=document.querySelectorAll("[data-i18n^='how_step']");
+  howSteps.forEach(el=>{const k=el.getAttribute("data-i18n");el.innerHTML=t(k);});
+  const howFooter=document.querySelector("[data-i18n='how_footer']");
+  if(howFooter)howFooter.textContent=t("how_footer");
+  // Re-render if game is in progress
+  renderAll&&renderAll();
+}
+
+function setLang(lang){
+  currentLang=lang;
+  localStorage.setItem(LANG_KEY,lang);
+  applyLang();
+}
+
 // ═══ SETTINGS TOGGLES ═══
 [["few-attempts-toggle","fewAttempts"],["more-countries-toggle","moreCountries"],["no-hints-toggle","noHints"],["prog-toggle","progressive"],["no-desc-toggle","noDesc"]].forEach(([id,key])=>{const el=document.getElementById(id);if(el){el.checked=cfg[key];el.onchange=()=>{cfg[key]=el.checked;saveCfg();updateBadge();renderAll();};}});
 const syEl=document.getElementById("show-yesterday-toggle");if(syEl){syEl.checked=cfg.showYesterday;syEl.onchange=()=>{cfg.showYesterday=syEl.checked;saveCfg();renderYesterday();};}
@@ -1781,6 +1984,7 @@ const syEl=document.getElementById("show-yesterday-toggle");if(syEl){syEl.checke
 const on=(id,ev,fn)=>{const el=document.getElementById(id);if(el)el.addEventListener(ev,fn);};
 const onC=(id,fn)=>on(id,"click",fn);
 onC("notif-bell-btn",()=>openNotifications());
+document.getElementById("lang-select").addEventListener("change",e=>setLang(e.target.value));
 onC("admin-login-close",()=>closeModal("admin-login-modal"));
 document.getElementById("admin-login-modal").addEventListener("click",e=>{if(e.target.id==="admin-login-modal")closeModal("admin-login-modal");});
 onC("admin-login-confirm",()=>{
@@ -1850,6 +2054,8 @@ document.getElementById("date-pill").textContent=_now.getDate()+" "+MONTHS[_now.
 // Load equip from server on init
 if(myUser){sb("/rest/v1/user_equip?username=eq."+encodeURIComponent(myUser)+"&select=*").then(eq=>{if(eq&&eq[0]){myEquip={...myEquip,...eq[0]};saveEquipLocal();updateMiniAvatar();}}).catch(()=>{});}
 updateMiniAvatar();updateBadge();
+document.getElementById("lang-select").value=currentLang;
+setTimeout(applyLang,100);
 const vEl=document.getElementById("about-version");if(vEl)vEl.textContent=VERSION;renderYesterday();renderTabs();renderAll();
 if(!localStorage.getItem("comidadle_visited")){openModal("how-modal");localStorage.setItem("comidadle_visited","1");}
 if(isOwner){document.getElementById("owner-float").style.display="block";}
