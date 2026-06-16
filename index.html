@@ -250,10 +250,10 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
   <div class="modal">
     <button class="modal-close" id="cfg-close">✕</button>
     <div class="modal-title"><span data-i18n="settings_title">⚙️ Configuración</span></div>
-    <div class="settings-section-label">🔥 Modo difícil</div>
-    <div class="setting-row"><div class="setting-info"><div class="setting-label">Menos intentos</div><div class="setting-desc">Solo 3 intentos en vez de 6.</div></div><label class="toggle"><input type="checkbox" id="few-attempts-toggle"><div class="toggle-track"></div></label></div>
-    <div class="setting-row"><div class="setting-info"><div class="setting-label">Más países</div><div class="setting-desc">Todos los países en la tabla, no solo 8.</div></div><label class="toggle"><input type="checkbox" id="more-countries-toggle"><div class="toggle-track"></div></label></div>
-    <div class="setting-row"><div class="setting-info"><div class="setting-label">Sin pistas</div><div class="setting-desc">No aparecen pistas durante la partida.</div></div><label class="toggle"><input type="checkbox" id="no-hints-toggle"><div class="toggle-track"></div></label></div>
+    <div class="settings-section-label" data-i18n="cfg_hard_section">🔥 Modo difícil</div>
+    <div class="setting-row"><div class="setting-info"><div class="setting-label" data-i18n="cfg_few_label">Menos intentos</div><div class="setting-desc" data-i18n="cfg_few_desc">Solo 3 intentos en vez de 6.</div></div><label class="toggle"><input type="checkbox" id="few-attempts-toggle"><div class="toggle-track"></div></label></div>
+    <div class="setting-row"><div class="setting-info"><div class="setting-label" data-i18n="cfg_more_label">Más países</div><div class="setting-desc" data-i18n="cfg_more_desc">Todos los países en la tabla, no solo 8.</div></div><label class="toggle"><input type="checkbox" id="more-countries-toggle"><div class="toggle-track"></div></label></div>
+    <div class="setting-row"><div class="setting-info"><div class="setting-label" data-i18n="cfg_no_hints_label">Sin pistas</div><div class="setting-desc" data-i18n="cfg_no_hints_desc">No aparecen pistas durante la partida.</div></div><label class="toggle"><input type="checkbox" id="no-hints-toggle"><div class="toggle-track"></div></label></div>
     <div class="modal-divider"></div>
     <div class="settings-section-label">🌐 Idioma / Language</div>
     <div class="setting-row">
@@ -265,10 +265,10 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
       </select>
     </div>
     <div class="modal-divider"></div>
-    <div class="settings-section-label">🎛️ Preferencias</div>
-    <div class="setting-row"><div class="setting-info"><div class="setting-label">Pistas progresivas</div><div class="setting-desc">Las pistas aparecen de una en una con cada fallo.</div></div><label class="toggle"><input type="checkbox" id="prog-toggle" checked><div class="toggle-track"></div></label></div>
-    <div class="setting-row"><div class="setting-info"><div class="setting-label">Ocultar descripción</div><div class="setting-desc">Solo ves el nombre y el emoji.</div></div><label class="toggle"><input type="checkbox" id="no-desc-toggle"><div class="toggle-track"></div></label></div>
-    <div class="setting-row"><div class="setting-info"><div class="setting-label">Plato de ayer</div><div class="setting-desc">Muestra el resultado de ayer encima del plato de hoy.</div></div><label class="toggle"><input type="checkbox" id="show-yesterday-toggle" checked><div class="toggle-track"></div></label></div>
+    <div class="settings-section-label" data-i18n="cfg_pref_section">🎛️ Preferencias</div>
+    <div class="setting-row"><div class="setting-info"><div class="setting-label" data-i18n="cfg_prog_label">Pistas progresivas</div><div class="setting-desc" data-i18n="cfg_prog_desc">Las pistas aparecen de una en una con cada fallo.</div></div><label class="toggle"><input type="checkbox" id="prog-toggle" checked><div class="toggle-track"></div></label></div>
+    <div class="setting-row"><div class="setting-info"><div class="setting-label" data-i18n="cfg_no_desc_label">Ocultar descripción</div><div class="setting-desc" data-i18n="cfg_no_desc_desc">Solo ves el nombre y el emoji.</div></div><label class="toggle"><input type="checkbox" id="no-desc-toggle"><div class="toggle-track"></div></label></div>
+    <div class="setting-row"><div class="setting-info"><div class="setting-label" data-i18n="cfg_yesterday_label">Plato de ayer</div><div class="setting-desc" data-i18n="cfg_yesterday_desc">Muestra el resultado de ayer encima del plato de hoy.</div></div><label class="toggle"><input type="checkbox" id="show-yesterday-toggle" checked><div class="toggle-track"></div></label></div>
   </div>
 </div>
 
@@ -277,7 +277,7 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
   <div class="modal">
     <button class="modal-close" id="share-modal-close">✕</button>
     <div class="modal-title"><span data-i18n="share_title">📤 Compartir resultado</span></div>
-    <div style="font-size:13px;color:var(--text-muted);margin-bottom:.5rem">Copia y comparte donde quieras:</div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:.5rem" data-i18n="share_desc">Copia y comparte donde quieras:</div>
     <textarea class="share-textarea" id="share-textarea" rows="5" readonly></textarea>
     <button class="copy-btn" id="copy-btn"><span data-i18n="copy_btn">Copiar al portapapeles</span></button>
     <div style="font-size:12px;color:var(--text-muted);margin-top:.5rem;text-align:center" id="copy-note"></div>
@@ -288,7 +288,7 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
 <div class="modal-overlay hidden" id="stats-modal">
   <div class="modal">
     <button class="modal-close" id="stats-close">✕</button>
-    <div class="modal-title">📊 Mis Estadísticas</div>
+    <div class="modal-title" data-i18n="stats_title">📊 Mis Estadísticas</div>
     <div id="stats-content"></div>
   </div>
 </div>
@@ -297,7 +297,7 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
 <div class="modal-overlay hidden" id="profile-modal">
   <div class="modal" style="max-height:90vh;overflow-y:auto">
     <button class="modal-close" id="profile-close">✕</button>
-    <div class="modal-title">👤 Mi Perfil</div>
+    <div class="modal-title" data-i18n="profile_title">👤 Mi Perfil</div>
     <div id="profile-content"></div>
   </div>
 </div>
@@ -335,7 +335,7 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
 <div class="modal-overlay hidden" id="ann-modal">
   <div class="modal">
     <button class="modal-close" id="ann-modal-close">✕</button>
-    <div class="modal-title">📢 Anuncio</div>
+    <div class="modal-title" data-i18n="ann_title">📢 Anuncio</div>
     <div id="ann-modal-content"></div>
   </div>
 </div>
@@ -367,7 +367,7 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
 <div class="modal-overlay hidden" id="suggestions-modal">
   <div class="modal" style="max-height:90vh;overflow-y:auto">
     <button class="modal-close" id="suggestions-close">✕</button>
-    <div class="modal-title">💡 Sugerencias</div>
+    <div class="modal-title" data-i18n="suggestions_title">💡 Sugerencias</div>
     <div id="suggestions-content"></div>
   </div>
 </div>
@@ -376,7 +376,7 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
 <div class="modal-overlay hidden" id="infinite-modal">
   <div class="modal" style="max-height:90vh;overflow-y:auto">
     <button class="modal-close" id="infinite-close">✕</button>
-    <div class="modal-title">♾️ Modo Infinito</div>
+    <div class="modal-title" data-i18n="infinite_title">♾️ Modo Infinito</div>
     <div style="font-size:13px;color:var(--text-muted);margin-bottom:1rem;line-height:1.6">Juega todos los platos que quieras sin límite diario. Los puntos <strong style="color:var(--text)">no cuentan</strong> para el ranking.</div>
     <div id="infinite-modal-content"></div>
   </div>
@@ -386,7 +386,7 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
 <div class="modal-overlay hidden" id="duel-modal">
   <div class="modal">
     <button class="modal-close" id="duel-close">✕</button>
-    <div class="modal-title">⚔️ Modo Duelo</div>
+    <div class="modal-title" data-i18n="duel_title">⚔️ Modo Duelo</div>
     <div id="duel-content"><div style="text-align:center;padding:2rem;color:var(--text-muted)">⚔️ <strong style="color:var(--gold)">🔒 Próximamente</strong></div></div>
   </div>
 </div>
@@ -425,7 +425,7 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
       <button class="icon-btn" id="cfg-open-btn" title="Configuración"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     </div>
   </div>
-  <div class="header-hard-row" id="header-hard-row">🔥 MODO DIFÍCIL · <span id="hard-multiplier">x1</span></div>
+  <div class="header-hard-row" id="header-hard-row"><span data-i18n="hard_mode_badge">🔥 MODO DIFÍCIL</span> · <span id="hard-multiplier">x1</span></div>
 </header>
 
 <div style="max-width:520px;width:100%;margin:0 auto;padding:.5rem 1.25rem 0;position:relative;z-index:1">
@@ -605,7 +605,7 @@ const ALL_DISHES=[{name:"Tacos al Pastor",emoji:"🌮",country:"México",flag:"�
 
 const DEMONYMS={"México":["Mexicano","Mexicana","Mexicanos","Mexicanas"],"España":["Español","Española","Españoles","Españolas"],"Argentina":["Argentino","Argentinas","Argentinos"],"Perú":["Peruano","Peruana","Peruanos","Peruanas"],"Colombia":["Colombiano","Colombiana","Colombianos","Colombianas"],"Venezuela":["Venezolano","Venezolana","Venezolanos","Venezolanas"],"Chile":["Chileno","Chilena","Chilenos","Chilenas"],"Cuba":["Cubano","Cubana","Cubanos","Cubanas"],"El Salvador":["Salvadoreño","Salvadoreña","Salvadoreños","Salvadoreñas"],"Honduras":["Hondureño","Hondureña","Hondureños","Hondureñas"],"Costa Rica":["Costarricense","Tico","Tica"],"Nicaragua":["Nicaragüense","Nicaragüenses"],"Guatemala":["Guatemalteco","Guatemalteca","Guatemaltecos","Guatemaltecas"],"Ecuador":["Ecuatoriano","Ecuatoriana","Ecuatorianos","Ecuatorianas"],"Bolivia":["Boliviano","Boliviana","Bolivianos","Bolivianas"],"Uruguay":["Uruguayo","Uruguaya","Uruguayos","Uruguayas"],"Brasil":["Brasileño","Brasileña","Brasileños","Brasileñas"],"Panamá":["Panameño","Panameña","Panameños","Panameñas"],"Rep. Dominicana":["Dominicano","Dominicana","Dominicanos","Dominicanas"],"Puerto Rico":["Puertorriqueño","Puertorriqueña","Boricua","Boricuas"],"Paraguay":["Paraguayo","Paraguaya","Paraguayos","Paraguayas"]};
 // ═══ VERSION ═══
-const VERSION="2.2.0";
+const VERSION="2.3.0";
 
 // ═══ DATA ═══
 function buildBlurRegex(c){const t=[c,...(DEMONYMS[c]||[])];const e=t.map(x=>x.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).sort((a,b)=>b.length-a.length);return new RegExp(e.join("|"),"gi");}
@@ -1821,6 +1821,48 @@ const T={
     profile:"Perfil",
     infinite_title:"♾️ Modo Infinito",
     rules_title:"📋 Reglas de Comidadle",
+    cfg_hard_section:"🔥 Modo difícil",cfg_pref_section:"🎛️ Preferencias",
+    cfg_few_label:"Menos intentos",cfg_few_desc:"Solo 3 intentos en vez de 6.",
+    cfg_more_label:"Más países",cfg_more_desc:"Todos los países en la tabla, no solo 8.",
+    cfg_no_hints_label:"Sin pistas",cfg_no_hints_desc:"No aparecen pistas durante la partida.",
+    cfg_prog_label:"Pistas progresivas",cfg_prog_desc:"Las pistas aparecen de una en una con cada fallo.",
+    cfg_no_desc_label:"Ocultar descripción",cfg_no_desc_desc:"Solo ves el nombre y el emoji.",
+    cfg_yesterday_label:"Plato de ayer",cfg_yesterday_desc:"Muestra el resultado de ayer encima del plato de hoy.",
+    share_desc:"Copia y comparte donde quieras:",
+    stats_title:"📊 Mis Estadísticas",suggestions_title:"💡 Sugerencias",
+    ann_title:"📢 Anuncio",duel_title:"⚔️ Modo Duelo",infinite_desc:"Juega sin límite.",
+    hint_n:"Pista {n}",tab_dish:"Plato {n}",attempts_dist:"Distribución de intentos",
+    streak_days:"🔥 Racha de {n} días",hard_mode_badge:"🔥 MODO DIFÍCIL",
+    search_player:"🔍 Buscar jugador...",loading:"Cargando...",me_label:" (tú)",
+    no_results:"Sin resultados 🔍",be_first_ranking:"¡Sé el primero! 🌶️",
+    be_first_weekly:"¡Sé el primero esta semana! 📅",
+    stat_current_streak:"Racha actual",stat_best_streak:"Mejor racha",
+    stat_win_pct:"% Victorias",stat_played:"Partidas",
+    change_name:"Cambia tu nombre:",placeholder_name:"Tu nombre o apodo...",
+    checking:"Comprobando...",saving:"Guardando...",change_btn:"Cambiar",
+    weekly_period_label:"Semana del {from} al {to} · Tus XP: {xp}",
+    weekly_need_name:"Elige un nombre en el Ranking Global para aparecer aquí.",
+    shop_no_items:"Sin items disponibles",shop_owned:"✅ Conseguido",
+    shop_equipped:"Puesto ✓",shop_equip:"Poner",shop_buy:"Comprar",shop_no_xp:"Sin XP",
+    notif_need_name:"Necesitas un nombre en el ranking para recibir notificaciones.",
+    player_global_stats:"🏆 Estadísticas globales",streak_short:"Racha",
+    victories_short:"Victorias",played_short:"Partidas",losses_short:"Derrotas",
+    no_global_data:"Sin datos de ranking global",no_ranking_data:"Sin datos de ranking",
+    equipped_items:"🛒 Items equipados",frame_label:"Marco",
+    inf_header:"Partida infinita",inf_score:"Aciertos:",next_dish_inf:"Siguiente plato ➜",
+    review_leave:"Deja tu reseña",review_tap_rate:"Toca para puntuar",
+    review_send:"Enviar reseña",review_be_first:"¡Sé el primero! ⭐",
+    review_no_reviews:"Sin reseñas aún",review_already:"Ya dejaste una reseña.",
+    review_delete_redo:"Borrarla y escribir otra",review_sending:"Enviando...",
+    star1:"⭐ Muy malo",star2:"⭐⭐ Malo",star3:"⭐⭐⭐ Regular",
+    star4:"⭐⭐⭐⭐ Bueno",star5:"⭐⭐⭐⭐⭐ ¡Excelente!",
+    notif_ask_title:"¿Activar avisos de racha?",notif_ask_desc:"Te avisamos a las 21:00 si no has jugado",
+    notif_yes:"¡Sí!",notif_no:"No",yesterday_label:"Ayer",yesterday_suffix:"— 3 platos",
+    share_copied:"¡Copiado! ✓",error_generic:"Error 😔",error_profile:"Error cargando perfil 😔",
+    view_replies:"Ver respuestas ({n})",reply_btn:"Responder",
+    no_profile:"Sin perfil activo",no_profile_desc:"Elige un nombre en el Ranking Global para activar tu perfil.",
+    go_ranking:"🏆 Ir al Ranking",level_label:"Nivel {n}",this_week:"Esta semana",
+    weekly_xp_label:"Puntos ganados esta semana",recent_history:"Historial reciente",max_level:"🏆 ¡Nivel máximo!",
   },
   en:{
     main_title:"Where is this food from?",
@@ -1872,6 +1914,48 @@ const T={
     profile:"Profile",
     infinite_title:"♾️ Infinite Mode",
     rules_title:"📋 Comidadle Rules",
+    cfg_hard_section:"🔥 Hard Mode",cfg_pref_section:"🎛️ Preferences",
+    cfg_few_label:"Fewer attempts",cfg_few_desc:"Only 3 attempts instead of 6.",
+    cfg_more_label:"More countries",cfg_more_desc:"All countries in the grid, not just 8.",
+    cfg_no_hints_label:"No hints",cfg_no_hints_desc:"No hints appear during the game.",
+    cfg_prog_label:"Progressive hints",cfg_prog_desc:"Hints appear one by one with each wrong guess.",
+    cfg_no_desc_label:"Hide description",cfg_no_desc_desc:"You only see the name and emoji.",
+    cfg_yesterday_label:"Yesterday's dish",cfg_yesterday_desc:"Shows yesterday's result above today's dish.",
+    share_desc:"Copy and share wherever you want:",
+    stats_title:"📊 My Stats",suggestions_title:"💡 Suggestions",
+    ann_title:"📢 Announcement",duel_title:"⚔️ Duel Mode",infinite_desc:"Play without limits.",
+    hint_n:"Hint {n}",tab_dish:"Dish {n}",attempts_dist:"Attempt distribution",
+    streak_days:"🔥 {n}-day streak",hard_mode_badge:"🔥 HARD MODE",
+    search_player:"🔍 Search player...",loading:"Loading...",me_label:" (you)",
+    no_results:"No results 🔍",be_first_ranking:"Be the first! 🌶️",
+    be_first_weekly:"Be the first this week! 📅",
+    stat_current_streak:"Current streak",stat_best_streak:"Best streak",
+    stat_win_pct:"Win %",stat_played:"Played",
+    change_name:"Change your name:",placeholder_name:"Your name or nickname...",
+    checking:"Checking...",saving:"Saving...",change_btn:"Change",
+    weekly_period_label:"Week of {from} to {to} · Your XP: {xp}",
+    weekly_need_name:"Set a name in the Global Ranking to appear here.",
+    shop_no_items:"No items available",shop_owned:"✅ Owned",
+    shop_equipped:"Equipped ✓",shop_equip:"Equip",shop_buy:"Buy",shop_no_xp:"Not enough XP",
+    notif_need_name:"You need a ranking name to receive notifications.",
+    player_global_stats:"🏆 Global Stats",streak_short:"Streak",
+    victories_short:"Wins",played_short:"Played",losses_short:"Losses",
+    no_global_data:"No global ranking data",no_ranking_data:"No ranking data",
+    equipped_items:"🛒 Equipped Items",frame_label:"Frame",
+    inf_header:"Infinite game",inf_score:"Correct:",next_dish_inf:"Next dish ➜",
+    review_leave:"Leave a review",review_tap_rate:"Tap to rate",
+    review_send:"Send review",review_be_first:"Be the first! ⭐",
+    review_no_reviews:"No reviews yet",review_already:"You already left a review.",
+    review_delete_redo:"Delete it and write another",review_sending:"Sending...",
+    star1:"⭐ Very bad",star2:"⭐⭐ Bad",star3:"⭐⭐⭐ Average",
+    star4:"⭐⭐⭐⭐ Good",star5:"⭐⭐⭐⭐⭐ Excellent!",
+    notif_ask_title:"Enable streak alerts?",notif_ask_desc:"We'll remind you at 9pm if you haven't played",
+    notif_yes:"Yes!",notif_no:"No",yesterday_label:"Yesterday",yesterday_suffix:"— 3 dishes",
+    share_copied:"Copied! ✓",error_generic:"Error 😔",error_profile:"Error loading profile 😔",
+    view_replies:"View replies ({n})",reply_btn:"Reply",
+    no_profile:"No active profile",no_profile_desc:"Choose a name in the Global Ranking to activate your profile.",
+    go_ranking:"🏆 Go to Ranking",level_label:"Level {n}",this_week:"This week",
+    weekly_xp_label:"Points earned this week",recent_history:"Recent history",max_level:"🏆 Max level!",
   },
   fr:{
     main_title:"D'où vient ce plat ?",
@@ -1923,6 +2007,48 @@ const T={
     profile:"Profil",
     infinite_title:"♾️ Mode Infini",
     rules_title:"📋 Règles de Comidadle",
+    cfg_hard_section:"🔥 Mode difficile",cfg_pref_section:"🎛️ Préférences",
+    cfg_few_label:"Moins d'essais",cfg_few_desc:"Seulement 3 essais au lieu de 6.",
+    cfg_more_label:"Plus de pays",cfg_more_desc:"Tous les pays dans la grille, pas seulement 8.",
+    cfg_no_hints_label:"Sans indices",cfg_no_hints_desc:"Aucun indice n'apparaît pendant la partie.",
+    cfg_prog_label:"Indices progressifs",cfg_prog_desc:"Les indices apparaissent un par un à chaque erreur.",
+    cfg_no_desc_label:"Masquer la description",cfg_no_desc_desc:"Vous ne voyez que le nom et l'emoji.",
+    cfg_yesterday_label:"Plat d'hier",cfg_yesterday_desc:"Affiche le résultat d'hier au-dessus du plat du jour.",
+    share_desc:"Copiez et partagez où vous voulez :",
+    stats_title:"📊 Mes Statistiques",suggestions_title:"💡 Suggestions",
+    ann_title:"📢 Annonce",duel_title:"⚔️ Mode Duel",infinite_desc:"Jouez sans limite.",
+    hint_n:"Indice {n}",tab_dish:"Plat {n}",attempts_dist:"Distribution des essais",
+    streak_days:"🔥 Série de {n} jours",hard_mode_badge:"🔥 MODE DIFFICILE",
+    search_player:"🔍 Rechercher un joueur...",loading:"Chargement...",me_label:" (moi)",
+    no_results:"Aucun résultat 🔍",be_first_ranking:"Soyez le premier ! 🌶️",
+    be_first_weekly:"Soyez le premier cette semaine ! 📅",
+    stat_current_streak:"Série actuelle",stat_best_streak:"Meilleure série",
+    stat_win_pct:"% Victoires",stat_played:"Parties",
+    change_name:"Changez votre nom :",placeholder_name:"Votre nom ou pseudo...",
+    checking:"Vérification...",saving:"Enregistrement...",change_btn:"Modifier",
+    weekly_period_label:"Semaine du {from} au {to} · Vos XP : {xp}",
+    weekly_need_name:"Choisissez un nom dans le Classement Global pour apparaître ici.",
+    shop_no_items:"Aucun article disponible",shop_owned:"✅ Obtenu",
+    shop_equipped:"Équipé ✓",shop_equip:"Équiper",shop_buy:"Acheter",shop_no_xp:"XP insuffisant",
+    notif_need_name:"Vous avez besoin d'un nom dans le classement pour les notifications.",
+    player_global_stats:"🏆 Statistiques globales",streak_short:"Série",
+    victories_short:"Victoires",played_short:"Parties",losses_short:"Défaites",
+    no_global_data:"Pas de données de classement global",no_ranking_data:"Pas de données",
+    equipped_items:"🛒 Articles équipés",frame_label:"Cadre",
+    inf_header:"Partie infinie",inf_score:"Corrects :",next_dish_inf:"Plat suivant ➜",
+    review_leave:"Laisser un avis",review_tap_rate:"Appuyez pour noter",
+    review_send:"Envoyer l'avis",review_be_first:"Soyez le premier ! ⭐",
+    review_no_reviews:"Pas encore d'avis",review_already:"Vous avez déjà laissé un avis.",
+    review_delete_redo:"Le supprimer et en écrire un autre",review_sending:"Envoi en cours...",
+    star1:"⭐ Très mauvais",star2:"⭐⭐ Mauvais",star3:"⭐⭐⭐ Moyen",
+    star4:"⭐⭐⭐⭐ Bon",star5:"⭐⭐⭐⭐⭐ Excellent !",
+    notif_ask_title:"Activer les alertes de série ?",notif_ask_desc:"On vous rappelle à 21h si vous n'avez pas joué",
+    notif_yes:"Oui !",notif_no:"Non",yesterday_label:"Hier",yesterday_suffix:"— 3 plats",
+    share_copied:"Copié ! ✓",error_generic:"Erreur 😔",error_profile:"Erreur lors du chargement du profil 😔",
+    view_replies:"Voir les réponses ({n})",reply_btn:"Répondre",
+    no_profile:"Aucun profil actif",no_profile_desc:"Choisissez un nom dans le Classement Global pour activer votre profil.",
+    go_ranking:"🏆 Aller au Classement",level_label:"Niveau {n}",this_week:"Cette semaine",
+    weekly_xp_label:"Points gagnés cette semaine",recent_history:"Historique récent",max_level:"🏆 Niveau maximum !",
   }
 };
 
