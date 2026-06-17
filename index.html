@@ -260,6 +260,7 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
     <div class="setting-row"><div class="setting-info"><div class="setting-label">Pistas progresivas</div><div class="setting-desc">Las pistas aparecen de una en una con cada fallo.</div></div><label class="toggle"><input type="checkbox" id="prog-toggle" checked><div class="toggle-track"></div></label></div>
     <div class="setting-row"><div class="setting-info"><div class="setting-label">Ocultar descripción</div><div class="setting-desc">Solo ves el nombre y el emoji.</div></div><label class="toggle"><input type="checkbox" id="no-desc-toggle"><div class="toggle-track"></div></label></div>
     <div class="setting-row"><div class="setting-info"><div class="setting-label">Plato de ayer</div><div class="setting-desc">Muestra el resultado de ayer encima del plato de hoy.</div></div><label class="toggle"><input type="checkbox" id="show-yesterday-toggle" checked><div class="toggle-track"></div></label></div>
+    <div class="setting-row"><div class="setting-info"><div class="setting-label">Vibración</div><div class="setting-desc">Feedback háptico al acertar o fallar.</div></div><label class="toggle"><input type="checkbox" id="haptics-toggle" checked><div class="toggle-track"></div></label></div>
   </div>
 </div>
 
@@ -378,7 +379,7 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
   <div class="modal">
     <button class="modal-close" id="duel-close">✕</button>
     <div class="modal-title">⚔️ Modo Duelo</div>
-    <div id="duel-content"><div style="text-align:center;padding:2rem;color:var(--text-muted)">⚔️ <strong style="color:var(--gold)">🔒 Próximamente</strong></div></div>
+    <div id="duel-content"></div>
   </div>
 </div>
 
@@ -467,7 +468,7 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
   <div class="side-menu-section">
     <div class="side-menu-label">🕹️ Modos</div>
     <button class="side-menu-item" id="sm-infinite"><div class="side-menu-item-icon">♾️</div><div><div class="side-menu-item-name">Modo Infinito</div><div class="side-menu-item-desc">Juega platos sin límite</div></div></button>
-    <div class="side-menu-item" style="opacity:.45;cursor:not-allowed"><div class="side-menu-item-icon">⚔️</div><div><div class="side-menu-item-name">Modo Duelo</div><div class="side-menu-item-desc">🔒 Próximamente...</div></div></div>
+    <button class="side-menu-item" id="sm-duel"><div class="side-menu-item-icon">⚔️</div><div><div class="side-menu-item-name">Modo Duelo</div><div class="side-menu-item-desc">Reta a un amigo con un plato sorpresa</div></div></button>
   </div>
   <div class="side-menu-section">
     <div class="side-menu-label">📊 Yo</div>
@@ -627,7 +628,7 @@ let currentDish=0,dish=DAILY[0];
 
 // ═══ CONFIG ═══
 const CFG_KEY="comidadle_cfg_v3";
-let cfg={fewAttempts:false,moreCountries:false,noHints:false,progressive:true,noDesc:false,showYesterday:true};
+let cfg={fewAttempts:false,moreCountries:false,noHints:false,progressive:true,noDesc:false,showYesterday:true,hapticsOn:true};
 try{const s=JSON.parse(localStorage.getItem(CFG_KEY));if(s)cfg={...cfg,...s};}catch(e){}
 const saveCfg=()=>{try{localStorage.setItem(CFG_KEY,JSON.stringify(cfg));}catch(e){}};
 const getMax=()=>cfg.fewAttempts?3:6;
@@ -760,7 +761,7 @@ function getLevel(x){
   return{l:7,name:"Leyenda 🏆",next:null};
 }
 function getHistory(){try{return JSON.parse(localStorage.getItem(HK)||"[]");}catch(e){return[];}}
-function addHistory(won,attempts,name,flag){const h=getHistory();h.unshift({date:new Date().toISOString(),won,attempts,dish:name,flag});localStorage.setItem(HK,JSON.stringify(h.slice(0,21)));}
+function addHistory(won,attempts,name,flag){const h=getHistory();h.unshift({date:new Date().toISOString(),won,attempts,dish:name,flag});localStorage.setItem(HK,JSON.stringify(h.slice(0,42)));}
 function aColor(n){const c=["#FF6B35","#FFB627","#22C55E","#3B82F6","#8B5CF6","#EC4899","#F97316","#06B6D4"];let h=0;for(let i=0;i<(n||"").length;i++)h=(n||"").charCodeAt(i)+((h<<5)-h);return c[Math.abs(h)%c.length];}
 function updateMiniAvatar(){const el=document.getElementById("profile-mini-avatar");if(!el)return;if(myUser){el.style.background=aColor(myUser);el.textContent=myUser[0].toUpperCase();}else{el.style.background="var(--surface2)";el.textContent="?";}}
 function openProfile(){
@@ -1036,6 +1037,11 @@ function playCorrect(){try{const c=getAC(),ns=[523,659,784,1047];ns.forEach((f,i
 function playWrong(){try{const c=getAC(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type="sawtooth";o.frequency.setValueAtTime(220,c.currentTime);o.frequency.linearRampToValueAtTime(150,c.currentTime+.15);g.gain.setValueAtTime(.15,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.2);o.start();o.stop(c.currentTime+.2);}catch(e){}}
 function playWin(){try{const c=getAC(),ns=[523,659,784,659,784,1047];ns.forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type="sine";o.frequency.value=f;const s=c.currentTime+i*.12;g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(.2,s+.03);g.gain.exponentialRampToValueAtTime(.001,s+.3);o.start(s);o.stop(s+.3);});}catch(e){}}
 function playLose(){try{const c=getAC(),ns=[392,349,330,294];ns.forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type="sine";o.frequency.value=f;const s=c.currentTime+i*.13;g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(.15,s+.03);g.gain.exponentialRampToValueAtTime(.001,s+.3);o.start(s);o.stop(s+.3);});}catch(e){}}
+function vibrate(pattern){if(!cfg.hapticsOn)return;try{if(navigator.vibrate)navigator.vibrate(pattern);}catch(e){}}
+function hapticCorrect(){vibrate(40);}
+function hapticWrong(){vibrate([0,30,40,30]);}
+function hapticWin(){vibrate([0,40,40,40,40,80]);}
+function hapticLose(){vibrate([0,60,50,60]);}
 
 // ═══ CONFETTI ═══
 function launchConfetti(){const cv=document.createElement("canvas");cv.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999";document.body.appendChild(cv);const ctx=cv.getContext("2d");cv.width=window.innerWidth;cv.height=window.innerHeight;const cols=["#FF6B35","#FFB627","#22C55E","#FFF3E0","#FF4444","#4ADE80","#FBBF24"];const ps=Array.from({length:120},()=>({x:Math.random()*cv.width,y:Math.random()*cv.height-cv.height,w:Math.random()*10+5,h:Math.random()*6+3,color:cols[Math.floor(Math.random()*cols.length)],rot:Math.random()*Math.PI*2,rs:(Math.random()-.5)*.15,vx:(Math.random()-.5)*3,vy:Math.random()*4+2,op:1}));let fr=0;(function draw(){ctx.clearRect(0,0,cv.width,cv.height);ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.rot+=p.rs;if(fr>120)p.op-=.012;ctx.save();ctx.globalAlpha=Math.max(0,p.op);ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.color;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();});fr++;if(fr<200)requestAnimationFrame(draw);else cv.remove();})();}
@@ -1236,7 +1242,7 @@ function renderAll(){
 function handleGuess(c,btn){
   if(done)return;const MAX=getMax();
   if(c===dish.country){
-    playCorrect();log.push(true);done=true;saveState();
+    playCorrect();hapticCorrect();log.push(true);done=true;saveState();
     // Record attempt and award XP BEFORE renderAll (which calls showResult with animate=false)
     const earnedXP=recordAttempt(true,log.length);
     updateStreak(true);syncRanking();
@@ -1250,10 +1256,10 @@ function handleGuess(c,btn){
     }
     renderTabs();
     // Show result box with confetti (animate=false so it doesn't call recordAttempt again)
-    setTimeout(()=>{launchConfetti();playWin();},300);
+    setTimeout(()=>{launchConfetti();playWin();hapticWin();},300);
     showResultBox(true,earnedXP);
   }
-  else{playWrong();log.push(false);wrong.add(c);btn.disabled=true;btn.classList.add("shake");setTimeout(()=>btn.classList.remove("shake"),400);if(log.length>=MAX){
+  else{playWrong();hapticWrong();log.push(false);wrong.add(c);btn.disabled=true;btn.classList.add("shake");setTimeout(()=>btn.classList.remove("shake"),400);if(log.length>=MAX){
       done=true;saveState();
       recordAttempt(false,log.length);
       updateStreak(false);syncRanking();
@@ -1264,7 +1270,7 @@ function handleGuess(c,btn){
       if(Notification.permission==="granted"){new Notification("😤 Comidadle",{body:penalty>0?`¡Agotaste los intentos! -${penalty} XP`:"¡Agotaste los intentos! (sin XP para restar)",tag:"comidadle-penalty"});}
       // Toast de penalización
       if(penalty>0){const ptoast=document.createElement("div");ptoast.style.cssText="position:fixed;bottom:5rem;left:50%;transform:translateX(-50%);background:var(--red,#ef4444);color:#fff;border-radius:12px;padding:.6rem 1.2rem;font-size:14px;font-weight:700;z-index:9999;pointer-events:none;animation:fadeUp .3s ease";ptoast.textContent="-"+penalty+" XP 😤";document.body.appendChild(ptoast);setTimeout(()=>ptoast.remove(),2000);}
-      setTimeout(()=>playLose(),300);
+      setTimeout(()=>{playLose();hapticLose();},300);
       renderTabs();
       showResultBox(false,0);
     }else{saveState();renderAll();}}
@@ -1344,7 +1350,7 @@ function loadInfinite(d){
     const hints=!cfg.noHints?Array.from({length:n},(_,i)=>`<div class="hint"><strong>Pista ${i+1}</strong> — ${d.hints[i]}</div>`).join(""):"";
     const grid=opts.map(c=>`<button class="country-btn${iDone&&c===d.country?" correct-answer":""}" ${iDone||iWrong.has(c)?"disabled":""} data-c="${c}"><span>${getFlag(c)}</span><span>${c}</span></button>`).join("");
     sec.innerHTML=`<div class="infinite-section"><div class="infinite-header"><div class="infinite-title">♾️ Modo Infinito</div><div class="infinite-score">Aciertos: <span>${iWins}/${iTotal}</span></div></div><div class="dish-card" style="margin-bottom:.875rem"><span class="dish-emoji">${d.emoji}</span><div class="dish-name">${masked}</div>${!cfg.noDesc?`<div class="dish-desc">${d.desc}</div>`:""}</div><div class="dots" style="margin-bottom:.875rem">${dots}</div>${hints?`<div class="hints" style="margin-bottom:.875rem">${hints}</div>`:""}<div class="country-grid">${grid}</div>${iDone?`<button class="infinite-btn" id="inf-next">Siguiente plato ➜</button>`:""}`;
-    sec.querySelectorAll(".country-btn:not([disabled])").forEach(btn=>{btn.onclick=()=>{const c=btn.dataset.c;if(c===d.country){playCorrect();iLog.push(true);iWins++;iTotal++;iDone=true;ri();setTimeout(()=>{launchConfetti();playWin();},300);}else{playWrong();iLog.push(false);iWrong.add(c);if(iLog.length>=MAX){iTotal++;iDone=true;ri();setTimeout(()=>playLose(),400);}else ri();}};});
+    sec.querySelectorAll(".country-btn:not([disabled])").forEach(btn=>{btn.onclick=()=>{const c=btn.dataset.c;if(c===d.country){playCorrect();iLog.push(true);iWins++;iTotal++;iDone=true;ri();setTimeout(()=>{launchConfetti();playWin();hapticWin();},300);}else{playWrong();iLog.push(false);iWrong.add(c);if(iLog.length>=MAX){iTotal++;iDone=true;ri();setTimeout(()=>playLose(),400);}else ri();}};});
     const nb=document.getElementById("inf-next");if(nb)nb.onclick=()=>{const pool=ALL_DISHES.filter(x=>x.name!==d.name);loadInfinite(pool[Math.random()*pool.length|0]);};
   }ri();
 }
@@ -1358,7 +1364,7 @@ async function askNotif(){
   document.getElementById("ny").onclick=async()=>{b.remove();const p=await Notification.requestPermission();if(p==="granted")scheduleNotif();localStorage.setItem("notif_asked","1");};
   document.getElementById("nn").onclick=()=>{b.remove();localStorage.setItem("notif_asked","dismissed");};
 }
-function _notifBody(){let s=null;try{s=JSON.parse(localStorage.getItem(stateKey(0)));}catch(e){}return(!s||!s.done);}
+function _notifBody(){return streak.lastDate!==todayStr;}
 function _fireNotif(){if(Notification.permission!=="granted")return;if(_notifBody()){new Notification("🔥 Comidadle",{body:"¡No has jugado hoy! Tu racha está en peligro 🌶️",tag:"comidadle-streak",icon:"/favicon.ico",badge:"/favicon.ico"});}localStorage.removeItem("notif_at");}
 function scheduleNotif(){
   if(!("Notification"in window)||Notification.permission!=="granted")return;
@@ -1629,7 +1635,7 @@ function renderInfiniteGame(){
       btn.onclick=()=>{
         const c=btn.dataset.c;
         if(c===d.country){playCorrect();iLog.push(true);infWins++;infTotal++;iDone=true;render();setTimeout(()=>{launchConfetti();playWin();},200);}
-        else{playWrong();iLog.push(false);iWrong.add(c);if(iLog.length>=MAX){infTotal++;iDone=true;render();setTimeout(()=>playLose(),300);}else render();}
+        else{playWrong();iLog.push(false);iWrong.add(c);if(iLog.length>=MAX){infTotal++;iDone=true;render();setTimeout(()=>{playLose();hapticLose();},300);}else render();}
       };
     });
     const nb=document.getElementById("inf-next-btn");
@@ -2005,6 +2011,7 @@ function setLang(lang){
 
 // ═══ SETTINGS TOGGLES ═══
 [["few-attempts-toggle","fewAttempts"],["more-countries-toggle","moreCountries"],["no-hints-toggle","noHints"],["prog-toggle","progressive"],["no-desc-toggle","noDesc"]].forEach(([id,key])=>{const el=document.getElementById(id);if(el){el.checked=cfg[key];el.onchange=()=>{cfg[key]=el.checked;saveCfg();updateBadge();renderAll();};}});
+const hapEl=document.getElementById("haptics-toggle");if(hapEl){hapEl.checked=cfg.hapticsOn;hapEl.onchange=()=>{cfg.hapticsOn=hapEl.checked;saveCfg();if(cfg.hapticsOn)vibrate(30);};}
 const syEl=document.getElementById("show-yesterday-toggle");if(syEl){syEl.checked=cfg.showYesterday;syEl.onchange=()=>{cfg.showYesterday=syEl.checked;saveCfg();renderYesterday();};}
 
 // ═══ EVENT LISTENERS ═══
@@ -2049,6 +2056,7 @@ onC("player-close",()=>closeModal("player-modal"));
 document.getElementById("shop-modal").addEventListener("click",e=>{if(e.target.id==="shop-modal")closeModal("shop-modal");});
 document.getElementById("player-modal").addEventListener("click",e=>{if(e.target.id==="player-modal")closeModal("player-modal");});
 onC("duel-close",()=>closeModal("duel-modal"));
+onC("sm-duel",()=>{openDuelModal();closeSideMenu();});
 ["how-modal","cfg-modal","share-modal","stats-modal","ranking-modal","weekly-modal","profile-modal","owner-modal","reviews-modal","ann-modal","suggestions-modal","about-modal","duel-modal","rules-modal","infinite-modal","player-modal","shop-modal"].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener("click",e=>{if(e.target.id===id)closeModal(id);});});
 onC("menu-open-btn",openSideMenu);onC("side-menu-close",closeSideMenu);onC("side-overlay",closeSideMenu);onC("sm-weekly-summary",openWeeklySummary);onC("weekly-summary-close",()=>closeModal("weekly-summary-modal"));
 onC("sm-stats",()=>{closeSideMenu();openStats();});
@@ -2121,7 +2129,283 @@ function checkMondaySummary(){
   setTimeout(()=>openWeeklySummary(),1800);
 }
 
-// ═══ INIT ═══
+// ═══ DUEL MODE ═══
+const DUEL_KEY="comidadle_duel_active";
+const DUEL_MAX=6;
+let duel=null; // {id,dishIdx,role,log,wrong,done,startedAt,attempts,timeMs,won}
+
+function loadDuelLocal(){try{return JSON.parse(localStorage.getItem(DUEL_KEY));}catch(e){return null;}}
+function saveDuelLocal(d){if(d)localStorage.setItem(DUEL_KEY,JSON.stringify({id:d.id,role:d.role,dishIdx:d.dishIdx}));else localStorage.removeItem(DUEL_KEY);}
+
+function duelShareLink(id){return location.origin+location.pathname+"?duel="+id;}
+
+async function openDuelModal(){
+  openModal("duel-modal");
+  const params=new URLSearchParams(location.search);
+  const urlDuelId=params.get("duel");
+  if(urlDuelId){
+    history.replaceState(null,"",location.pathname);
+    await joinOrResumeDuel(urlDuelId);
+    return;
+  }
+  const local=loadDuelLocal();
+  if(local){await resumeDuelById(local.id,local.role);return;}
+  renderDuelHome();
+}
+
+function renderDuelHome(){
+  const el=document.getElementById("duel-content");if(!el)return;
+  el.innerHTML=`
+    <div style="text-align:center;padding:1rem 0">
+      <div style="font-size:48px;margin-bottom:.75rem">⚔️</div>
+      <div style="font-size:14px;color:var(--text-muted);margin-bottom:1.25rem;line-height:1.6">Reta a un amigo con un plato sorpresa. Comparten el mismo plato y gana quien acierte en menos intentos (o más rápido si hay empate).</div>
+      <button class="play-btn" id="duel-create-btn">🎲 Crear duelo</button>
+    </div>`;
+  const btn=document.getElementById("duel-create-btn");
+  if(btn)btn.onclick=createDuel;
+}
+
+async function createDuel(){
+  const el=document.getElementById("duel-content");
+  el.innerHTML='<div class="ranking-empty">Creando duelo...</div>';
+  try{
+    const dishIdx=Math.floor(Math.random()*ALL_DISHES.length);
+    const name=myUser||"Anónimo";
+    const rows=await sb("/rest/v1/duels",{method:"POST",headers:{...SH,"Prefer":"return=representation"},body:JSON.stringify({dish_idx:dishIdx,creator_username:name})});
+    const row=rows&&rows[0];
+    if(!row)throw new Error("no row");
+    duel={id:row.id,dishIdx,role:"creator",log:[],wrong:new Set(),done:false,startedAt:Date.now(),attempts:0,timeMs:0,won:false};
+    saveDuelLocal(duel);
+    renderDuelPlay();
+  }catch(e){
+    el.innerHTML='<div class="ranking-empty">Error creando el duelo 😔</div>';
+  }
+}
+
+async function resumeDuelById(id,role){
+  const el=document.getElementById("duel-content");
+  el.innerHTML='<div class="ranking-empty">Cargando...</div>';
+  try{
+    const rows=await sb("/rest/v1/duels?id=eq."+id+"&select=*");
+    const row=rows&&rows[0];
+    if(!row){localStorage.removeItem(DUEL_KEY);renderDuelHome();return;}
+    const myAttempts=role==="creator"?row.creator_attempts:row.opponent_attempts;
+    if(myAttempts===null||myAttempts===undefined){
+      duel={id:row.id,dishIdx:row.dish_idx,role,log:[],wrong:new Set(),done:false,startedAt:Date.now(),attempts:0,timeMs:0,won:false};
+      renderDuelPlay();
+    }else{
+      renderDuelWaitingOrResult(row,role);
+    }
+  }catch(e){
+    el.innerHTML='<div class="ranking-empty">Error cargando el duelo 😔</div>';
+  }
+}
+
+async function joinOrResumeDuel(id){
+  const el=document.getElementById("duel-content");
+  el.innerHTML='<div class="ranking-empty">Cargando...</div>';
+  try{
+    const rows=await sb("/rest/v1/duels?id=eq."+id+"&select=*");
+    const row=rows&&rows[0];
+    if(!row){el.innerHTML='<div class="ranking-empty">Este duelo ya no existe 😔</div>';return;}
+    const name=myUser||"Anónimo";
+    // Are we the creator opening our own link?
+    if(row.creator_username===name&&(row.creator_attempts===null||row.creator_attempts===undefined)){
+      duel={id:row.id,dishIdx:row.dish_idx,role:"creator",log:[],wrong:new Set(),done:false,startedAt:Date.now(),attempts:0,timeMs:0,won:false};
+      saveDuelLocal(duel);renderDuelPlay();return;
+    }
+    if(row.creator_attempts!==null&&row.creator_attempts!==undefined&&!row.opponent_username){
+      // Nobody has accepted yet — show accept screen
+      el.innerHTML=`
+        <div style="text-align:center;padding:1rem 0">
+          <div style="font-size:48px;margin-bottom:.75rem">⚔️</div>
+          <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:.5rem">${row.creator_username} te ha retado a un duelo</div>
+          <div style="font-size:13px;color:var(--text-muted);margin-bottom:1.25rem;line-height:1.6">Mismo plato, gana quien acierte en menos intentos (o más rápido en caso de empate).</div>
+          <button class="play-btn" id="duel-accept-btn">⚔️ Aceptar reto</button>
+        </div>`;
+      document.getElementById("duel-accept-btn").onclick=async()=>{
+        el.innerHTML='<div class="ranking-empty">Aceptando...</div>';
+        try{
+          await sb("/rest/v1/duels?id=eq."+id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({opponent_username:name})});
+          duel={id:row.id,dishIdx:row.dish_idx,role:"opponent",log:[],wrong:new Set(),done:false,startedAt:Date.now(),attempts:0,timeMs:0,won:false};
+          saveDuelLocal(duel);renderDuelPlay();
+        }catch(e){el.innerHTML='<div class="ranking-empty">Error aceptando el reto 😔</div>';}
+      };
+      return;
+    }
+    if(row.opponent_username===name){
+      if(row.opponent_attempts===null||row.opponent_attempts===undefined){
+        duel={id:row.id,dishIdx:row.dish_idx,role:"opponent",log:[],wrong:new Set(),done:false,startedAt:Date.now(),attempts:0,timeMs:0,won:false};
+        saveDuelLocal(duel);renderDuelPlay();
+      }else{
+        renderDuelWaitingOrResult(row,"opponent");
+      }
+      return;
+    }
+    if(row.opponent_username&&row.opponent_username!==name){
+      el.innerHTML='<div class="ranking-empty">Este duelo ya fue aceptado por otro jugador 😔</div>';
+      return;
+    }
+    el.innerHTML='<div class="ranking-empty">Este duelo aún no está listo 😔</div>';
+  }catch(e){
+    el.innerHTML='<div class="ranking-empty">Error cargando el duelo 😔</div>';
+  }
+}
+
+function renderDuelPlay(){
+  const el=document.getElementById("duel-content");if(!el)return;
+  const d=ALL_DISHES[duel.dishIdx];
+  const opts=shuffleWithSeed([d.country,...d.dist],duel.id?duel.id.length+duel.dishIdx:duel.dishIdx);
+  const masked=duel.done?d.name:d.name.replace(buildBlurRegex(d.country),m=>`<span style="filter:blur(5px);user-select:none">${m}</span>`);
+  const n=duel.done?d.hints.length:Math.min(duel.log.length+1,d.hints.length);
+  const hints=Array.from({length:n},(_,i)=>`<div class="hint"><strong>Pista ${i+1}</strong> — ${d.hints[i]}</div>`).join("");
+  el.innerHTML=`
+    <div style="text-align:center;margin-bottom:.5rem">
+      <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em">⚔️ Duelo · ${duel.role==="creator"?"Tú creaste el reto":"Has aceptado el reto"}</div>
+    </div>
+    <div style="text-align:center;font-size:48px;margin-bottom:.5rem">${d.emoji}</div>
+    <div style="text-align:center;font-size:17px;font-weight:700;color:var(--text);margin-bottom:.75rem">${masked}</div>
+    <div id="duel-hints" style="margin-bottom:.875rem">${hints}</div>
+    <div id="duel-grid" class="country-grid"></div>
+  `;
+  const gridEl=document.getElementById("duel-grid");
+  opts.forEach(country=>{
+    const btn=document.createElement("button");
+    btn.className="country-btn";
+    btn.innerHTML=`<span>${getFlag(country)}</span><span>${country}</span>`;
+    if(duel.wrong.has(country))btn.disabled=true;
+    btn.onclick=()=>handleDuelGuess(country,d,btn);
+    gridEl.appendChild(btn);
+  });
+}
+
+async function handleDuelGuess(country,d,btn){
+  if(duel.done)return;
+  if(country===d.country){
+    playCorrect();hapticCorrect();
+    duel.log.push(true);duel.done=true;duel.won=true;
+    duel.attempts=duel.log.length;duel.timeMs=Date.now()-duel.startedAt;
+    setTimeout(()=>{launchConfetti();playWin();hapticWin();},200);
+    await submitDuelResult();
+  }else{
+    playWrong();hapticWrong();
+    duel.log.push(false);duel.wrong.add(country);btn.disabled=true;btn.classList.add("shake");
+    setTimeout(()=>btn.classList.remove("shake"),400);
+    if(duel.log.length>=DUEL_MAX){
+      duel.done=true;duel.won=false;
+      duel.attempts=DUEL_MAX;duel.timeMs=Date.now()-duel.startedAt;
+      setTimeout(()=>{playLose();hapticLose();},200);
+      await submitDuelResult();
+    }else{
+      renderDuelPlay();
+    }
+  }
+}
+
+async function submitDuelResult(){
+  const el=document.getElementById("duel-content");
+  const field=duel.role==="creator"?{creator_attempts:duel.attempts,creator_time_ms:duel.timeMs,creator_won:duel.won}:{opponent_attempts:duel.attempts,opponent_time_ms:duel.timeMs,opponent_won:duel.won};
+  try{
+    await sb("/rest/v1/duels?id=eq."+duel.id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify(field)});
+  }catch(e){}
+  setTimeout(async()=>{
+    try{
+      const rows=await sb("/rest/v1/duels?id=eq."+duel.id+"&select=*");
+      const row=rows&&rows[0];
+      if(row)renderDuelWaitingOrResult(row,duel.role);
+    }catch(e){renderDuelHome();}
+  },1200);
+}
+
+function compareDuelResults(a,b){
+  // a/b = {attempts,timeMs,won}. returns -1 if a wins, 1 if b wins, 0 if draw
+  if(a.attempts===b.attempts&&a.won!==b.won)return a.won?-1:1;
+  if(a.attempts!==b.attempts)return a.attempts<b.attempts?-1:1;
+  if(a.timeMs!==b.timeMs)return a.timeMs<b.timeMs?-1:1;
+  return 0;
+}
+
+function fmtDuelTime(ms){if(ms===null||ms===undefined)return"—";const s=ms/1000;return s.toFixed(1)+"s";}
+
+function renderDuelWaitingOrResult(row,myRole){
+  const el=document.getElementById("duel-content");if(!el)return;
+  const d=ALL_DISHES[row.dish_idx];
+  const myDone=myRole==="creator"?(row.creator_attempts!==null&&row.creator_attempts!==undefined):(row.opponent_attempts!==null&&row.opponent_attempts!==undefined);
+  const oppDone=myRole==="creator"?(row.opponent_attempts!==null&&row.opponent_attempts!==undefined):(row.creator_attempts!==null&&row.creator_attempts!==undefined);
+  if(!myDone){
+    // shouldn't normally happen here, but safety net
+    duel={id:row.id,dishIdx:row.dish_idx,role:myRole,log:[],wrong:new Set(),done:false,startedAt:Date.now(),attempts:0,timeMs:0,won:false};
+    renderDuelPlay();return;
+  }
+  if(!row.opponent_username){
+    // Waiting for someone to even accept
+    el.innerHTML=`
+      <div style="text-align:center;padding:1rem 0">
+        <div style="font-size:40px;margin-bottom:.5rem">⏳</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:.75rem">Esperando a tu rival...</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:.75rem">Comparte este link para que acepte el reto:</div>
+        <div style="display:flex;gap:6px;margin-bottom:1rem">
+          <input readonly value="${duelShareLink(row.id)}" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.5rem .6rem;font-size:11px;color:var(--text)">
+          <button class="ranking-btn primary" id="duel-copy-link">Copiar</button>
+        </div>
+        <button class="play-btn" id="duel-refresh-btn" style="background:var(--surface2);color:var(--text)">🔄 Comprobar</button>
+        <button class="play-btn" id="duel-new-btn" style="margin-top:.5rem;background:transparent;color:var(--text-muted);border:1px solid var(--border)">Abandonar y crear nuevo duelo</button>
+      </div>`;
+    const copyBtn=document.getElementById("duel-copy-link");
+    if(copyBtn)copyBtn.onclick=()=>{
+      const link=duelShareLink(row.id);
+      if(navigator.clipboard)navigator.clipboard.writeText(link).then(()=>{copyBtn.textContent="¡Copiado! ✓";}).catch(()=>{});
+    };
+    document.getElementById("duel-refresh-btn").onclick=()=>resumeDuelById(row.id,myRole);
+    document.getElementById("duel-new-btn").onclick=()=>{localStorage.removeItem(DUEL_KEY);duel=null;renderDuelHome();};
+    return;
+  }
+  if(!oppDone){
+    el.innerHTML=`
+      <div style="text-align:center;padding:1rem 0">
+        <div style="font-size:40px;margin-bottom:.5rem">⏳</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:.5rem">${myRole==="creator"?row.opponent_username:row.creator_username} todavía no ha terminado</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:1rem">Vuelve a comprobar en un rato</div>
+        <button class="play-btn" id="duel-refresh-btn" style="background:var(--surface2);color:var(--text)">🔄 Comprobar</button>
+        <button class="play-btn" id="duel-new-btn" style="margin-top:.5rem;background:transparent;color:var(--text-muted);border:1px solid var(--border)">Abandonar y crear nuevo duelo</button>
+      </div>`;
+    document.getElementById("duel-refresh-btn").onclick=()=>resumeDuelById(row.id,myRole);
+    document.getElementById("duel-new-btn").onclick=()=>{localStorage.removeItem(DUEL_KEY);duel=null;renderDuelHome();};
+    return;
+  }
+  // Both done — show comparison
+  localStorage.removeItem(DUEL_KEY);
+  const me={attempts:myRole==="creator"?row.creator_attempts:row.opponent_attempts,timeMs:myRole==="creator"?row.creator_time_ms:row.opponent_time_ms,won:myRole==="creator"?row.creator_won:row.opponent_won};
+  const opp={attempts:myRole==="creator"?row.opponent_attempts:row.creator_attempts,timeMs:myRole==="creator"?row.opponent_time_ms:row.creator_time_ms,won:myRole==="creator"?row.opponent_won:row.creator_won};
+  const myName=myRole==="creator"?row.creator_username:row.opponent_username;
+  const oppName=myRole==="creator"?row.opponent_username:row.creator_username;
+  const cmp=compareDuelResults(me,opp);
+  const resultLabel=cmp<0?"🏆 ¡Ganaste!":cmp>0?"😔 Perdiste":"🤝 Empate";
+  const resultColor=cmp<0?"var(--green)":cmp>0?"var(--red,#ef4444)":"var(--text-muted)";
+  el.innerHTML=`
+    <div style="text-align:center;margin-bottom:1rem">
+      <div style="font-size:40px;margin-bottom:.4rem">${d.flag} ${d.emoji}</div>
+      <div style="font-size:13px;color:var(--text-muted)">${d.name} era de ${d.country}</div>
+    </div>
+    <div style="text-align:center;font-size:20px;font-weight:900;font-family:'Fraunces',serif;color:${resultColor};margin-bottom:1.25rem">${resultLabel}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div style="background:var(--surface2);border:1px solid ${cmp<0?'var(--green)':'var(--border)'};border-radius:var(--r-sm);padding:.875rem;text-align:center">
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:.5rem">${myName} (tú)</div>
+        <div style="font-size:13px;color:var(--text-muted)">${me.won?"✅":"❌"} ${me.attempts} intento${me.attempts!==1?"s":""}</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:2px">⏱️ ${fmtDuelTime(me.timeMs)}</div>
+      </div>
+      <div style="background:var(--surface2);border:1px solid ${cmp>0?'var(--green)':'var(--border)'};border-radius:var(--r-sm);padding:.875rem;text-align:center">
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:.5rem">${oppName}</div>
+        <div style="font-size:13px;color:var(--text-muted)">${opp.won?"✅":"❌"} ${opp.attempts} intento${opp.attempts!==1?"s":""}</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:2px">⏱️ ${fmtDuelTime(opp.timeMs)}</div>
+      </div>
+    </div>
+    <button class="play-btn" id="duel-new-btn" style="margin-top:1.25rem">🎲 Nuevo duelo</button>
+  `;
+  document.getElementById("duel-new-btn").onclick=()=>{duel=null;renderDuelHome();};
+}
+
+
 (()=>{
   const s=document.getElementById("splash"),t=document.getElementById("splash-title"),sub=document.getElementById("splash-sub");
   if(!s)return;
@@ -2147,6 +2431,7 @@ const vEl=document.getElementById("about-version");if(vEl)vEl.textContent=VERSIO
 if(!localStorage.getItem("comidadle_visited")){openModal("how-modal");localStorage.setItem("comidadle_visited","1");}
 if(isOwner){document.getElementById("owner-float").style.display="block";}
 setTimeout(showAnnBanner,2000);setTimeout(checkMissedNotif,500);setTimeout(checkMondaySummary,1200);
+if(new URLSearchParams(location.search).get("duel"))setTimeout(openDuelModal,300);
 setTimeout(checkIfBanned,1000);
 setTimeout(checkXPGifts,3000);
 setTimeout(updateNotifBadge,2000);
