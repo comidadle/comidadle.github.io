@@ -2614,7 +2614,6 @@ function renderDuelFinalResult(row,role){
     </div>`;
   }).join("");
   el.innerHTML=`
-    <div id="duel-system-banner"></div>
     <div style="text-align:center;font-size:20px;font-weight:900;font-family:'Fraunces',serif;color:${color};margin-bottom:1rem">${label}</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem">
       <div style="background:var(--surface2);border:1px solid ${cmp<0?'var(--green)':'var(--border)'};border-radius:var(--r-sm);padding:.875rem;text-align:center">
@@ -2630,7 +2629,7 @@ function renderDuelFinalResult(row,role){
     </div>
     ${roundRows}
     <div style="display:flex;gap:8px;margin:1rem 0">
-      <button class="play-btn" id="duel-rematch-btn" style="flex:1">🔄 Revancha</button>
+      <button class="play-btn" id="duel-rematch-btn" style="flex:1">🔄 Revancha <span id="duel-rematch-votes" style="font-size:11px;opacity:.7"></span></button>
       <button class="play-btn" id="duel-exit-btn" style="flex:1;background:var(--surface2);color:var(--text)">🚪 Salir</button>
     </div>
     <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.5rem">💬 Chat</div>
@@ -2686,13 +2685,9 @@ function startDuelResultPoll(row,role){
       const fresh=await fetchDuel(row.id);
       if(!fresh)return;
       const oppLeft=role==="creator"?fresh.opponent_left:fresh.creator_left;
-      if(oppLeft){
-        clearDuelPoll();
-        const banner=document.getElementById("duel-system-banner");
-        const oppName=role==="creator"?fresh.opponent_username:fresh.creator_username;
-        if(banner)banner.innerHTML=`<div style="text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.6rem;font-size:12px;color:var(--text-muted);margin-bottom:.75rem">${escapeHtml(oppName)} salió del duelo</div>`;
-        return;
-      }
+      if(oppLeft){clearDuelPoll();return;}
+      if(fresh.creator_rematch||fresh.opponent_rematch)updateRematchBtn(fresh,role);
+      if(fresh.creator_rematch&&fresh.opponent_rematch){clearDuelPoll();saveDuelLocal(fresh.id,role);routeDuelState(fresh,role);return;}
       if(fresh.status==="voting"){clearDuelPoll();saveDuelLocal(fresh.id,role);routeDuelState(fresh,role);return;}
       loadDuelMessages(row.id);
     }catch(e){}
@@ -2700,22 +2695,42 @@ function startDuelResultPoll(row,role){
 }
 
 async function requestDuelRematch(row,role){
+  // Vote-based: both must confirm before restarting
+  const field=role==="creator"?{creator_rematch:true}:{opponent_rematch:true};
   try{
-    await sb("/rest/v1/duels?id=eq."+row.id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({
-      status:"voting",creator_vote_rounds:null,creator_vote_difficulty:null,
-      opponent_vote_rounds:null,opponent_vote_difficulty:null,roulette_winner:null,
-      rounds:null,attempts_max:null,dish_indices:null,start_at:null,
-      creator_rounds:[],opponent_rounds:[]
-    })});
-    saveDuelLocal(row.id,role);
+    await sb("/rest/v1/duels?id=eq."+row.id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify(field)});
     const fresh=await fetchDuel(row.id);
-    routeDuelState(fresh,role);
+    updateRematchBtn(fresh,role);
+    if(fresh.creator_rematch&&fresh.opponent_rematch){
+      await sb("/rest/v1/duels?id=eq."+row.id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({
+        status:"voting",creator_vote_rounds:null,creator_vote_difficulty:null,
+        opponent_vote_rounds:null,opponent_vote_difficulty:null,roulette_winner:null,
+        rounds:null,attempts_max:null,dish_indices:null,start_at:null,
+        creator_rounds:[],opponent_rounds:[],creator_rematch:false,opponent_rematch:false
+      })});
+      saveDuelLocal(row.id,role);
+      const fresh2=await fetchDuel(row.id);
+      clearDuelPoll();routeDuelState(fresh2,role);
+    }
   }catch(e){}
+}
+function updateRematchBtn(row,role){
+  const btn=document.getElementById("duel-rematch-btn");if(!btn)return;
+  const myVote=role==="creator"?row.creator_rematch:row.opponent_rematch;
+  const oppVote=role==="creator"?row.opponent_rematch:row.creator_rematch;
+  const votes=(myVote?1:0)+(oppVote?1:0);
+  const voteEl=document.getElementById("duel-rematch-votes");
+  if(voteEl)voteEl.textContent=votes>0?`${votes}/2`:"";
+  if(myVote){btn.style.opacity=".6";btn.disabled=true;}
 }
 
 async function exitDuel(row,role){
+  const myName=role==="creator"?row.creator_username:row.opponent_username;
   const field=role==="creator"?{creator_left:true}:{opponent_left:true};
-  try{await sb("/rest/v1/duels?id=eq."+row.id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify(field)});}catch(e){}
+  try{
+    await sb("/rest/v1/duels?id=eq."+row.id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify(field)});
+    await sb("/rest/v1/duel_messages",{method:"POST",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({duel_id:row.id,sender_username:"🔔 Sistema",message:myName+" salió del duelo"})});
+  }catch(e){}
   clearDuelPoll();clearDuelLocal();duel=null;renderDuelHome();
 }
 
