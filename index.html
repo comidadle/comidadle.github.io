@@ -2131,55 +2131,139 @@ function checkMondaySummary(){
 
 // ═══ DUEL MODE ═══
 const DUEL_KEY="comidadle_duel_active";
-const DUEL_MAX=6;
-let duel=null; // {id,dishIdx,role,log,wrong,done,startedAt,attempts,timeMs,won}
+const DUEL_DIFFICULTIES={"Fácil":6,"Normal":4,"Difícil":3};
+let duel=null; // {id,role,attempts_max,dish_indices,startedAt,log,wrong,done,attempts,timeMs,won}
+let _duelPollTimer=null;
 
+function clearDuelPoll(){if(_duelPollTimer){clearInterval(_duelPollTimer);_duelPollTimer=null;}}
 function loadDuelLocal(){try{return JSON.parse(localStorage.getItem(DUEL_KEY));}catch(e){return null;}}
-function saveDuelLocal(d){if(d)localStorage.setItem(DUEL_KEY,JSON.stringify({id:d.id,role:d.role,dishIdx:d.dishIdx}));else localStorage.removeItem(DUEL_KEY);}
-
+function saveDuelLocal(id,role){localStorage.setItem(DUEL_KEY,JSON.stringify({id,role}));}
+function clearDuelLocal(){localStorage.removeItem(DUEL_KEY);}
 function duelShareLink(id){return location.origin+location.pathname+"?duel="+id;}
 
 async function openDuelModal(){
   openModal("duel-modal");
+  clearDuelPoll();
   const params=new URLSearchParams(location.search);
   const urlDuelId=params.get("duel");
-  if(urlDuelId){
-    history.replaceState(null,"",location.pathname);
-    await joinOrResumeDuel(urlDuelId);
-    return;
-  }
+  if(urlDuelId){history.replaceState(null,"",location.pathname);await joinOrResumeDuel(urlDuelId);return;}
   const local=loadDuelLocal();
   if(local){await resumeDuelById(local.id,local.role);return;}
   renderDuelHome();
 }
 
 function renderDuelHome(){
+  clearDuelPoll();
   const el=document.getElementById("duel-content");if(!el)return;
   el.innerHTML=`
     <div style="text-align:center;padding:1rem 0">
       <div style="font-size:48px;margin-bottom:.75rem">⚔️</div>
-      <div style="font-size:14px;color:var(--text-muted);margin-bottom:1.25rem;line-height:1.6">Reta a un amigo con un plato sorpresa. Comparten el mismo plato y gana quien acierte en menos intentos (o más rápido si hay empate).</div>
+      <div style="font-size:14px;color:var(--text-muted);margin-bottom:1.25rem;line-height:1.6">Reta a un amigo a un duelo de varias rondas con platos sorpresa.</div>
       <button class="play-btn" id="duel-create-btn">🎲 Crear duelo</button>
+      <div style="margin:1rem 0;font-size:12px;color:var(--text-muted)">— o —</div>
+      <div style="display:flex;gap:6px">
+        <input id="duel-code-input" placeholder="Pega aquí el código del duelo" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.55rem .7rem;font-size:12px;color:var(--text)">
+        <button class="ranking-btn primary" id="duel-join-btn">Unirme</button>
+      </div>
     </div>`;
-  const btn=document.getElementById("duel-create-btn");
-  if(btn)btn.onclick=createDuel;
+  document.getElementById("duel-create-btn").onclick=createDuel;
+  document.getElementById("duel-join-btn").onclick=()=>{
+    const v=document.getElementById("duel-code-input").value.trim();
+    if(!v)return;
+    const id=v.includes("duel=")?v.split("duel=")[1].split("&")[0]:v;
+    joinOrResumeDuel(id);
+  };
 }
 
 async function createDuel(){
   const el=document.getElementById("duel-content");
   el.innerHTML='<div class="ranking-empty">Creando duelo...</div>';
   try{
-    const dishIdx=Math.floor(Math.random()*ALL_DISHES.length);
     const name=myUser||"Anónimo";
-    const rows=await sb("/rest/v1/duels",{method:"POST",headers:{...SH,"Prefer":"return=representation"},body:JSON.stringify({dish_idx:dishIdx,creator_username:name})});
+    const rows=await sb("/rest/v1/duels",{method:"POST",headers:{...SH,"Prefer":"return=representation"},body:JSON.stringify({creator_username:name,status:"waiting"})});
     const row=rows&&rows[0];
-    if(!row)throw new Error("La respuesta de Supabase no incluyó la fila creada (revisa Prefer:return=representation)");
-    duel={id:row.id,dishIdx,role:"creator",log:[],wrong:new Set(),done:false,startedAt:Date.now(),attempts:0,timeMs:0,won:false};
-    saveDuelLocal(duel);
-    renderDuelPlay();
+    if(!row)throw new Error("Supabase no devolvió la fila creada");
+    saveDuelLocal(row.id,"creator");
+    renderDuelShare(row);
   }catch(e){
     console.error("createDuel error:",e);
     el.innerHTML='<div class="ranking-empty">Error creando el duelo 😔<br><span style="font-size:10px;opacity:.7">'+String(e&&e.message||e).slice(0,200)+'</span></div>';
+  }
+}
+
+async function fetchDuel(id){
+  const rows=await sb("/rest/v1/duels?id=eq."+id+"&select=*");
+  return rows&&rows[0];
+}
+
+function startDuelPoll(id,fn){
+  clearDuelPoll();
+  _duelPollTimer=setInterval(async()=>{
+    try{const row=await fetchDuel(id);if(row)fn(row);}catch(e){}
+  },2500);
+}
+
+// ── Share / waiting for opponent to join ───────────────────────────────────────
+function renderDuelShare(row){
+  const el=document.getElementById("duel-content");if(!el)return;
+  el.innerHTML=`
+    <div style="text-align:center;padding:1rem 0">
+      <div style="font-size:40px;margin-bottom:.5rem">⏳</div>
+      <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:.75rem">Esperando a tu rival...</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:.5rem">Comparte este link:</div>
+      <div style="display:flex;gap:6px;margin-bottom:.75rem">
+        <input readonly value="${duelShareLink(row.id)}" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.5rem .6rem;font-size:11px;color:var(--text)">
+        <button class="ranking-btn primary" id="duel-copy-link">Copiar</button>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:.5rem">O este código:</div>
+      <div style="display:flex;gap:6px;margin-bottom:1rem">
+        <input readonly value="${row.id}" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.5rem .6rem;font-size:11px;color:var(--text)">
+        <button class="ranking-btn primary" id="duel-copy-code">Copiar</button>
+      </div>
+      <button class="play-btn" id="duel-new-btn" style="background:transparent;color:var(--text-muted);border:1px solid var(--border)">Cancelar duelo</button>
+    </div>`;
+  const cl=document.getElementById("duel-copy-link");
+  if(cl)cl.onclick=()=>{if(navigator.clipboard)navigator.clipboard.writeText(duelShareLink(row.id)).then(()=>{cl.textContent="¡Copiado! ✓";}).catch(()=>{});};
+  const cc=document.getElementById("duel-copy-code");
+  if(cc)cc.onclick=()=>{if(navigator.clipboard)navigator.clipboard.writeText(row.id).then(()=>{cc.textContent="¡Copiado! ✓";}).catch(()=>{});};
+  document.getElementById("duel-new-btn").onclick=()=>{clearDuelLocal();clearDuelPoll();duel=null;renderDuelHome();};
+  startDuelPoll(row.id,(fresh)=>{
+    if(fresh.opponent_username){clearDuelPoll();routeDuelState(fresh,"creator");}
+  });
+}
+
+// ── Join via link/code ──────────────────────────────────────────────────────────
+async function joinOrResumeDuel(id){
+  const el=document.getElementById("duel-content");
+  el.innerHTML='<div class="ranking-empty">Cargando...</div>';
+  try{
+    const row=await fetchDuel(id);
+    if(!row){el.innerHTML='<div class="ranking-empty">Este duelo ya no existe 😔</div>';return;}
+    const name=myUser||"Anónimo";
+    if(row.creator_username===name){saveDuelLocal(row.id,"creator");routeDuelState(row,"creator");return;}
+    if(row.opponent_username===name){saveDuelLocal(row.id,"opponent");routeDuelState(row,"opponent");return;}
+    if(!row.opponent_username){
+      el.innerHTML=`
+        <div style="text-align:center;padding:1rem 0">
+          <div style="font-size:48px;margin-bottom:.75rem">⚔️</div>
+          <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:.5rem">${row.creator_username} te ha retado a un duelo</div>
+          <div style="font-size:13px;color:var(--text-muted);margin-bottom:1.25rem">Elegirán juntos las rondas y la dificultad.</div>
+          <button class="play-btn" id="duel-accept-btn">⚔️ Aceptar reto</button>
+        </div>`;
+      document.getElementById("duel-accept-btn").onclick=async()=>{
+        el.innerHTML='<div class="ranking-empty">Aceptando...</div>';
+        try{
+          await sb("/rest/v1/duels?id=eq."+id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({opponent_username:name,status:"voting"})});
+          saveDuelLocal(id,"opponent");
+          const fresh=await fetchDuel(id);
+          routeDuelState(fresh,"opponent");
+        }catch(e){el.innerHTML='<div class="ranking-empty">Error aceptando el reto 😔</div>';}
+      };
+      return;
+    }
+    el.innerHTML='<div class="ranking-empty">Este duelo ya fue aceptado por otro jugador 😔</div>';
+  }catch(e){
+    el.innerHTML='<div class="ranking-empty">Error cargando el duelo 😔</div>';
   }
 }
 
@@ -2187,85 +2271,215 @@ async function resumeDuelById(id,role){
   const el=document.getElementById("duel-content");
   el.innerHTML='<div class="ranking-empty">Cargando...</div>';
   try{
-    const rows=await sb("/rest/v1/duels?id=eq."+id+"&select=*");
-    const row=rows&&rows[0];
-    if(!row){localStorage.removeItem(DUEL_KEY);renderDuelHome();return;}
-    const myAttempts=role==="creator"?row.creator_attempts:row.opponent_attempts;
-    if(myAttempts===null||myAttempts===undefined){
-      duel={id:row.id,dishIdx:row.dish_idx,role,log:[],wrong:new Set(),done:false,startedAt:Date.now(),attempts:0,timeMs:0,won:false};
-      renderDuelPlay();
-    }else{
-      renderDuelWaitingOrResult(row,role);
-    }
+    const row=await fetchDuel(id);
+    if(!row){clearDuelLocal();renderDuelHome();return;}
+    routeDuelState(row,role);
   }catch(e){
     el.innerHTML='<div class="ranking-empty">Error cargando el duelo 😔</div>';
   }
 }
 
-async function joinOrResumeDuel(id){
-  const el=document.getElementById("duel-content");
-  el.innerHTML='<div class="ranking-empty">Cargando...</div>';
-  try{
-    const rows=await sb("/rest/v1/duels?id=eq."+id+"&select=*");
-    const row=rows&&rows[0];
-    if(!row){el.innerHTML='<div class="ranking-empty">Este duelo ya no existe 😔</div>';return;}
-    const name=myUser||"Anónimo";
-    // Are we the creator opening our own link?
-    if(row.creator_username===name&&(row.creator_attempts===null||row.creator_attempts===undefined)){
-      duel={id:row.id,dishIdx:row.dish_idx,role:"creator",log:[],wrong:new Set(),done:false,startedAt:Date.now(),attempts:0,timeMs:0,won:false};
-      saveDuelLocal(duel);renderDuelPlay();return;
-    }
-    if(row.creator_attempts!==null&&row.creator_attempts!==undefined&&!row.opponent_username){
-      // Nobody has accepted yet — show accept screen
-      el.innerHTML=`
-        <div style="text-align:center;padding:1rem 0">
-          <div style="font-size:48px;margin-bottom:.75rem">⚔️</div>
-          <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:.5rem">${row.creator_username} te ha retado a un duelo</div>
-          <div style="font-size:13px;color:var(--text-muted);margin-bottom:1.25rem;line-height:1.6">Mismo plato, gana quien acierte en menos intentos (o más rápido en caso de empate).</div>
-          <button class="play-btn" id="duel-accept-btn">⚔️ Aceptar reto</button>
-        </div>`;
-      document.getElementById("duel-accept-btn").onclick=async()=>{
-        el.innerHTML='<div class="ranking-empty">Aceptando...</div>';
-        try{
-          await sb("/rest/v1/duels?id=eq."+id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({opponent_username:name})});
-          duel={id:row.id,dishIdx:row.dish_idx,role:"opponent",log:[],wrong:new Set(),done:false,startedAt:Date.now(),attempts:0,timeMs:0,won:false};
-          saveDuelLocal(duel);renderDuelPlay();
-        }catch(e){el.innerHTML='<div class="ranking-empty">Error aceptando el reto 😔</div>';}
-      };
-      return;
-    }
-    if(row.opponent_username===name){
-      if(row.opponent_attempts===null||row.opponent_attempts===undefined){
-        duel={id:row.id,dishIdx:row.dish_idx,role:"opponent",log:[],wrong:new Set(),done:false,startedAt:Date.now(),attempts:0,timeMs:0,won:false};
-        saveDuelLocal(duel);renderDuelPlay();
-      }else{
-        renderDuelWaitingOrResult(row,"opponent");
-      }
-      return;
-    }
-    if(row.opponent_username&&row.opponent_username!==name){
-      el.innerHTML='<div class="ranking-empty">Este duelo ya fue aceptado por otro jugador 😔</div>';
-      return;
-    }
-    el.innerHTML='<div class="ranking-empty">Este duelo aún no está listo 😔</div>';
-  }catch(e){
-    el.innerHTML='<div class="ranking-empty">Error cargando el duelo 😔</div>';
+// ── Central router: decides what screen to show based on row.status ────────────
+function routeDuelState(row,role){
+  clearDuelPoll();
+  if(row.status==="waiting"){
+    if(role==="creator"){renderDuelShare(row);}else{renderDuelHome();}
+    return;
   }
+  if(row.status==="voting"){renderDuelVoting(row,role);return;}
+  if(row.status==="roulette"){renderDuelRoulette(row,role);return;}
+  if(row.status==="active"){routeDuelActive(row,role);return;}
+  if(row.status==="finished"){renderDuelFinalResult(row,role);return;}
+  renderDuelHome();
+}
+
+// ── Voting screen ────────────────────────────────────────────────────────────────
+function renderDuelVoting(row,role){
+  const el=document.getElementById("duel-content");if(!el)return;
+  const myVoted=role==="creator"?row.creator_vote_rounds:row.opponent_vote_rounds;
+  if(myVoted){
+    el.innerHTML=`
+      <div style="text-align:center;padding:1rem 0">
+        <div style="font-size:36px;margin-bottom:.5rem">🗳️</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:.5rem">Voto enviado</div>
+        <div style="font-size:12px;color:var(--text-muted)">Esperando el voto de tu rival...</div>
+      </div>`;
+    startDuelPoll(row.id,async(fresh)=>{
+      const oppVoted=role==="creator"?fresh.opponent_vote_rounds:fresh.creator_vote_rounds;
+      if(oppVoted){clearDuelPoll();await resolveDuelVotes(fresh,role);}
+    });
+    return;
+  }
+  let selRounds=3,selDiff="Normal";
+  el.innerHTML=`
+    <div style="padding:.5rem 0">
+      <div style="text-align:center;font-size:14px;font-weight:700;color:var(--text);margin-bottom:1rem">Elige rondas y dificultad</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:.5rem">Rondas</div>
+      <div id="duel-rounds-opts" style="display:flex;gap:8px;margin-bottom:1rem">
+        ${[1,3,5].map(n=>`<button class="ranking-btn duel-opt-rounds" data-v="${n}" style="flex:1">${n}</button>`).join("")}
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:.5rem">Dificultad</div>
+      <div id="duel-diff-opts" style="display:flex;gap:8px;margin-bottom:1.25rem">
+        ${Object.keys(DUEL_DIFFICULTIES).map(d=>`<button class="ranking-btn duel-opt-diff" data-v="${d}" style="flex:1">${d}</button>`).join("")}
+      </div>
+      <button class="play-btn" id="duel-vote-confirm">Confirmar voto</button>
+    </div>`;
+  const markSelected=(selector,val)=>{
+    document.querySelectorAll(selector).forEach(b=>{
+      const active=b.dataset.v===String(val);
+      b.style.background=active?"var(--accent)":"";
+      b.style.color=active?"#fff":"";
+      b.classList.toggle("primary",active);
+    });
+  };
+  markSelected(".duel-opt-rounds",selRounds);markSelected(".duel-opt-diff",selDiff);
+  document.querySelectorAll(".duel-opt-rounds").forEach(b=>b.onclick=()=>{selRounds=parseInt(b.dataset.v);markSelected(".duel-opt-rounds",selRounds);});
+  document.querySelectorAll(".duel-opt-diff").forEach(b=>b.onclick=()=>{selDiff=b.dataset.v;markSelected(".duel-opt-diff",selDiff);});
+  document.getElementById("duel-vote-confirm").onclick=async()=>{
+    const field=role==="creator"?{creator_vote_rounds:selRounds,creator_vote_difficulty:selDiff}:{opponent_vote_rounds:selRounds,opponent_vote_difficulty:selDiff};
+    el.innerHTML='<div class="ranking-empty">Enviando voto...</div>';
+    try{
+      await sb("/rest/v1/duels?id=eq."+row.id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify(field)});
+      const fresh=await fetchDuel(row.id);
+      const oppVoted=role==="creator"?fresh.opponent_vote_rounds:fresh.creator_vote_rounds;
+      if(oppVoted){await resolveDuelVotes(fresh,role);}else{renderDuelVoting(fresh,role);}
+    }catch(e){el.innerHTML='<div class="ranking-empty">Error enviando el voto 😔</div>';}
+  };
+}
+
+function pickDishIndices(count){
+  const idxs=shuffleWithSeed(ALL_DISHES.map((_,i)=>i),Date.now()%999983);
+  return idxs.slice(0,count);
+}
+
+// ── Resolve votes: match → finalize directly; mismatch → roulette ─────────────
+async function resolveDuelVotes(row,role){
+  // Only the creator's client finalizes, to avoid double-writes / conflicting random picks
+  if(role!=="creator"){
+    // opponent just waits for status to move forward
+    startDuelPoll(row.id,(fresh)=>{
+      if(fresh.status!=="voting"){clearDuelPoll();routeDuelState(fresh,role);}
+    });
+    return;
+  }
+  const match=row.creator_vote_rounds===row.opponent_vote_rounds&&row.creator_vote_difficulty===row.opponent_vote_difficulty;
+  if(match){
+    const roundsN=row.creator_vote_rounds,diff=row.creator_vote_difficulty;
+    const attempts_max=DUEL_DIFFICULTIES[diff]||4;
+    const dish_indices=pickDishIndices(roundsN);
+    const start_at=new Date(Date.now()+3000).toISOString();
+    try{
+      await sb("/rest/v1/duels?id=eq."+row.id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({rounds:roundsN,attempts_max,dish_indices,start_at,status:"active"})});
+      const fresh=await fetchDuel(row.id);
+      routeDuelState(fresh,role);
+    }catch(e){
+      document.getElementById("duel-content").innerHTML='<div class="ranking-empty">Error iniciando el duelo 😔</div>';
+    }
+  }else{
+    const winner=Math.random()<0.5?"creator":"opponent";
+    const roundsN=winner==="creator"?row.creator_vote_rounds:row.opponent_vote_rounds;
+    const diff=winner==="creator"?row.creator_vote_difficulty:row.opponent_vote_difficulty;
+    const attempts_max=DUEL_DIFFICULTIES[diff]||4;
+    const dish_indices=pickDishIndices(roundsN);
+    try{
+      await sb("/rest/v1/duels?id=eq."+row.id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({roulette_winner:winner,rounds:roundsN,attempts_max,dish_indices,status:"roulette"})});
+      const fresh=await fetchDuel(row.id);
+      routeDuelState(fresh,role);
+    }catch(e){
+      document.getElementById("duel-content").innerHTML='<div class="ranking-empty">Error en la ruleta 😔</div>';
+    }
+  }
+}
+
+// ── Roulette animation ────────────────────────────────────────────────────────
+function renderDuelRoulette(row,role){
+  const el=document.getElementById("duel-content");if(!el)return;
+  const winnerRole=row.roulette_winner;
+  const winnerName=winnerRole==="creator"?row.creator_username:row.opponent_username;
+  const winnerIsMe=winnerRole===role;
+  el.innerHTML=`
+    <div style="text-align:center;padding:1.5rem 0">
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:1rem">Los votos no coincidieron, ¡que decida la suerte!</div>
+      <div id="duel-roulette-wheel" style="width:120px;height:120px;margin:0 auto 1.25rem;border-radius:50%;background:conic-gradient(var(--accent) 0deg 180deg, var(--gold) 180deg 360deg);position:relative;transition:transform 2.2s cubic-bezier(.17,.67,.21,1.02)">
+        <div style="position:absolute;top:50%;left:50%;width:14px;height:14px;background:var(--surface);border-radius:50%;transform:translate(-50%,-50%)"></div>
+      </div>
+      <div id="duel-roulette-result" style="font-size:14px;font-weight:700;color:var(--text);min-height:20px"></div>
+    </div>`;
+  const wheel=document.getElementById("duel-roulette-wheel");
+  // Spin: land on creator's half (0-180°) or opponent's half (180-360°), plus extra full spins
+  const baseDeg=winnerRole==="creator"?90:270;
+  const spins=4*360;
+  requestAnimationFrame(()=>{wheel.style.transform=`rotate(${spins+baseDeg}deg)`;});
+  setTimeout(()=>{
+    document.getElementById("duel-roulette-result").textContent=(winnerIsMe?"¡Ganaste la ruleta! ":"")+`Se usará la configuración de ${winnerName}`;
+  },2300);
+  // Only the creator progresses the match forward once the animation completes
+  setTimeout(async()=>{
+    if(role==="creator"){
+      const start_at=new Date(Date.now()+3000).toISOString();
+      try{
+        await sb("/rest/v1/duels?id=eq."+row.id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({start_at,status:"active"})});
+      }catch(e){}
+    }
+    startDuelPoll(row.id,(fresh)=>{
+      if(fresh.status==="active"){clearDuelPoll();routeDuelState(fresh,role);}
+    });
+  },2600);
+}
+
+// ── Active: countdown then play ─────────────────────────────────────────────────
+function routeDuelActive(row,role){
+  const myRounds=role==="creator"?(row.creator_rounds||[]):(row.opponent_rounds||[]);
+  const oppRounds=role==="creator"?(row.opponent_rounds||[]):(row.creator_rounds||[]);
+  const currentRoundIdx=myRounds.length; // 0-based index of the round I'm about to play
+  if(currentRoundIdx>=row.rounds){
+    // I've finished all my rounds
+    if(oppRounds.length>=row.rounds){finalizeDuelIfNeeded(row,role);}
+    else{renderDuelWaitingRound(row,role,true);}
+    return;
+  }
+  const remaining=new Date(row.start_at).getTime()-Date.now();
+  if(remaining>0){renderDuelCountdown(row,role,remaining,currentRoundIdx);}
+  else{
+    duel={id:row.id,role,attempts_max:row.attempts_max,dish_indices:row.dish_indices,roundIdx:currentRoundIdx,startedAt:Date.now(),log:[],wrong:new Set(),done:false,attempts:0,timeMs:0,won:false,rounds:row.rounds};
+    renderDuelPlay();
+  }
+}
+
+function renderDuelCountdown(row,role,remainingMs,roundIdx){
+  const el=document.getElementById("duel-content");if(!el)return;
+  el.innerHTML=`
+    <div style="text-align:center;padding:2rem 0">
+      <div style="font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.75rem">Ronda ${roundIdx+1} de ${row.rounds}</div>
+      <div id="duel-countdown-num" style="font-size:64px;font-weight:900;font-family:'Fraunces',serif;color:var(--accent)">${Math.ceil(remainingMs/1000)}</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:.5rem">¡Prepárate!</div>
+    </div>`;
+  const tick=()=>{
+    const rem=new Date(row.start_at).getTime()-Date.now();
+    const numEl=document.getElementById("duel-countdown-num");
+    if(rem<=0){
+      clearInterval(timer);
+      duel={id:row.id,role,attempts_max:row.attempts_max,dish_indices:row.dish_indices,roundIdx,startedAt:Date.now(),log:[],wrong:new Set(),done:false,attempts:0,timeMs:0,won:false,rounds:row.rounds};
+      renderDuelPlay();
+      return;
+    }
+    if(numEl)numEl.textContent=Math.ceil(rem/1000);
+  };
+  const timer=setInterval(tick,200);
 }
 
 function renderDuelPlay(){
   const el=document.getElementById("duel-content");if(!el)return;
-  const d=ALL_DISHES[duel.dishIdx];
-  const opts=shuffleWithSeed([d.country,...d.dist],duel.id?duel.id.length+duel.dishIdx:duel.dishIdx);
-  const masked=duel.done?d.name:d.name.replace(buildBlurRegex(d.country),m=>`<span style="filter:blur(5px);user-select:none">${m}</span>`);
-  const n=duel.done?d.hints.length:Math.min(duel.log.length+1,d.hints.length);
+  const d=ALL_DISHES[duel.dish_indices[duel.roundIdx]];
+  const opts=shuffleWithSeed([d.country,...d.dist],duel.id.length+duel.roundIdx);
+  const n=Math.min(duel.log.length+1,d.hints.length);
   const hints=Array.from({length:n},(_,i)=>`<div class="hint"><strong>Pista ${i+1}</strong> — ${d.hints[i]}</div>`).join("");
   el.innerHTML=`
     <div style="text-align:center;margin-bottom:.5rem">
-      <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em">⚔️ Duelo · ${duel.role==="creator"?"Tú creaste el reto":"Has aceptado el reto"}</div>
+      <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em">⚔️ Ronda ${duel.roundIdx+1}/${duel.rounds} · Intento ${duel.log.length+1}/${duel.attempts_max}</div>
     </div>
     <div style="text-align:center;font-size:48px;margin-bottom:.5rem">${d.emoji}</div>
-    <div style="text-align:center;font-size:17px;font-weight:700;color:var(--text);margin-bottom:.75rem">${masked}</div>
+    <div style="text-align:center;font-size:17px;font-weight:700;color:var(--text);margin-bottom:.75rem">${d.name}</div>
     <div id="duel-hints" style="margin-bottom:.875rem">${hints}</div>
     <div id="duel-grid" class="country-grid"></div>
   `;
@@ -2286,126 +2500,137 @@ async function handleDuelGuess(country,d,btn){
     playCorrect();hapticCorrect();
     duel.log.push(true);duel.done=true;duel.won=true;
     duel.attempts=duel.log.length;duel.timeMs=Date.now()-duel.startedAt;
-    setTimeout(()=>{launchConfetti();playWin();hapticWin();},200);
-    await submitDuelResult();
+    setTimeout(()=>{launchConfetti();playWin();hapticWin();},150);
+    await submitDuelRound();
   }else{
     playWrong();hapticWrong();
     duel.log.push(false);duel.wrong.add(country);btn.disabled=true;btn.classList.add("shake");
     setTimeout(()=>btn.classList.remove("shake"),400);
-    if(duel.log.length>=DUEL_MAX){
+    if(duel.log.length>=duel.attempts_max){
       duel.done=true;duel.won=false;
-      duel.attempts=DUEL_MAX;duel.timeMs=Date.now()-duel.startedAt;
-      setTimeout(()=>{playLose();hapticLose();},200);
-      await submitDuelResult();
+      duel.attempts=duel.attempts_max;duel.timeMs=Date.now()-duel.startedAt;
+      setTimeout(()=>{playLose();hapticLose();},150);
+      await submitDuelRound();
     }else{
       renderDuelPlay();
     }
   }
 }
 
-async function submitDuelResult(){
+async function submitDuelRound(){
   const el=document.getElementById("duel-content");
-  const field=duel.role==="creator"?{creator_attempts:duel.attempts,creator_time_ms:duel.timeMs,creator_won:duel.won}:{opponent_attempts:duel.attempts,opponent_time_ms:duel.timeMs,opponent_won:duel.won};
+  el.innerHTML='<div class="ranking-empty">Guardando resultado...</div>';
+  const field=duel.role==="creator"?"creator_rounds":"opponent_rounds";
   try{
-    await sb("/rest/v1/duels?id=eq."+duel.id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify(field)});
-  }catch(e){}
-  setTimeout(async()=>{
-    try{
-      const rows=await sb("/rest/v1/duels?id=eq."+duel.id+"&select=*");
-      const row=rows&&rows[0];
-      if(row)renderDuelWaitingOrResult(row,duel.role);
-    }catch(e){renderDuelHome();}
-  },1200);
+    const row=await fetchDuel(duel.id);
+    const arr=(row[field]||[]).slice();
+    arr.push({attempts:duel.attempts,timeMs:duel.timeMs,won:duel.won});
+    await sb("/rest/v1/duels?id=eq."+duel.id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({[field]:arr})});
+    const fresh=await fetchDuel(duel.id);
+    await advanceDuelIfBothReady(fresh,duel.role);
+  }catch(e){
+    el.innerHTML='<div class="ranking-empty">Error guardando el resultado 😔</div>';
+  }
 }
 
-function compareDuelResults(a,b){
-  // a/b = {attempts,timeMs,won}. returns -1 if a wins, 1 if b wins, 0 if draw
-  if(a.attempts===b.attempts&&a.won!==b.won)return a.won?-1:1;
+async function advanceDuelIfBothReady(row,role){
+  const myRounds=role==="creator"?(row.creator_rounds||[]):(row.opponent_rounds||[]);
+  const oppRounds=role==="creator"?(row.opponent_rounds||[]):(row.creator_rounds||[]);
+  if(oppRounds.length<myRounds.length){
+    renderDuelWaitingRound(row,role,myRounds.length>=row.rounds);
+    return;
+  }
+  // Both have played up to myRounds.length rounds
+  if(myRounds.length>=row.rounds){
+    await finalizeDuelIfNeeded(row,role);
+  }else{
+    // Advance to next round's countdown (guard: only write if start_at is in the past)
+    const stillPast=!row.start_at||new Date(row.start_at).getTime()<=Date.now();
+    if(stillPast){
+      const start_at=new Date(Date.now()+3000).toISOString();
+      try{await sb("/rest/v1/duels?id=eq."+row.id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({start_at})});}catch(e){}
+    }
+    const fresh=await fetchDuel(row.id);
+    routeDuelActive(fresh,role);
+  }
+}
+
+function renderDuelWaitingRound(row,role,allMineDone){
+  const el=document.getElementById("duel-content");if(!el)return;
+  el.innerHTML=`
+    <div style="text-align:center;padding:1.5rem 0">
+      <div style="font-size:36px;margin-bottom:.5rem">⏳</div>
+      <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:.5rem">${allMineDone?"Esperando a que tu rival termine...":"Esperando a tu rival en esta ronda..."}</div>
+      <div style="font-size:12px;color:var(--text-muted)">Se avanza automáticamente</div>
+    </div>`;
+  startDuelPoll(row.id,async(fresh)=>{
+    const myRounds=role==="creator"?(fresh.creator_rounds||[]):(fresh.opponent_rounds||[]);
+    const oppRounds=role==="creator"?(fresh.opponent_rounds||[]):(fresh.creator_rounds||[]);
+    if(oppRounds.length>=myRounds.length){
+      clearDuelPoll();
+      if(myRounds.length>=fresh.rounds&&oppRounds.length>=fresh.rounds){await finalizeDuelIfNeeded(fresh,role);}
+      else{await advanceDuelIfBothReady(fresh,role);}
+    }
+  });
+}
+
+async function finalizeDuelIfNeeded(row,role){
+  if(row.status==="finished"){renderDuelFinalResult(row,role);return;}
+  try{
+    await sb("/rest/v1/duels?id=eq."+row.id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({status:"finished"})});
+  }catch(e){}
+  const fresh=await fetchDuel(row.id);
+  clearDuelLocal();
+  renderDuelFinalResult(fresh,role);
+}
+
+function sumRounds(arr){return(arr||[]).reduce((acc,r)=>({attempts:acc.attempts+r.attempts,timeMs:acc.timeMs+r.timeMs}),{attempts:0,timeMs:0});}
+function compareDuelTotals(a,b){
   if(a.attempts!==b.attempts)return a.attempts<b.attempts?-1:1;
   if(a.timeMs!==b.timeMs)return a.timeMs<b.timeMs?-1:1;
   return 0;
 }
+function fmtDuelTime(ms){if(ms===null||ms===undefined)return"—";return(ms/1000).toFixed(1)+"s";}
 
-function fmtDuelTime(ms){if(ms===null||ms===undefined)return"—";const s=ms/1000;return s.toFixed(1)+"s";}
-
-function renderDuelWaitingOrResult(row,myRole){
+function renderDuelFinalResult(row,role){
+  clearDuelPoll();clearDuelLocal();
   const el=document.getElementById("duel-content");if(!el)return;
-  const d=ALL_DISHES[row.dish_idx];
-  const myDone=myRole==="creator"?(row.creator_attempts!==null&&row.creator_attempts!==undefined):(row.opponent_attempts!==null&&row.opponent_attempts!==undefined);
-  const oppDone=myRole==="creator"?(row.opponent_attempts!==null&&row.opponent_attempts!==undefined):(row.creator_attempts!==null&&row.creator_attempts!==undefined);
-  if(!myDone){
-    // shouldn't normally happen here, but safety net
-    duel={id:row.id,dishIdx:row.dish_idx,role:myRole,log:[],wrong:new Set(),done:false,startedAt:Date.now(),attempts:0,timeMs:0,won:false};
-    renderDuelPlay();return;
-  }
-  if(!row.opponent_username){
-    // Waiting for someone to even accept
-    el.innerHTML=`
-      <div style="text-align:center;padding:1rem 0">
-        <div style="font-size:40px;margin-bottom:.5rem">⏳</div>
-        <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:.75rem">Esperando a tu rival...</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-bottom:.75rem">Comparte este link para que acepte el reto:</div>
-        <div style="display:flex;gap:6px;margin-bottom:1rem">
-          <input readonly value="${duelShareLink(row.id)}" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.5rem .6rem;font-size:11px;color:var(--text)">
-          <button class="ranking-btn primary" id="duel-copy-link">Copiar</button>
-        </div>
-        <button class="play-btn" id="duel-refresh-btn" style="background:var(--surface2);color:var(--text)">🔄 Comprobar</button>
-        <button class="play-btn" id="duel-new-btn" style="margin-top:.5rem;background:transparent;color:var(--text-muted);border:1px solid var(--border)">Abandonar y crear nuevo duelo</button>
-      </div>`;
-    const copyBtn=document.getElementById("duel-copy-link");
-    if(copyBtn)copyBtn.onclick=()=>{
-      const link=duelShareLink(row.id);
-      if(navigator.clipboard)navigator.clipboard.writeText(link).then(()=>{copyBtn.textContent="¡Copiado! ✓";}).catch(()=>{});
-    };
-    document.getElementById("duel-refresh-btn").onclick=()=>resumeDuelById(row.id,myRole);
-    document.getElementById("duel-new-btn").onclick=()=>{localStorage.removeItem(DUEL_KEY);duel=null;renderDuelHome();};
-    return;
-  }
-  if(!oppDone){
-    el.innerHTML=`
-      <div style="text-align:center;padding:1rem 0">
-        <div style="font-size:40px;margin-bottom:.5rem">⏳</div>
-        <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:.5rem">${myRole==="creator"?row.opponent_username:row.creator_username} todavía no ha terminado</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-bottom:1rem">Vuelve a comprobar en un rato</div>
-        <button class="play-btn" id="duel-refresh-btn" style="background:var(--surface2);color:var(--text)">🔄 Comprobar</button>
-        <button class="play-btn" id="duel-new-btn" style="margin-top:.5rem;background:transparent;color:var(--text-muted);border:1px solid var(--border)">Abandonar y crear nuevo duelo</button>
-      </div>`;
-    document.getElementById("duel-refresh-btn").onclick=()=>resumeDuelById(row.id,myRole);
-    document.getElementById("duel-new-btn").onclick=()=>{localStorage.removeItem(DUEL_KEY);duel=null;renderDuelHome();};
-    return;
-  }
-  // Both done — show comparison
-  localStorage.removeItem(DUEL_KEY);
-  const me={attempts:myRole==="creator"?row.creator_attempts:row.opponent_attempts,timeMs:myRole==="creator"?row.creator_time_ms:row.opponent_time_ms,won:myRole==="creator"?row.creator_won:row.opponent_won};
-  const opp={attempts:myRole==="creator"?row.opponent_attempts:row.creator_attempts,timeMs:myRole==="creator"?row.opponent_time_ms:row.creator_time_ms,won:myRole==="creator"?row.opponent_won:row.creator_won};
-  const myName=myRole==="creator"?row.creator_username:row.opponent_username;
-  const oppName=myRole==="creator"?row.opponent_username:row.creator_username;
-  const cmp=compareDuelResults(me,opp);
-  const resultLabel=cmp<0?"🏆 ¡Ganaste!":cmp>0?"😔 Perdiste":"🤝 Empate";
-  const resultColor=cmp<0?"var(--green)":cmp>0?"var(--red,#ef4444)":"var(--text-muted)";
+  const myArr=role==="creator"?row.creator_rounds:row.opponent_rounds;
+  const oppArr=role==="creator"?row.opponent_rounds:row.creator_rounds;
+  const myName=role==="creator"?row.creator_username:row.opponent_username;
+  const oppName=role==="creator"?row.opponent_username:row.creator_username;
+  const myTotal=sumRounds(myArr),oppTotal=sumRounds(oppArr);
+  const cmp=compareDuelTotals(myTotal,oppTotal);
+  const label=cmp<0?"🏆 ¡Ganaste el duelo!":cmp>0?"😔 Perdiste el duelo":"🤝 Empate";
+  const color=cmp<0?"var(--green)":cmp>0?"var(--red,#ef4444)":"var(--text-muted)";
+  const roundRows=(myArr||[]).map((r,i)=>{
+    const o=(oppArr||[])[i]||{attempts:0,timeMs:0,won:false};
+    return `<div style="display:flex;align-items:center;gap:8px;padding:.5rem .65rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:.3rem;font-size:12px">
+      <span style="flex:1;color:var(--text-muted)">Ronda ${i+1}</span>
+      <span style="color:var(--text)">${r.won?"✅":"❌"} ${r.attempts}i · ${fmtDuelTime(r.timeMs)}</span>
+      <span style="color:var(--text-muted)">vs</span>
+      <span style="color:var(--text)">${o.won?"✅":"❌"} ${o.attempts}i · ${fmtDuelTime(o.timeMs)}</span>
+    </div>`;
+  }).join("");
   el.innerHTML=`
-    <div style="text-align:center;margin-bottom:1rem">
-      <div style="font-size:40px;margin-bottom:.4rem">${d.flag} ${d.emoji}</div>
-      <div style="font-size:13px;color:var(--text-muted)">${d.name} era de ${d.country}</div>
-    </div>
-    <div style="text-align:center;font-size:20px;font-weight:900;font-family:'Fraunces',serif;color:${resultColor};margin-bottom:1.25rem">${resultLabel}</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div style="text-align:center;font-size:20px;font-weight:900;font-family:'Fraunces',serif;color:${color};margin-bottom:1rem">${label}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem">
       <div style="background:var(--surface2);border:1px solid ${cmp<0?'var(--green)':'var(--border)'};border-radius:var(--r-sm);padding:.875rem;text-align:center">
-        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:.5rem">${myName} (tú)</div>
-        <div style="font-size:13px;color:var(--text-muted)">${me.won?"✅":"❌"} ${me.attempts} intento${me.attempts!==1?"s":""}</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-top:2px">⏱️ ${fmtDuelTime(me.timeMs)}</div>
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:.4rem">${myName} (tú)</div>
+        <div style="font-size:13px;color:var(--text-muted)">${myTotal.attempts} intentos totales</div>
+        <div style="font-size:12px;color:var(--text-muted)">⏱️ ${fmtDuelTime(myTotal.timeMs)}</div>
       </div>
       <div style="background:var(--surface2);border:1px solid ${cmp>0?'var(--green)':'var(--border)'};border-radius:var(--r-sm);padding:.875rem;text-align:center">
-        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:.5rem">${oppName}</div>
-        <div style="font-size:13px;color:var(--text-muted)">${opp.won?"✅":"❌"} ${opp.attempts} intento${opp.attempts!==1?"s":""}</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-top:2px">⏱️ ${fmtDuelTime(opp.timeMs)}</div>
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:.4rem">${oppName}</div>
+        <div style="font-size:13px;color:var(--text-muted)">${oppTotal.attempts} intentos totales</div>
+        <div style="font-size:12px;color:var(--text-muted)">⏱️ ${fmtDuelTime(oppTotal.timeMs)}</div>
       </div>
     </div>
-    <button class="play-btn" id="duel-new-btn" style="margin-top:1.25rem">🎲 Nuevo duelo</button>
+    ${roundRows}
+    <button class="play-btn" id="duel-new-btn" style="margin-top:1rem">🎲 Nuevo duelo</button>
   `;
   document.getElementById("duel-new-btn").onclick=()=>{duel=null;renderDuelHome();};
 }
-
 
 (()=>{
   const s=document.getElementById("splash"),t=document.getElementById("splash-title"),sub=document.getElementById("splash-sub");
