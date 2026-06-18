@@ -2173,12 +2173,13 @@ async function createDuel(){
     const name=myUser||"Anónimo";
     const rows=await sb("/rest/v1/duels",{method:"POST",headers:{...SH,"Prefer":"return=representation"},body:JSON.stringify({dish_idx:dishIdx,creator_username:name})});
     const row=rows&&rows[0];
-    if(!row)throw new Error("no row");
+    if(!row)throw new Error("La respuesta de Supabase no incluyó la fila creada (revisa Prefer:return=representation)");
     duel={id:row.id,dishIdx,role:"creator",log:[],wrong:new Set(),done:false,startedAt:Date.now(),attempts:0,timeMs:0,won:false};
     saveDuelLocal(duel);
     renderDuelPlay();
   }catch(e){
-    el.innerHTML='<div class="ranking-empty">Error creando el duelo 😔</div>';
+    console.error("createDuel error:",e);
+    el.innerHTML='<div class="ranking-empty">Error creando el duelo 😔<br><span style="font-size:10px;opacity:.7">'+String(e&&e.message||e).slice(0,200)+'</span></div>';
   }
 }
 
