@@ -2592,6 +2592,8 @@ function compareDuelTotals(a,b){
 }
 function fmtDuelTime(ms){if(ms===null||ms===undefined)return"—";return(ms/1000).toFixed(1)+"s";}
 
+function escapeHtml(s){const d=document.createElement("div");d.textContent=s;return d.innerHTML;}
+
 function renderDuelFinalResult(row,role){
   clearDuelPoll();clearDuelLocal();
   const el=document.getElementById("duel-content");if(!el)return;
@@ -2605,14 +2607,14 @@ function renderDuelFinalResult(row,role){
   const color=cmp<0?"var(--green)":cmp>0?"var(--red,#ef4444)":"var(--text-muted)";
   const roundRows=(myArr||[]).map((r,i)=>{
     const o=(oppArr||[])[i]||{attempts:0,timeMs:0,won:false};
-    return `<div style="display:flex;align-items:center;gap:8px;padding:.5rem .65rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:.3rem;font-size:12px">
-      <span style="flex:1;color:var(--text-muted)">Ronda ${i+1}</span>
-      <span style="color:var(--text)">${r.won?"✅":"❌"} ${r.attempts}i · ${fmtDuelTime(r.timeMs)}</span>
-      <span style="color:var(--text-muted)">vs</span>
-      <span style="color:var(--text)">${o.won?"✅":"❌"} ${o.attempts}i · ${fmtDuelTime(o.timeMs)}</span>
+    return `<div style="padding:.6rem .7rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:.35rem;font-size:12px">
+      <div style="color:var(--text-muted);margin-bottom:.3rem;font-weight:600">Ronda ${i+1}</div>
+      <div style="display:flex;align-items:center;gap:6px"><span style="flex:1;color:var(--text)">${myName} (tú)</span><span style="color:var(--text)">${r.won?"✅":"❌"} ${r.attempts}i · ${fmtDuelTime(r.timeMs)}</span></div>
+      <div style="display:flex;align-items:center;gap:6px;margin-top:2px"><span style="flex:1;color:var(--text)">${oppName}</span><span style="color:var(--text)">${o.won?"✅":"❌"} ${o.attempts}i · ${fmtDuelTime(o.timeMs)}</span></div>
     </div>`;
   }).join("");
   el.innerHTML=`
+    <div id="duel-system-banner"></div>
     <div style="text-align:center;font-size:20px;font-weight:900;font-family:'Fraunces',serif;color:${color};margin-bottom:1rem">${label}</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem">
       <div style="background:var(--surface2);border:1px solid ${cmp<0?'var(--green)':'var(--border)'};border-radius:var(--r-sm);padding:.875rem;text-align:center">
@@ -2627,9 +2629,94 @@ function renderDuelFinalResult(row,role){
       </div>
     </div>
     ${roundRows}
-    <button class="play-btn" id="duel-new-btn" style="margin-top:1rem">🎲 Nuevo duelo</button>
+    <div style="display:flex;gap:8px;margin:1rem 0">
+      <button class="play-btn" id="duel-rematch-btn" style="flex:1">🔄 Revancha</button>
+      <button class="play-btn" id="duel-exit-btn" style="flex:1;background:var(--surface2);color:var(--text)">🚪 Salir</button>
+    </div>
+    <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.5rem">💬 Chat</div>
+    <div id="duel-chat-list" style="max-height:160px;overflow-y:auto;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.6rem;margin-bottom:.6rem;display:flex;flex-direction:column;gap:.4rem"></div>
+    <div style="display:flex;gap:6px">
+      <input id="duel-chat-input" placeholder="Escribe un mensaje..." maxlength="200" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.5rem .65rem;font-size:13px;color:var(--text)">
+      <button class="ranking-btn primary" id="duel-chat-send">Enviar</button>
+    </div>
   `;
-  document.getElementById("duel-new-btn").onclick=()=>{duel=null;renderDuelHome();};
+  document.getElementById("duel-rematch-btn").onclick=()=>requestDuelRematch(row,role);
+  document.getElementById("duel-exit-btn").onclick=()=>exitDuel(row,role);
+  document.getElementById("duel-chat-send").onclick=()=>sendDuelMessage(row.id,role==="creator"?row.creator_username:row.opponent_username);
+  document.getElementById("duel-chat-input").addEventListener("keydown",e=>{if(e.key==="Enter")sendDuelMessage(row.id,role==="creator"?row.creator_username:row.opponent_username);});
+  loadDuelMessages(row.id);
+  startDuelResultPoll(row,role);
+}
+
+let _duelChatLastCount=0;
+async function loadDuelMessages(duelId){
+  const list=document.getElementById("duel-chat-list");if(!list)return;
+  try{
+    const msgs=await sb("/rest/v1/duel_messages?duel_id=eq."+duelId+"&select=*&order=created_at.asc");
+    renderDuelChatMessages(msgs||[]);
+  }catch(e){}
+}
+function renderDuelChatMessages(msgs){
+  const list=document.getElementById("duel-chat-list");if(!list)return;
+  const myName=myUser||"Anónimo";
+  list.innerHTML=msgs.length?msgs.map(m=>{
+    const mine=m.sender_username===myName;
+    return `<div style="align-self:${mine?"flex-end":"flex-start"};max-width:80%;background:${mine?"var(--accent)":"var(--surface)"};color:${mine?"#fff":"var(--text)"};border-radius:10px;padding:.4rem .65rem;font-size:12px">
+      ${!mine?`<div style="font-size:10px;opacity:.7;margin-bottom:1px">${escapeHtml(m.sender_username)}</div>`:""}
+      ${escapeHtml(m.message)}
+    </div>`;
+  }).join(""):'<div style="text-align:center;color:var(--text-muted);font-size:12px">Sin mensajes todavía</div>';
+  list.scrollTop=list.scrollHeight;
+  _duelChatLastCount=msgs.length;
+}
+async function sendDuelMessage(duelId,senderName){
+  const input=document.getElementById("duel-chat-input");if(!input)return;
+  const msg=input.value.trim();if(!msg)return;
+  input.value="";
+  try{
+    await sb("/rest/v1/duel_messages",{method:"POST",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({duel_id:duelId,sender_username:senderName,message:msg})});
+    loadDuelMessages(duelId);
+  }catch(e){}
+}
+
+function startDuelResultPoll(row,role){
+  clearDuelPoll();
+  _duelPollTimer=setInterval(async()=>{
+    try{
+      const fresh=await fetchDuel(row.id);
+      if(!fresh)return;
+      const oppLeft=role==="creator"?fresh.opponent_left:fresh.creator_left;
+      if(oppLeft){
+        clearDuelPoll();
+        const banner=document.getElementById("duel-system-banner");
+        const oppName=role==="creator"?fresh.opponent_username:fresh.creator_username;
+        if(banner)banner.innerHTML=`<div style="text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.6rem;font-size:12px;color:var(--text-muted);margin-bottom:.75rem">${escapeHtml(oppName)} salió del duelo</div>`;
+        return;
+      }
+      if(fresh.status==="voting"){clearDuelPoll();saveDuelLocal(fresh.id,role);routeDuelState(fresh,role);return;}
+      loadDuelMessages(row.id);
+    }catch(e){}
+  },1500);
+}
+
+async function requestDuelRematch(row,role){
+  try{
+    await sb("/rest/v1/duels?id=eq."+row.id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({
+      status:"voting",creator_vote_rounds:null,creator_vote_difficulty:null,
+      opponent_vote_rounds:null,opponent_vote_difficulty:null,roulette_winner:null,
+      rounds:null,attempts_max:null,dish_indices:null,start_at:null,
+      creator_rounds:[],opponent_rounds:[]
+    })});
+    saveDuelLocal(row.id,role);
+    const fresh=await fetchDuel(row.id);
+    routeDuelState(fresh,role);
+  }catch(e){}
+}
+
+async function exitDuel(row,role){
+  const field=role==="creator"?{creator_left:true}:{opponent_left:true};
+  try{await sb("/rest/v1/duels?id=eq."+row.id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify(field)});}catch(e){}
+  clearDuelPoll();clearDuelLocal();duel=null;renderDuelHome();
 }
 
 (()=>{
