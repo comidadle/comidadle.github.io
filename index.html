@@ -2165,8 +2165,10 @@ function renderDuelHome(){
         <input id="duel-code-input" placeholder="Pega aquí el código del duelo" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.55rem .7rem;font-size:12px;color:var(--text)">
         <button class="ranking-btn primary" id="duel-join-btn">Unirme</button>
       </div>
+      <button class="ranking-btn" id="duel-history-btn" style="width:100%;margin-top:1rem">📜 Historial de duelos</button>
     </div>`;
   document.getElementById("duel-create-btn").onclick=createDuel;
+  document.getElementById("duel-history-btn").onclick=openDuelHistory;
   document.getElementById("duel-join-btn").onclick=()=>{
     const v=document.getElementById("duel-code-input").value.trim();
     if(!v)return;
@@ -2734,12 +2736,73 @@ async function exitDuel(row,role){
   clearDuelPoll();clearDuelLocal();duel=null;renderDuelHome();
 }
 
+// ── Duel History ─────────────────────────────────────────────────────────────
+async function openDuelHistory(){
+  clearDuelPoll();
+  const el=document.getElementById("duel-content");if(!el)return;
+  el.innerHTML='<div class="ranking-empty">Cargando historial...</div>';
+  const myName=myUser||"Anónimo";
+  try{
+    const rows=await sb("/rest/v1/duels?status=eq.finished&or=(creator_username.eq."+encodeURIComponent(myName)+",opponent_username.eq."+encodeURIComponent(myName)+")&select=*");
+    const stats={}; // {opponentName:{wins,losses,draws}}
+    let totalWins=0,totalLosses=0,totalDraws=0;
+    (rows||[]).forEach(row=>{
+      if(row.creator_username!==myName&&row.opponent_username!==myName)return; // safety: skip rows I'm not part of
+      const role=row.creator_username===myName?"creator":"opponent";
+      const myArr=role==="creator"?row.creator_rounds:row.opponent_rounds;
+      const oppArr=role==="creator"?row.opponent_rounds:row.creator_rounds;
+      const oppName=role==="creator"?row.opponent_username:row.creator_username;
+      if(!myArr||!myArr.length)return; // skip incomplete/abandoned rematches
+      const myTotal=sumRounds(myArr),oppTotal=sumRounds(oppArr);
+      const cmp=compareDuelTotals(myTotal,oppTotal);
+      if(!stats[oppName])stats[oppName]={wins:0,losses:0,draws:0};
+      if(cmp<0){stats[oppName].wins++;totalWins++;}
+      else if(cmp>0){stats[oppName].losses++;totalLosses++;}
+      else{stats[oppName].draws++;totalDraws++;}
+    });
+    const opponents=Object.keys(stats).sort((a,b)=>(stats[b].wins+stats[b].losses+stats[b].draws)-(stats[a].wins+stats[a].losses+stats[a].draws));
+    el.innerHTML=`
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:1rem">
+        <button class="modal-close" id="duel-history-back" style="position:static">←</button>
+        <div style="font-size:14px;font-weight:700;color:var(--text)">📜 Historial de duelos</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1.25rem">
+        <div style="background:var(--surface2);border:1px solid var(--green);border-radius:var(--r-sm);padding:.7rem;text-align:center">
+          <div style="font-size:18px;font-weight:900;color:var(--green)">${totalWins}</div>
+          <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase">Ganados</div>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--red,#ef4444);border-radius:var(--r-sm);padding:.7rem;text-align:center">
+          <div style="font-size:18px;font-weight:900;color:var(--red,#ef4444)">${totalLosses}</div>
+          <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase">Perdidos</div>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.7rem;text-align:center">
+          <div style="font-size:18px;font-weight:900;color:var(--text-muted)">${totalDraws}</div>
+          <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase">Empates</div>
+        </div>
+      </div>
+      ${opponents.length?opponents.map(name=>{
+        const s=stats[name];
+        return `<div style="display:flex;align-items:center;gap:8px;padding:.6rem .75rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:.4rem">
+          <span style="flex:1;font-size:13px;font-weight:600;color:var(--text)">${escapeHtml(name)}</span>
+          <span style="font-size:12px;color:var(--green);font-weight:700">${s.wins}G</span>
+          <span style="font-size:12px;color:var(--red,#ef4444);font-weight:700">${s.losses}P</span>
+          <span style="font-size:12px;color:var(--text-muted);font-weight:700">${s.draws}E</span>
+        </div>`;
+      }).join(""):'<div class="ranking-empty">Todavía no has terminado ningún duelo</div>'}
+    `;
+    document.getElementById("duel-history-back").onclick=renderDuelHome;
+  }catch(e){
+    el.innerHTML='<div class="ranking-empty">Error cargando el historial 😔</div>';
+  }
+}
+
 (()=>{
   const s=document.getElementById("splash"),t=document.getElementById("splash-title"),sub=document.getElementById("splash-sub");
   if(!s)return;
   requestAnimationFrame(()=>setTimeout(()=>{if(t){t.style.opacity="1";t.style.transform="translateY(0)";}if(sub){sub.style.opacity="1";sub.style.transform="translateY(0)";}},100));
   setTimeout(()=>{s.style.animation="splashFadeOut .5s ease forwards";setTimeout(()=>s.style.display="none",500);},1600);
 })();
+
 
 // Logo tap to open admin login (5 taps)
 let _logoTaps=0,_logoTimer=null;
