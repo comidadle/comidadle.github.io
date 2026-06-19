@@ -2685,7 +2685,7 @@ function startDuelResultPoll(row,role){
       const fresh=await fetchDuel(row.id);
       if(!fresh)return;
       const oppLeft=role==="creator"?fresh.opponent_left:fresh.creator_left;
-      if(oppLeft){clearDuelPoll();return;}
+      if(oppLeft){clearDuelPoll();loadDuelMessages(row.id);return;}
       if(fresh.creator_rematch||fresh.opponent_rematch)updateRematchBtn(fresh,role);
       if(fresh.creator_rematch&&fresh.opponent_rematch){clearDuelPoll();saveDuelLocal(fresh.id,role);routeDuelState(fresh,role);return;}
       if(fresh.status==="voting"){clearDuelPoll();saveDuelLocal(fresh.id,role);routeDuelState(fresh,role);return;}
