@@ -1258,6 +1258,7 @@ function handleGuess(c,btn){
     // Show result box with confetti (animate=false so it doesn't call recordAttempt again)
     setTimeout(()=>{launchConfetti();playWin();hapticWin();},300);
     showResultBox(true,earnedXP);
+    renderAll();
   }
   else{playWrong();hapticWrong();log.push(false);wrong.add(c);btn.disabled=true;btn.classList.add("shake");setTimeout(()=>btn.classList.remove("shake"),400);if(log.length>=MAX){
       done=true;saveState();
@@ -1273,6 +1274,7 @@ function handleGuess(c,btn){
       setTimeout(()=>{playLose();hapticLose();},300);
       renderTabs();
       showResultBox(false,0);
+      renderAll();
     }else{saveState();renderAll();}}
 }
 function startCountdown(){
@@ -2143,10 +2145,12 @@ function duelShareLink(id){return location.origin+location.pathname+"?duel="+id;
 
 async function openDuelModal(){
   openModal("duel-modal");
-  clearDuelPoll();
+  clearDuelPoll();clearGroupPoll();
   const params=new URLSearchParams(location.search);
   const urlDuelId=params.get("duel");
-  if(urlDuelId){history.replaceState(null,"",location.pathname);await joinOrResumeDuel(urlDuelId);return;}
+  if(urlDuelId){history.replaceState(null,"",location.pathname);await routeIncomingDuelId(urlDuelId);return;}
+  const localGroup=loadGroupLocal();
+  if(localGroup){await resumeGroupById(localGroup.id);return;}
   const local=loadDuelLocal();
   if(local){await resumeDuelById(local.id,local.role);return;}
   renderDuelHome();
@@ -2165,15 +2169,17 @@ function renderDuelHome(){
         <input id="duel-code-input" placeholder="Pega aquí el código del duelo" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.55rem .7rem;font-size:12px;color:var(--text)">
         <button class="ranking-btn primary" id="duel-join-btn">Unirme</button>
       </div>
-      <button class="ranking-btn" id="duel-history-btn" style="width:100%;margin-top:1rem">📜 Historial de duelos</button>
+      <button class="ranking-btn" id="grp-mode-entry-btn" style="width:100%;margin-top:.6rem">👥 Partida grupal (2v2, 3v3, 4v4, todos contra todos)</button>
+      <button class="ranking-btn" id="duel-history-btn" style="width:100%;margin-top:.6rem">📜 Historial de duelos</button>
     </div>`;
   document.getElementById("duel-create-btn").onclick=createDuel;
+  document.getElementById("grp-mode-entry-btn").onclick=renderGroupModeSelect;
   document.getElementById("duel-history-btn").onclick=openDuelHistory;
   document.getElementById("duel-join-btn").onclick=()=>{
     const v=document.getElementById("duel-code-input").value.trim();
     if(!v)return;
     const id=v.includes("duel=")?v.split("duel=")[1].split("&")[0]:v;
-    joinOrResumeDuel(id);
+    routeIncomingDuelId(id);
   };
 }
 
@@ -2747,6 +2753,7 @@ async function openDuelHistory(){
     const stats={}; // {opponentName:{wins,losses,draws}}
     let totalWins=0,totalLosses=0,totalDraws=0;
     (rows||[]).forEach(row=>{
+      if(row.mode&&row.mode!=="1v1")return; // 1v1 section only
       if(row.creator_username!==myName&&row.opponent_username!==myName)return; // safety: skip rows I'm not part of
       const role=row.creator_username===myName?"creator":"opponent";
       const myArr=role==="creator"?row.creator_rounds:row.opponent_rounds;
@@ -2761,11 +2768,67 @@ async function openDuelHistory(){
       else{stats[oppName].draws++;totalDraws++;}
     });
     const opponents=Object.keys(stats).sort((a,b)=>(stats[b].wins+stats[b].losses+stats[b].draws)-(stats[a].wins+stats[a].losses+stats[a].draws));
+
+    // ── Group mode aggregation (2v2 / 3v3 / 4v4 / ffa) ──────────────────────
+    const groupStats={"2v2":{w:0,l:0,d:0},"3v3":{w:0,l:0,d:0},"4v4":{w:0,l:0,d:0},"ffa":{played:0,first:0,totalRank:0}};
+    let groupHtml="";
+    try{
+      const myRows=await sb("/rest/v1/duel_players?username=eq."+encodeURIComponent(myName)+"&select=duel_id");
+      const ids=[...new Set((myRows||[]).map(r=>r.duel_id))];
+      if(ids.length){
+        const groupDuels=await sb("/rest/v1/duels?id=in.("+ids.join(",")+")&mode=neq.1v1&status=eq.finished&select=*");
+        const validIds=(groupDuels||[]).map(d=>d.id);
+        if(validIds.length){
+          const allParticipants=await sb("/rest/v1/duel_players?duel_id=in.("+validIds.join(",")+")&select=*");
+          const byDuel={};
+          (allParticipants||[]).forEach(p=>{if(!byDuel[p.duel_id])byDuel[p.duel_id]=[];byDuel[p.duel_id].push(p);});
+          (groupDuels||[]).forEach(gd=>{
+            const parts=byDuel[gd.id]||[];
+            const me=parts.find(p=>p.username===myName);
+            if(!me||!me.rounds||!me.rounds.length)return;
+            if(gd.mode==="ffa"){
+              const ranked=parts.map(p=>({username:p.username,total:sumRounds(p.rounds||[])})).sort((a,b)=>compareDuelTotals(a.total,b.total));
+              const myRank=ranked.findIndex(p=>p.username===myName);
+              if(myRank<0)return;
+              groupStats.ffa.played++;groupStats.ffa.totalRank+=myRank+1;
+              if(myRank===0)groupStats.ffa.first++;
+            }else if(groupStats[gd.mode]){
+              const teamA=sumRounds(parts.filter(p=>p.team==="A").flatMap(p=>p.rounds||[]));
+              const teamB=sumRounds(parts.filter(p=>p.team==="B").flatMap(p=>p.rounds||[]));
+              const cmp=compareDuelTotals(teamA,teamB);
+              const cmpForMe=me.team==="A"?cmp:-cmp;
+              if(cmpForMe<0)groupStats[gd.mode].w++;
+              else if(cmpForMe>0)groupStats[gd.mode].l++;
+              else groupStats[gd.mode].d++;
+            }
+          });
+        }
+      }
+    }catch(e){}
+    const teamModeRows=["2v2","3v3","4v4"].filter(m=>groupStats[m].w+groupStats[m].l+groupStats[m].d>0).map(m=>{
+      const s=groupStats[m];
+      return `<div style="display:flex;align-items:center;gap:8px;padding:.6rem .75rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:.4rem">
+        <span style="flex:1;font-size:13px;font-weight:600;color:var(--text)">${m}</span>
+        <span style="font-size:12px;color:var(--green);font-weight:700">${s.w}G</span>
+        <span style="font-size:12px;color:var(--red,#ef4444);font-weight:700">${s.l}P</span>
+        <span style="font-size:12px;color:var(--text-muted);font-weight:700">${s.d}E</span>
+      </div>`;
+    }).join("");
+    const ffaRow=groupStats.ffa.played>0?`<div style="display:flex;align-items:center;gap:8px;padding:.6rem .75rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:.4rem">
+        <span style="flex:1;font-size:13px;font-weight:600;color:var(--text)">🎯 Todos contra todos</span>
+        <span style="font-size:12px;color:var(--gold);font-weight:700">${groupStats.ffa.first} 🥇</span>
+        <span style="font-size:12px;color:var(--text-muted)">${groupStats.ffa.played} jugadas · puesto medio ${(groupStats.ffa.totalRank/groupStats.ffa.played).toFixed(1)}</span>
+      </div>`:"";
+    if(teamModeRows||ffaRow){
+      groupHtml=`<div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase;margin:1.25rem 0 .5rem">👥 Partidas grupales</div>${teamModeRows}${ffaRow}`;
+    }
+
     el.innerHTML=`
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:1rem">
         <button class="modal-close" id="duel-history-back" style="position:static">←</button>
         <div style="font-size:14px;font-weight:700;color:var(--text)">📜 Historial de duelos</div>
       </div>
+      <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.5rem">⚔️ 1v1</div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1.25rem">
         <div style="background:var(--surface2);border:1px solid var(--green);border-radius:var(--r-sm);padding:.7rem;text-align:center">
           <div style="font-size:18px;font-weight:900;color:var(--green)">${totalWins}</div>
@@ -2788,12 +2851,619 @@ async function openDuelHistory(){
           <span style="font-size:12px;color:var(--red,#ef4444);font-weight:700">${s.losses}P</span>
           <span style="font-size:12px;color:var(--text-muted);font-weight:700">${s.draws}E</span>
         </div>`;
-      }).join(""):'<div class="ranking-empty">Todavía no has terminado ningún duelo</div>'}
+      }).join(""):'<div class="ranking-empty">Todavía no has terminado ningún duelo 1v1</div>'}
+      ${groupHtml}
     `;
     document.getElementById("duel-history-back").onclick=renderDuelHome;
   }catch(e){
     el.innerHTML='<div class="ranking-empty">Error cargando el historial 😔</div>';
   }
+}
+
+
+// ═══ GROUP MODE (2v2 / 3v3 / 4v4 / Todos contra todos) ═══
+const GROUP_KEY="comidadle_group_active";
+const GROUP_MODES={"2v2":4,"3v3":6,"4v4":8};
+let _groupPollTimer=null;
+let grp=null; // active round-play state, mirrors `duel` but for group mode
+
+function clearGroupPoll(){if(_groupPollTimer){clearInterval(_groupPollTimer);_groupPollTimer=null;}}
+function loadGroupLocal(){try{return JSON.parse(localStorage.getItem(GROUP_KEY));}catch(e){return null;}}
+function saveGroupLocal(id){localStorage.setItem(GROUP_KEY,JSON.stringify({id}));}
+function clearGroupLocal(){localStorage.removeItem(GROUP_KEY);}
+function startGroupPoll(id,fn){
+  clearGroupPoll();
+  _groupPollTimer=setInterval(async()=>{try{const row=await fetchDuel(id);if(row)fn(row);}catch(e){}},2000);
+}
+
+async function fetchGroupPlayers(id){
+  const rows=await sb("/rest/v1/duel_players?duel_id=eq."+id+"&select=*&order=joined_at.asc");
+  return rows||[];
+}
+
+// ── Router: given a duel id, figure out if it's 1v1 or group, dispatch ────────
+async function routeIncomingDuelId(id){
+  const el=document.getElementById("duel-content");
+  if(el)el.innerHTML='<div class="ranking-empty">Cargando...</div>';
+  try{
+    const row=await fetchDuel(id);
+    if(!row){if(el)el.innerHTML='<div class="ranking-empty">Esta partida ya no existe 😔</div>';return;}
+    if(row.mode&&row.mode!=="1v1"){await joinOrResumeGroup(row);}
+    else{await joinOrResumeDuel(id);}
+  }catch(e){
+    if(el)el.innerHTML='<div class="ranking-empty">Error cargando la partida 😔</div>';
+  }
+}
+
+// ── Home entry: pick mode ────────────────────────────────────────────────────
+function renderGroupModeSelect(){
+  clearGroupPoll();
+  const el=document.getElementById("duel-content");if(!el)return;
+  el.innerHTML=`
+    <div style="padding:.5rem 0">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:1rem">
+        <button class="modal-close" id="grp-back" style="position:static">←</button>
+        <div style="font-size:14px;font-weight:700;color:var(--text)">👥 Partida grupal</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.6rem">
+        <button class="ranking-btn grp-mode-btn" data-m="2v2" style="padding:.9rem">⚔️<br>2v2</button>
+        <button class="ranking-btn grp-mode-btn" data-m="3v3" style="padding:.9rem">⚔️<br>3v3</button>
+        <button class="ranking-btn grp-mode-btn" data-m="4v4" style="padding:.9rem">⚔️<br>4v4</button>
+        <button class="ranking-btn grp-mode-btn" data-m="ffa" style="padding:.9rem">🎯<br>Todos contra todos</button>
+      </div>
+    </div>`;
+  document.getElementById("grp-back").onclick=renderDuelHome;
+  document.querySelectorAll(".grp-mode-btn").forEach(b=>b.onclick=()=>{
+    const m=b.dataset.m;
+    if(m==="ffa")renderFFACountPicker();
+    else createGroupLobby(m,GROUP_MODES[m]);
+  });
+}
+
+function renderFFACountPicker(){
+  const el=document.getElementById("duel-content");if(!el)return;
+  let n=4;
+  el.innerHTML=`
+    <div style="text-align:center;padding:.5rem 0">
+      <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:1rem">¿Cuántos jugadores?</div>
+      <div id="ffa-count-opts" style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:1.25rem">
+        ${[3,4,5,6,7,8].map(v=>`<button class="ranking-btn ffa-opt" data-v="${v}" style="width:42px">${v}</button>`).join("")}
+      </div>
+      <button class="play-btn" id="ffa-confirm-btn">Crear sala</button>
+    </div>`;
+  const mark=()=>document.querySelectorAll(".ffa-opt").forEach(b=>{
+    const a=b.dataset.v===String(n);b.classList.toggle("primary",a);b.style.background=a?"var(--accent)":"";b.style.color=a?"#fff":"";
+  });
+  mark();
+  document.querySelectorAll(".ffa-opt").forEach(b=>b.onclick=()=>{n=parseInt(b.dataset.v);mark();});
+  document.getElementById("ffa-confirm-btn").onclick=()=>createGroupLobby("ffa",n);
+}
+
+async function createGroupLobby(mode,maxPlayers){
+  const el=document.getElementById("duel-content");
+  el.innerHTML='<div class="ranking-empty">Creando sala...</div>';
+  try{
+    const name=myUser||"Anónimo";
+    const rows=await sb("/rest/v1/duels",{method:"POST",headers:{...SH,"Prefer":"return=representation"},body:JSON.stringify({creator_username:name,mode,max_players:maxPlayers,status:"lobby"})});
+    const row=rows&&rows[0];
+    if(!row)throw new Error("Supabase no devolvió la fila creada");
+    await sb("/rest/v1/duel_players",{method:"POST",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({duel_id:row.id,username:name,team:mode==="ffa"?null:"A"})});
+    saveGroupLocal(row.id);
+    const players=await fetchGroupPlayers(row.id);
+    renderGroupLobby(row,players);
+  }catch(e){
+    console.error("createGroupLobby error:",e);
+    el.innerHTML='<div class="ranking-empty">Error creando la sala 😔<br><span style="font-size:10px;opacity:.7">'+String(e&&e.message||e).slice(0,200)+'</span></div>';
+  }
+}
+
+async function joinOrResumeGroup(row){
+  const el=document.getElementById("duel-content");if(!el)return;
+  const name=myUser||"Anónimo";
+  const players=await fetchGroupPlayers(row.id);
+  const mine=players.find(p=>p.username===name);
+  if(mine){saveGroupLocal(row.id);routeGroupState(row,players);return;}
+  if(row.status!=="lobby"){el.innerHTML='<div class="ranking-empty">Esta partida ya empezó, no puedes unirte 😔</div>';return;}
+  if(players.length>=row.max_players){el.innerHTML='<div class="ranking-empty">La sala ya está llena 😔</div>';return;}
+  if(row.mode==="ffa"){
+    el.innerHTML=`
+      <div style="text-align:center;padding:1rem 0">
+        <div style="font-size:40px;margin-bottom:.5rem">🎯</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:1rem">Te han invitado a una partida de ${players.length}/${row.max_players}</div>
+        <button class="play-btn" id="grp-join-confirm">Unirme</button>
+      </div>`;
+    document.getElementById("grp-join-confirm").onclick=async()=>{
+      try{
+        await sb("/rest/v1/duel_players",{method:"POST",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({duel_id:row.id,username:name,team:null})});
+        saveGroupLocal(row.id);
+        const fresh=await fetchGroupPlayers(row.id);
+        renderGroupLobby(row,fresh);
+      }catch(e){el.innerHTML='<div class="ranking-empty">Error al unirte 😔</div>';}
+    };
+    return;
+  }
+  // Team mode: let them pick A or B
+  const countA=players.filter(p=>p.team==="A").length,countB=players.filter(p=>p.team==="B").length;
+  const half=row.max_players/2;
+  el.innerHTML=`
+    <div style="text-align:center;padding:1rem 0">
+      <div style="font-size:40px;margin-bottom:.5rem">⚔️</div>
+      <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:1rem">Elige tu equipo</div>
+      <div style="display:flex;gap:8px">
+        <button class="play-btn" id="grp-join-a" ${countA>=half?"disabled":""} style="flex:1;${countA>=half?'opacity:.4':''}">Equipo A (${countA}/${half})</button>
+        <button class="play-btn" id="grp-join-b" ${countB>=half?"disabled":""} style="flex:1;background:var(--surface2);color:var(--text);${countB>=half?'opacity:.4':''}">Equipo B (${countB}/${half})</button>
+      </div>
+    </div>`;
+  const joinTeam=async(team)=>{
+    try{
+      await sb("/rest/v1/duel_players",{method:"POST",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({duel_id:row.id,username:name,team})});
+      saveGroupLocal(row.id);
+      const fresh=await fetchGroupPlayers(row.id);
+      renderGroupLobby(row,fresh);
+    }catch(e){el.innerHTML='<div class="ranking-empty">Error al unirte 😔</div>';}
+  };
+  document.getElementById("grp-join-a").onclick=()=>joinTeam("A");
+  document.getElementById("grp-join-b").onclick=()=>joinTeam("B");
+}
+
+async function resumeGroupById(id){
+  const el=document.getElementById("duel-content");
+  el.innerHTML='<div class="ranking-empty">Cargando...</div>';
+  try{
+    const row=await fetchDuel(id);
+    if(!row){clearGroupLocal();renderDuelHome();return;}
+    const players=await fetchGroupPlayers(id);
+    routeGroupState(row,players);
+  }catch(e){el.innerHTML='<div class="ranking-empty">Error cargando la partida 😔</div>';}
+}
+
+function routeGroupState(row,players){
+  clearGroupPoll();
+  if(row.status==="lobby"){renderGroupLobby(row,players);return;}
+  if(row.status==="voting"){renderGroupVoting(row,players);return;}
+  if(row.status==="roulette"){renderGroupRoulette(row,players);return;}
+  if(row.status==="active"){routeGroupActive(row,players);return;}
+  if(row.status==="finished"){renderGroupFinalResult(row,players);return;}
+  renderDuelHome();
+}
+
+// ── Lobby screen ──────────────────────────────────────────────────────────────
+function renderGroupLobby(row,players){
+  const el=document.getElementById("duel-content");if(!el)return;
+  const name=myUser||"Anónimo";
+  const isCreator=row.creator_username===name;
+  const isTeam=row.mode!=="ffa";
+  const half=isTeam?row.max_players/2:null;
+  const teamA=players.filter(p=>p.team==="A"),teamB=players.filter(p=>p.team==="B");
+  const canStart=isTeam?(teamA.length===half&&teamB.length===half&&half>0):(players.length>=2);
+  const playerListHtml=isTeam
+    ?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem">
+        <div><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;margin-bottom:.4rem">Equipo A (${teamA.length}/${half})</div>${teamA.map(p=>`<div style="font-size:12px;padding:.35rem .5rem;background:var(--surface2);border-radius:6px;margin-bottom:3px;color:var(--text)">${escapeHtml(p.username)}</div>`).join("")}</div>
+        <div><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;margin-bottom:.4rem">Equipo B (${teamB.length}/${half})</div>${teamB.map(p=>`<div style="font-size:12px;padding:.35rem .5rem;background:var(--surface2);border-radius:6px;margin-bottom:3px;color:var(--text)">${escapeHtml(p.username)}</div>`).join("")}</div>
+      </div>`
+    :`<div style="margin-bottom:1rem">${players.map(p=>`<div style="font-size:12px;padding:.4rem .6rem;background:var(--surface2);border-radius:6px;margin-bottom:4px;color:var(--text)">${escapeHtml(p.username)}</div>`).join("")}</div>`;
+  el.innerHTML=`
+    <div style="text-align:center;margin-bottom:.75rem">
+      <div style="font-size:36px">⏳</div>
+      <div style="font-size:13px;color:var(--text-muted)">${row.mode==="ffa"?players.length+"/"+row.max_players+" jugadores":"Esperando jugadores..."}</div>
+    </div>
+    ${playerListHtml}
+    <div style="display:flex;gap:6px;margin-bottom:.75rem">
+      <input readonly value="${duelShareLink(row.id)}" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.5rem .6rem;font-size:11px;color:var(--text)">
+      <button class="ranking-btn primary" id="grp-copy-link">Copiar</button>
+    </div>
+    ${isCreator?`<button class="play-btn" id="grp-start-btn" ${canStart?"":"disabled"} style="${canStart?'':'opacity:.4'}">▶️ Empezar partida</button>${!canStart?`<div style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:.4rem">${isTeam?"Los equipos deben estar completos y balanceados":"Se necesitan al menos 2 jugadores"}</div>`:""}`:`<div style="text-align:center;font-size:12px;color:var(--text-muted)">Esperando a que el anfitrión empiece la partida...</div>`}
+    <button class="play-btn" id="grp-leave-btn" style="margin-top:.5rem;background:transparent;color:var(--text-muted);border:1px solid var(--border)">Salir de la sala</button>
+  `;
+  const cl=document.getElementById("grp-copy-link");
+  if(cl)cl.onclick=()=>{if(navigator.clipboard)navigator.clipboard.writeText(duelShareLink(row.id)).then(()=>{cl.textContent="¡Copiado! ✓";}).catch(()=>{});};
+  const sb_=document.getElementById("grp-start-btn");
+  if(sb_)sb_.onclick=async()=>{
+    try{await sb("/rest/v1/duels?id=eq."+row.id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({status:"voting"})});
+      clearGroupPoll();const fresh=await fetchDuel(row.id);const fp=await fetchGroupPlayers(row.id);routeGroupState(fresh,fp);
+    }catch(e){}
+  };
+  document.getElementById("grp-leave-btn").onclick=async()=>{
+    try{await sb("/rest/v1/duel_players?duel_id=eq."+row.id+"&username=eq."+encodeURIComponent(name),{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({left:true})});}catch(e){}
+    clearGroupPoll();clearGroupLocal();grp=null;renderDuelHome();
+  };
+  startGroupPoll(row.id,async(fresh)=>{
+    if(fresh.status!=="lobby"){clearGroupPoll();const fp=await fetchGroupPlayers(row.id);routeGroupState(fresh,fp);return;}
+    const fp=await fetchGroupPlayers(row.id);
+    renderGroupLobby(fresh,fp);
+  });
+}
+
+// ── Voting ────────────────────────────────────────────────────────────────────
+function renderGroupVoting(row,players){
+  clearGroupPoll();
+  const el=document.getElementById("duel-content");if(!el)return;
+  const name=myUser||"Anónimo";
+  const active=players.filter(p=>!p.left);
+  const me=active.find(p=>p.username===name);
+  if(!me){clearGroupLocal();renderDuelHome();return;}
+  if(me.vote_rounds){
+    const votedCount=active.filter(p=>p.vote_rounds).length;
+    el.innerHTML=`
+      <div style="text-align:center;padding:1rem 0">
+        <div style="font-size:36px;margin-bottom:.5rem">🗳️</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:.5rem">Voto enviado</div>
+        <div style="font-size:12px;color:var(--text-muted)">${votedCount}/${active.length} han votado</div>
+      </div>`;
+    startGroupPoll(row.id,async(fresh)=>{
+      const fp=await fetchGroupPlayers(row.id);
+      const act=fp.filter(p=>!p.left);
+      if(act.every(p=>p.vote_rounds)){clearGroupPoll();await resolveGroupVotes(fresh,fp);}
+      else{renderGroupVoting(fresh,fp);}
+    });
+    return;
+  }
+  let selRounds=3,selDiff="Normal";
+  el.innerHTML=`
+    <div style="padding:.5rem 0">
+      <div style="text-align:center;font-size:14px;font-weight:700;color:var(--text);margin-bottom:1rem">Elige rondas y dificultad</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:.5rem">Rondas</div>
+      <div style="display:flex;gap:8px;margin-bottom:1rem">${[1,3,5].map(n=>`<button class="ranking-btn grp-opt-rounds" data-v="${n}" style="flex:1">${n}</button>`).join("")}</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:.5rem">Dificultad</div>
+      <div style="display:flex;gap:8px;margin-bottom:1.25rem">${Object.keys(DUEL_DIFFICULTIES).map(d=>`<button class="ranking-btn grp-opt-diff" data-v="${d}" style="flex:1">${d}</button>`).join("")}</div>
+      <button class="play-btn" id="grp-vote-confirm">Confirmar voto</button>
+    </div>`;
+  const markSelected=(sel,val)=>document.querySelectorAll(sel).forEach(b=>{const a=b.dataset.v===String(val);b.style.background=a?"var(--accent)":"";b.style.color=a?"#fff":"";});
+  markSelected(".grp-opt-rounds",selRounds);markSelected(".grp-opt-diff",selDiff);
+  document.querySelectorAll(".grp-opt-rounds").forEach(b=>b.onclick=()=>{selRounds=parseInt(b.dataset.v);markSelected(".grp-opt-rounds",selRounds);});
+  document.querySelectorAll(".grp-opt-diff").forEach(b=>b.onclick=()=>{selDiff=b.dataset.v;markSelected(".grp-opt-diff",selDiff);});
+  document.getElementById("grp-vote-confirm").onclick=async()=>{
+    el.innerHTML='<div class="ranking-empty">Enviando voto...</div>';
+    try{
+      await sb("/rest/v1/duel_players?duel_id=eq."+row.id+"&username=eq."+encodeURIComponent(name),{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({vote_rounds:selRounds,vote_difficulty:selDiff})});
+      const fp=await fetchGroupPlayers(row.id);
+      const act=fp.filter(p=>!p.left);
+      if(act.every(p=>p.vote_rounds)){await resolveGroupVotes(row,fp);}else{renderGroupVoting(row,fp);}
+    }catch(e){el.innerHTML='<div class="ranking-empty">Error enviando el voto 😔</div>';}
+  };
+}
+
+function groupVoteGroups(players){
+  const active=players.filter(p=>!p.left);
+  const map={};
+  active.forEach(p=>{
+    const key=p.vote_rounds+"|"+p.vote_difficulty;
+    if(!map[key])map[key]={rounds:p.vote_rounds,difficulty:p.vote_difficulty,usernames:[]};
+    map[key].usernames.push(p.username);
+  });
+  return Object.keys(map).sort().map(k=>map[k]);
+}
+
+async function resolveGroupVotes(row,players){
+  const name=myUser||"Anónimo";
+  if(row.creator_username!==name){
+    startGroupPoll(row.id,async(fresh)=>{
+      if(fresh.status!=="voting"){clearGroupPoll();const fp=await fetchGroupPlayers(row.id);routeGroupState(fresh,fp);}
+    });
+    return;
+  }
+  const groups=groupVoteGroups(players);
+  if(groups.length===1){
+    const g=groups[0];
+    const attempts_max=DUEL_DIFFICULTIES[g.difficulty]||4;
+    const dish_indices=pickDishIndices(g.rounds);
+    const start_at=new Date(Date.now()+3000).toISOString();
+    try{
+      await sb("/rest/v1/duels?id=eq."+row.id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({rounds:g.rounds,attempts_max,dish_indices,start_at,status:"active"})});
+      const fresh=await fetchDuel(row.id);const fp=await fetchGroupPlayers(row.id);
+      routeGroupState(fresh,fp);
+    }catch(e){document.getElementById("duel-content").innerHTML='<div class="ranking-empty">Error iniciando la partida 😔</div>';}
+  }else{
+    // weighted random pick: one ticket per active player
+    const active=players.filter(p=>!p.left);
+    const winnerUsername=active[Math.floor(Math.random()*active.length)].username;
+    const winnerPlayer=active.find(p=>p.username===winnerUsername);
+    const attempts_max=DUEL_DIFFICULTIES[winnerPlayer.vote_difficulty]||4;
+    const dish_indices=pickDishIndices(winnerPlayer.vote_rounds);
+    try{
+      await sb("/rest/v1/duels?id=eq."+row.id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({roulette_winner:winnerUsername,rounds:winnerPlayer.vote_rounds,attempts_max,dish_indices,status:"roulette"})});
+      const fresh=await fetchDuel(row.id);const fp=await fetchGroupPlayers(row.id);
+      routeGroupState(fresh,fp);
+    }catch(e){document.getElementById("duel-content").innerHTML='<div class="ranking-empty">Error en la ruleta 😔</div>';}
+  }
+}
+
+// ── Roulette (weighted, multi-segment) ─────────────────────────────────────────
+function renderGroupRoulette(row,players){
+  const el=document.getElementById("duel-content");if(!el)return;
+  const name=myUser||"Anónimo";
+  const groups=groupVoteGroups(players);
+  const total=players.filter(p=>!p.left).length;
+  let cum=0;
+  const stops=groups.map((g,i)=>{
+    const startDeg=cum/total*360;cum+=g.usernames.length;const endDeg=cum/total*360;
+    return {g,startDeg,endDeg,color:i%2===0?"var(--accent)":"var(--gold)"};
+  });
+  const gradient=stops.map(s=>`${s.color} ${s.startDeg}deg ${s.endDeg}deg`).join(", ");
+  const winnerUsername=row.roulette_winner;
+  const winnerStop=stops.find(s=>s.g.usernames.includes(winnerUsername));
+  const winnerMid=winnerStop?(winnerStop.startDeg+winnerStop.endDeg)/2:0;
+  const winnerIsMe=winnerUsername===name;
+  el.innerHTML=`
+    <div style="text-align:center;padding:1.5rem 0">
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:1rem">Los votos no coincidieron, ¡que decida la suerte!</div>
+      <div id="grp-roulette-wheel" style="width:130px;height:130px;margin:0 auto 1.25rem;border-radius:50%;background:conic-gradient(${gradient});position:relative;transition:transform 2.2s cubic-bezier(.17,.67,.21,1.02)">
+        <div style="position:absolute;top:50%;left:50%;width:14px;height:14px;background:var(--surface);border-radius:50%;transform:translate(-50%,-50%)"></div>
+      </div>
+      <div id="grp-roulette-result" style="font-size:13px;font-weight:700;color:var(--text);min-height:20px"></div>
+    </div>`;
+  const wheel=document.getElementById("grp-roulette-wheel");
+  const spins=4*360;
+  requestAnimationFrame(()=>{wheel.style.transform=`rotate(${spins+winnerMid}deg)`;});
+  setTimeout(()=>{
+    document.getElementById("grp-roulette-result").textContent=(winnerIsMe?"¡Ganaste la ruleta! ":"")+`Se usará: ${row.rounds} rondas`;
+  },2300);
+  setTimeout(async()=>{
+    if(row.creator_username===name){
+      const start_at=new Date(Date.now()+3000).toISOString();
+      try{await sb("/rest/v1/duels?id=eq."+row.id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({start_at,status:"active"})});}catch(e){}
+    }
+    startGroupPoll(row.id,async(fresh)=>{
+      if(fresh.status==="active"){clearGroupPoll();const fp=await fetchGroupPlayers(row.id);routeGroupState(fresh,fp);}
+    });
+  },2600);
+}
+
+// ── Active / countdown / play ───────────────────────────────────────────────
+function routeGroupActive(row,players){
+  const name=myUser||"Anónimo";
+  const me=players.find(p=>p.username===name);
+  if(!me){clearGroupLocal();renderDuelHome();return;}
+  const active=players.filter(p=>!p.left);
+  const myRoundsArr=me.rounds||[];
+  const currentRoundIdx=myRoundsArr.length;
+  if(currentRoundIdx>=row.rounds){
+    const allDone=active.every(p=>(p.rounds||[]).length>=row.rounds);
+    if(allDone){finalizeGroupIfNeeded(row,players);}
+    else{renderGroupWaitingRound(row,players,true);}
+    return;
+  }
+  const remaining=new Date(row.start_at).getTime()-Date.now();
+  if(remaining>0){renderGroupCountdown(row,players,remaining,currentRoundIdx);}
+  else{
+    grp={id:row.id,attempts_max:row.attempts_max,dish_indices:row.dish_indices,roundIdx:currentRoundIdx,startedAt:Date.now(),log:[],wrong:new Set(),done:false,attempts:0,timeMs:0,won:false,rounds:row.rounds};
+    renderGroupPlay();
+  }
+}
+
+function renderGroupCountdown(row,players,remainingMs,roundIdx){
+  const el=document.getElementById("duel-content");if(!el)return;
+  el.innerHTML=`
+    <div style="text-align:center;padding:2rem 0">
+      <div style="font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.75rem">Ronda ${roundIdx+1} de ${row.rounds}</div>
+      <div id="grp-countdown-num" style="font-size:64px;font-weight:900;font-family:'Fraunces',serif;color:var(--accent)">${Math.ceil(remainingMs/1000)}</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:.5rem">¡Prepárate!</div>
+    </div>`;
+  const tick=()=>{
+    const rem=new Date(row.start_at).getTime()-Date.now();
+    const numEl=document.getElementById("grp-countdown-num");
+    if(rem<=0){
+      clearInterval(timer);
+      grp={id:row.id,attempts_max:row.attempts_max,dish_indices:row.dish_indices,roundIdx,startedAt:Date.now(),log:[],wrong:new Set(),done:false,attempts:0,timeMs:0,won:false,rounds:row.rounds};
+      renderGroupPlay();return;
+    }
+    if(numEl)numEl.textContent=Math.ceil(rem/1000);
+  };
+  const timer=setInterval(tick,200);
+}
+
+function renderGroupPlay(){
+  const el=document.getElementById("duel-content");if(!el)return;
+  const d=ALL_DISHES[grp.dish_indices[grp.roundIdx]];
+  const opts=shuffleWithSeed([d.country,...d.dist],grp.id.length+grp.roundIdx);
+  const n=Math.min(grp.log.length+1,d.hints.length);
+  const hints=Array.from({length:n},(_,i)=>`<div class="hint"><strong>Pista ${i+1}</strong> — ${d.hints[i]}</div>`).join("");
+  el.innerHTML=`
+    <div style="text-align:center;margin-bottom:.5rem">
+      <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em">👥 Ronda ${grp.roundIdx+1}/${grp.rounds} · Intento ${grp.log.length+1}/${grp.attempts_max}</div>
+    </div>
+    <div style="text-align:center;font-size:48px;margin-bottom:.5rem">${d.emoji}</div>
+    <div style="text-align:center;font-size:17px;font-weight:700;color:var(--text);margin-bottom:.75rem">${d.name}</div>
+    <div id="grp-hints" style="margin-bottom:.875rem">${hints}</div>
+    <div id="grp-grid" class="country-grid"></div>
+  `;
+  const gridEl=document.getElementById("grp-grid");
+  opts.forEach(country=>{
+    const btn=document.createElement("button");
+    btn.className="country-btn";
+    btn.innerHTML=`<span>${getFlag(country)}</span><span>${country}</span>`;
+    if(grp.wrong.has(country))btn.disabled=true;
+    btn.onclick=()=>handleGroupGuess(country,d,btn);
+    gridEl.appendChild(btn);
+  });
+}
+
+async function handleGroupGuess(country,d,btn){
+  if(grp.done)return;
+  if(country===d.country){
+    playCorrect();hapticCorrect();
+    grp.log.push(true);grp.done=true;grp.won=true;
+    grp.attempts=grp.log.length;grp.timeMs=Date.now()-grp.startedAt;
+    setTimeout(()=>{launchConfetti();playWin();hapticWin();},150);
+    await submitGroupRound();
+  }else{
+    playWrong();hapticWrong();
+    grp.log.push(false);grp.wrong.add(country);btn.disabled=true;btn.classList.add("shake");
+    setTimeout(()=>btn.classList.remove("shake"),400);
+    if(grp.log.length>=grp.attempts_max){
+      grp.done=true;grp.won=false;
+      grp.attempts=grp.attempts_max;grp.timeMs=Date.now()-grp.startedAt;
+      setTimeout(()=>{playLose();hapticLose();},150);
+      await submitGroupRound();
+    }else{renderGroupPlay();}
+  }
+}
+
+async function submitGroupRound(){
+  const el=document.getElementById("duel-content");
+  el.innerHTML='<div class="ranking-empty">Guardando resultado...</div>';
+  const name=myUser||"Anónimo";
+  try{
+    const players=await fetchGroupPlayers(grp.id);
+    const me=players.find(p=>p.username===name);
+    const arr=(me.rounds||[]).slice();
+    arr.push({attempts:grp.attempts,timeMs:grp.timeMs,won:grp.won});
+    await sb("/rest/v1/duel_players?duel_id=eq."+grp.id+"&username=eq."+encodeURIComponent(name),{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({rounds:arr})});
+    const row=await fetchDuel(grp.id);const fresh=await fetchGroupPlayers(grp.id);
+    await advanceGroupIfReady(row,fresh);
+  }catch(e){el.innerHTML='<div class="ranking-empty">Error guardando el resultado 😔</div>';}
+}
+
+async function advanceGroupIfReady(row,players){
+  const active=players.filter(p=>!p.left);
+  const minRoundsLen=Math.min(...active.map(p=>(p.rounds||[]).length));
+  const allReachedThisRound=active.every(p=>(p.rounds||[]).length>=minRoundsLen);
+  if(!allReachedThisRound||minRoundsLen===0){renderGroupWaitingRound(row,players,false);return;}
+  if(minRoundsLen>=row.rounds){
+    await finalizeGroupIfNeeded(row,players);
+  }else{
+    const stillPast=!row.start_at||new Date(row.start_at).getTime()<=Date.now();
+    if(stillPast){
+      const start_at=new Date(Date.now()+3000).toISOString();
+      try{await sb("/rest/v1/duels?id=eq."+row.id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({start_at})});}catch(e){}
+    }
+    const fresh=await fetchDuel(row.id);
+    routeGroupActive(fresh,players);
+  }
+}
+
+function renderGroupWaitingRound(row,players,allMineDone){
+  const el=document.getElementById("duel-content");if(!el)return;
+  el.innerHTML=`
+    <div style="text-align:center;padding:1.5rem 0">
+      <div style="font-size:36px;margin-bottom:.5rem">⏳</div>
+      <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:.5rem">${allMineDone?"Esperando a que terminen los demás...":"Esperando a tus rivales en esta ronda..."}</div>
+      <div style="font-size:12px;color:var(--text-muted)">Se avanza automáticamente</div>
+    </div>`;
+  startGroupPoll(row.id,async(fresh)=>{
+    const fp=await fetchGroupPlayers(row.id);
+    await advanceGroupIfReady(fresh,fp);
+  });
+}
+
+async function finalizeGroupIfNeeded(row,players){
+  if(row.status==="finished"){renderGroupFinalResult(row,players);return;}
+  try{await sb("/rest/v1/duels?id=eq."+row.id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({status:"finished"})});}catch(e){}
+  const fresh=await fetchDuel(row.id);const fp=await fetchGroupPlayers(row.id);
+  clearGroupLocal();
+  renderGroupFinalResult(fresh,fp);
+}
+
+// ── Final result: team totals or FFA ranking ──────────────────────────────────
+function renderGroupFinalResult(row,players){
+  clearGroupPoll();clearGroupLocal();
+  const el=document.getElementById("duel-content");if(!el)return;
+  const name=myUser||"Anónimo";
+  let bodyHtml="";
+  if(row.mode==="ffa"){
+    const ranked=players.map(p=>({username:p.username,total:sumRounds(p.rounds||[]),left:p.left})).sort((a,b)=>compareDuelTotals(a.total,b.total));
+    bodyHtml=ranked.map((p,i)=>{
+      const medal=i===0?"🥇":i===1?"🥈":i===2?"🥉":(i+1)+"º";
+      const mine=p.username===name;
+      return `<div style="display:flex;align-items:center;gap:8px;padding:.6rem .75rem;background:var(--surface2);border:1px solid ${mine?'var(--accent)':'var(--border)'};border-radius:var(--r-sm);margin-bottom:.35rem">
+        <span style="font-size:14px;width:28px">${medal}</span>
+        <span style="flex:1;font-size:13px;font-weight:600;color:var(--text)">${escapeHtml(p.username)}${mine?" (tú)":""}${p.left?" 🚪":""}</span>
+        <span style="font-size:12px;color:var(--text-muted)">${p.total.attempts}i · ${fmtDuelTime(p.total.timeMs)}</span>
+      </div>`;
+    }).join("");
+  }else{
+    const teamATotal=sumRounds(players.filter(p=>p.team==="A").flatMap(p=>p.rounds||[]));
+    const teamBTotal=sumRounds(players.filter(p=>p.team==="B").flatMap(p=>p.rounds||[]));
+    const cmp=compareDuelTotals(teamATotal,teamBTotal);
+    const myTeam=(players.find(p=>p.username===name)||{}).team;
+    const cmpForMe=myTeam==="A"?cmp:-cmp;
+    const label=cmpForMe<0?"🏆 ¡Tu equipo ganó!":cmpForMe>0?"😔 Tu equipo perdió":"🤝 Empate entre equipos";
+    const color=cmpForMe<0?"var(--green)":cmpForMe>0?"var(--red,#ef4444)":"var(--text-muted)";
+    bodyHtml=`
+      <div style="text-align:center;font-size:18px;font-weight:900;font-family:'Fraunces',serif;color:${color};margin-bottom:1rem">${label}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="background:var(--surface2);border:1px solid ${cmp<0?'var(--green)':'var(--border)'};border-radius:var(--r-sm);padding:.8rem">
+          <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:.4rem;text-align:center">Equipo A</div>
+          ${players.filter(p=>p.team==="A").map(p=>`<div style="font-size:11px;color:var(--text-muted)">${escapeHtml(p.username)}${p.username===name?" (tú)":""}</div>`).join("")}
+          <div style="font-size:12px;color:var(--text);margin-top:.4rem;text-align:center">${teamATotal.attempts}i · ${fmtDuelTime(teamATotal.timeMs)}</div>
+        </div>
+        <div style="background:var(--surface2);border:1px solid ${cmp>0?'var(--green)':'var(--border)'};border-radius:var(--r-sm);padding:.8rem">
+          <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:.4rem;text-align:center">Equipo B</div>
+          ${players.filter(p=>p.team==="B").map(p=>`<div style="font-size:11px;color:var(--text-muted)">${escapeHtml(p.username)}${p.username===name?" (tú)":""}</div>`).join("")}
+          <div style="font-size:12px;color:var(--text);margin-top:.4rem;text-align:center">${teamBTotal.attempts}i · ${fmtDuelTime(teamBTotal.timeMs)}</div>
+        </div>
+      </div>`;
+  }
+  const me=players.find(p=>p.username===name);
+  const activeCount=players.filter(p=>!p.left).length;
+  const rematchCount=players.filter(p=>!p.left&&p.rematch).length;
+  el.innerHTML=`
+    ${bodyHtml}
+    <div style="display:flex;gap:8px;margin:1rem 0">
+      <button class="play-btn" id="grp-rematch-btn" style="flex:1" ${me&&me.rematch?"disabled":""}>🔄 Revancha <span style="font-size:11px;opacity:.7">${rematchCount>0?rematchCount+"/"+activeCount:""}</span></button>
+      <button class="play-btn" id="grp-exit-btn" style="flex:1;background:var(--surface2);color:var(--text)">🚪 Salir</button>
+    </div>
+    <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.5rem">💬 Chat</div>
+    <div id="duel-chat-list" style="max-height:160px;overflow-y:auto;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.6rem;margin-bottom:.6rem;display:flex;flex-direction:column;gap:.4rem"></div>
+    <div style="display:flex;gap:6px">
+      <input id="duel-chat-input" placeholder="Escribe un mensaje..." maxlength="200" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.5rem .65rem;font-size:13px;color:var(--text)">
+      <button class="ranking-btn primary" id="duel-chat-send">Enviar</button>
+    </div>
+  `;
+  document.getElementById("grp-rematch-btn").onclick=()=>requestGroupRematch(row,players);
+  document.getElementById("grp-exit-btn").onclick=()=>exitGroup(row,players);
+  document.getElementById("duel-chat-send").onclick=()=>sendDuelMessage(row.id,name);
+  document.getElementById("duel-chat-input").addEventListener("keydown",e=>{if(e.key==="Enter")sendDuelMessage(row.id,name);});
+  loadDuelMessages(row.id);
+  startGroupResultPoll(row,players);
+}
+
+function startGroupResultPoll(row,players){
+  clearGroupPoll();
+  _groupPollTimer=setInterval(async()=>{
+    try{
+      const fresh=await fetchDuel(row.id);if(!fresh)return;
+      const fp=await fetchGroupPlayers(row.id);
+      const active=fp.filter(p=>!p.left);
+      const rematchCount=active.filter(p=>p.rematch).length;
+      const voteEl=document.querySelector("#grp-rematch-btn span");
+      if(voteEl)voteEl.textContent=rematchCount>0?rematchCount+"/"+active.length:"";
+      if(active.length>0&&active.every(p=>p.rematch)){clearGroupPoll();return;} // handled by requestGroupRematch's own flow
+      if(fresh.status==="voting"){clearGroupPoll();saveGroupLocal(fresh.id);routeGroupState(fresh,fp);return;}
+      loadDuelMessages(row.id);
+    }catch(e){}
+  },1500);
+}
+
+async function requestGroupRematch(row,players){
+  const name=myUser||"Anónimo";
+  try{
+    await sb("/rest/v1/duel_players?duel_id=eq."+row.id+"&username=eq."+encodeURIComponent(name),{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({rematch:true})});
+    const fp=await fetchGroupPlayers(row.id);
+    const active=fp.filter(p=>!p.left);
+    const voteEl=document.querySelector("#grp-rematch-btn span");
+    if(voteEl)voteEl.textContent=active.filter(p=>p.rematch).length+"/"+active.length;
+    const btn=document.getElementById("grp-rematch-btn");if(btn)btn.disabled=true;
+    if(active.length>0&&active.every(p=>p.rematch)){
+      await sb("/rest/v1/duels?id=eq."+row.id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({status:"voting",rounds:null,attempts_max:null,dish_indices:null,start_at:null,roulette_winner:null})});
+      for(const p of active){
+        await sb("/rest/v1/duel_players?duel_id=eq."+row.id+"&username=eq."+encodeURIComponent(p.username),{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({vote_rounds:null,vote_difficulty:null,rounds:[],rematch:false})});
+      }
+      saveGroupLocal(row.id);
+      clearGroupPoll();
+      const fresh=await fetchDuel(row.id);const fp2=await fetchGroupPlayers(row.id);
+      routeGroupState(fresh,fp2);
+    }
+  }catch(e){}
+}
+
+async function exitGroup(row,players){
+  const name=myUser||"Anónimo";
+  try{
+    await sb("/rest/v1/duel_players?duel_id=eq."+row.id+"&username=eq."+encodeURIComponent(name),{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({left:true})});
+    await sb("/rest/v1/duel_messages",{method:"POST",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({duel_id:row.id,sender_username:"🔔 Sistema",message:name+" salió de la partida"})});
+  }catch(e){}
+  clearGroupPoll();clearGroupLocal();grp=null;renderDuelHome();
 }
 
 (()=>{
