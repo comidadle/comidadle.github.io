@@ -474,6 +474,8 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
     <div class="side-menu-label">📊 Yo</div>
     <button class="side-menu-item" id="sm-stats"><div class="side-menu-item-icon">📈</div><div><div class="side-menu-item-name">Mis Estadísticas</div><div class="side-menu-item-desc">Tu racha, victorias y gráfica de intentos</div></div></button>
     <button class="side-menu-item" id="sm-weekly-summary"><div class="side-menu-item-icon">📅</div><div><div class="side-menu-item-name">Resumen Semanal</div><div class="side-menu-item-desc">Cómo te fue la semana pasada</div></div></button>
+    <button class="side-menu-item" id="sm-achievements"><div class="side-menu-item-icon">🏅</div><div><div class="side-menu-item-name">Logros</div><div class="side-menu-item-desc">Medallas e hitos desbloqueados</div></div></button>
+    <button class="side-menu-item" id="sm-missions"><div class="side-menu-item-icon">🎯</div><div><div class="side-menu-item-name">Misiones Diarias</div><div class="side-menu-item-desc">3 retos nuevos cada día</div></div></button>
   </div>
   <div class="side-menu-section">
     <div class="side-menu-label">🌍 Comunidad</div>
@@ -593,6 +595,22 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
   </div>
 </div>
 
+<div class="modal-overlay hidden" id="achievements-modal">
+  <div class="modal" style="max-height:90vh;overflow-y:auto">
+    <button class="modal-close" id="achievements-close">✕</button>
+    <div class="modal-title">🏅 Logros</div>
+    <div id="achievements-content"><div class="ranking-empty">Cargando...</div></div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="missions-modal">
+  <div class="modal" style="max-height:90vh;overflow-y:auto">
+    <button class="modal-close" id="missions-close">✕</button>
+    <div class="modal-title">🎯 Misiones Diarias</div>
+    <div id="missions-content"><div class="ranking-empty">Cargando...</div></div>
+  </div>
+</div>
+
 <div class="modal-overlay hidden" id="weekly-summary-modal">
   <div class="modal" style="max-height:90vh;overflow-y:auto">
     <button class="modal-close" id="weekly-summary-close">✕</button>
@@ -686,7 +704,7 @@ async function upsertRanking(){
   }
 }
 async function fetchRanking(){return await sb("/rest/v1/ranking?select=*&order=best_streak.desc&limit=50");}
-function syncRanking(){if(!myUser||isBanned)return;upsertRanking().catch(()=>{});}
+function syncRanking(){if(!myUser||isBanned)return Promise.resolve();return upsertRanking().catch(()=>{});}
 
 async function deleteFromRanking(){
   if(!myUser)return;
@@ -1259,6 +1277,7 @@ function handleGuess(c,btn){
     setTimeout(()=>{launchConfetti();playWin();hapticWin();},300);
     showResultBox(true,earnedXP);
     renderAll();
+    bumpMission("play_1");bumpMission("win_1");bumpMission("win_2");if(log.length<=2)bumpMission("win_fast");bumpMission("keep_streak");checkAchievements();
   }
   else{playWrong();hapticWrong();log.push(false);wrong.add(c);btn.disabled=true;btn.classList.add("shake");setTimeout(()=>btn.classList.remove("shake"),400);if(log.length>=MAX){
       done=true;saveState();
@@ -1275,6 +1294,7 @@ function handleGuess(c,btn){
       renderTabs();
       showResultBox(false,0);
       renderAll();
+      bumpMission("play_1");checkAchievements();
     }else{saveState();renderAll();}}
 }
 function startCountdown(){
@@ -1352,7 +1372,7 @@ function loadInfinite(d){
     const hints=!cfg.noHints?Array.from({length:n},(_,i)=>`<div class="hint"><strong>Pista ${i+1}</strong> — ${d.hints[i]}</div>`).join(""):"";
     const grid=opts.map(c=>`<button class="country-btn${iDone&&c===d.country?" correct-answer":""}" ${iDone||iWrong.has(c)?"disabled":""} data-c="${c}"><span>${getFlag(c)}</span><span>${c}</span></button>`).join("");
     sec.innerHTML=`<div class="infinite-section"><div class="infinite-header"><div class="infinite-title">♾️ Modo Infinito</div><div class="infinite-score">Aciertos: <span>${iWins}/${iTotal}</span></div></div><div class="dish-card" style="margin-bottom:.875rem"><span class="dish-emoji">${d.emoji}</span><div class="dish-name">${masked}</div>${!cfg.noDesc?`<div class="dish-desc">${d.desc}</div>`:""}</div><div class="dots" style="margin-bottom:.875rem">${dots}</div>${hints?`<div class="hints" style="margin-bottom:.875rem">${hints}</div>`:""}<div class="country-grid">${grid}</div>${iDone?`<button class="infinite-btn" id="inf-next">Siguiente plato ➜</button>`:""}`;
-    sec.querySelectorAll(".country-btn:not([disabled])").forEach(btn=>{btn.onclick=()=>{const c=btn.dataset.c;if(c===d.country){playCorrect();iLog.push(true);iWins++;iTotal++;iDone=true;ri();setTimeout(()=>{launchConfetti();playWin();hapticWin();},300);}else{playWrong();iLog.push(false);iWrong.add(c);if(iLog.length>=MAX){iTotal++;iDone=true;ri();setTimeout(()=>playLose(),400);}else ri();}};});
+    sec.querySelectorAll(".country-btn:not([disabled])").forEach(btn=>{btn.onclick=()=>{const c=btn.dataset.c;if(c===d.country){playCorrect();iLog.push(true);iWins++;iTotal++;iDone=true;ri();setTimeout(()=>{launchConfetti();playWin();hapticWin();},300);bumpMission("play_infinite_2");}else{playWrong();iLog.push(false);iWrong.add(c);if(iLog.length>=MAX){iTotal++;iDone=true;ri();setTimeout(()=>playLose(),400);bumpMission("play_infinite_2");}else ri();}};});
     const nb=document.getElementById("inf-next");if(nb)nb.onclick=()=>{const pool=ALL_DISHES.filter(x=>x.name!==d.name);loadInfinite(pool[Math.random()*pool.length|0]);};
   }ri();
 }
@@ -2061,13 +2081,15 @@ onC("duel-close",()=>closeModal("duel-modal"));
 onC("sm-duel",()=>{openDuelModal();closeSideMenu();});
 ["how-modal","cfg-modal","share-modal","stats-modal","ranking-modal","weekly-modal","profile-modal","owner-modal","reviews-modal","ann-modal","suggestions-modal","about-modal","duel-modal","rules-modal","infinite-modal","player-modal","shop-modal"].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener("click",e=>{if(e.target.id===id)closeModal(id);});});
 onC("menu-open-btn",openSideMenu);onC("side-menu-close",closeSideMenu);onC("side-overlay",closeSideMenu);onC("sm-weekly-summary",openWeeklySummary);onC("weekly-summary-close",()=>closeModal("weekly-summary-modal"));
+onC("sm-achievements",()=>{openModal("achievements-modal");closeSideMenu();openAchievements();});onC("achievements-close",()=>closeModal("achievements-modal"));
+onC("sm-missions",()=>{openModal("missions-modal");closeSideMenu();openMissions();});onC("missions-close",()=>closeModal("missions-modal"));
 onC("sm-stats",()=>{closeSideMenu();openStats();});
 onC("sm-ranking",()=>{closeSideMenu();openRanking();});
 onC("sm-weekly",()=>{closeSideMenu();openWeekly();});
 onC("sm-reviews",()=>{closeSideMenu();openReviews();});
 onC("sm-suggestions",()=>{closeSideMenu();openSuggestionsModal();});
 onC("sm-about",()=>{closeSideMenu();openModal("about-modal");});
-onC("copy-btn",()=>{document.getElementById("share-textarea").select();const cb=document.getElementById("copy-btn");if(navigator.clipboard)navigator.clipboard.writeText(shareText).then(()=>{cb.textContent="¡Copiado! ✓";cb.classList.add("copied");}).catch(()=>{try{document.execCommand("copy");}catch(e){}cb.textContent="¡Copiado! ✓";cb.classList.add("copied");});else{try{document.execCommand("copy");}catch(e){}cb.textContent="¡Copiado! ✓";cb.classList.add("copied");}});
+onC("copy-btn",()=>{document.getElementById("share-textarea").select();const cb=document.getElementById("copy-btn");bumpMission("share_1");if(navigator.clipboard)navigator.clipboard.writeText(shareText).then(()=>{cb.textContent="¡Copiado! ✓";cb.classList.add("copied");}).catch(()=>{try{document.execCommand("copy");}catch(e){}cb.textContent="¡Copiado! ✓";cb.classList.add("copied");});else{try{document.execCommand("copy");}catch(e){}cb.textContent="¡Copiado! ✓";cb.classList.add("copied");}});
 
 
 // ═══ WEEKLY SUMMARY ═══
@@ -2602,6 +2624,14 @@ function fmtDuelTime(ms){if(ms===null||ms===undefined)return"—";return(ms/1000
 
 function escapeHtml(s){const d=document.createElement("div");d.textContent=s;return d.innerHTML;}
 
+function markDuelCountedOnce(id){
+  let arr=[];try{arr=JSON.parse(localStorage.getItem("comidadle_counted_duels")||"[]");}catch(e){}
+  if(arr.includes(id))return false;
+  arr.push(id);if(arr.length>200)arr=arr.slice(-200);
+  localStorage.setItem("comidadle_counted_duels",JSON.stringify(arr));
+  return true;
+}
+
 function renderDuelFinalResult(row,role){
   clearDuelPoll();clearDuelLocal();
   const el=document.getElementById("duel-content");if(!el)return;
@@ -2611,6 +2641,15 @@ function renderDuelFinalResult(row,role){
   const oppName=role==="creator"?row.opponent_username:row.creator_username;
   const myTotal=sumRounds(myArr),oppTotal=sumRounds(oppArr);
   const cmp=compareDuelTotals(myTotal,oppTotal);
+  if(markDuelCountedOnce(row.id)){
+    bumpMission("play_duel");
+    if(cmp<0){
+      bumpMission("win_duel");
+      const n=parseInt(localStorage.getItem("comidadle_duel_wins_1v1")||"0")+1;
+      localStorage.setItem("comidadle_duel_wins_1v1",String(n));
+    }
+    checkAchievements();
+  }
   const label=cmp<0?"🏆 ¡Ganaste el duelo!":cmp>0?"😔 Perdiste el duelo":"🤝 Empate";
   const color=cmp<0?"var(--green)":cmp>0?"var(--red,#ef4444)":"var(--text-muted)";
   const roundRows=(myArr||[]).map((r,i)=>{
@@ -3360,6 +3399,30 @@ function renderGroupFinalResult(row,players){
   const el=document.getElementById("duel-content");if(!el)return;
   const name=myUser||"Anónimo";
   let bodyHtml="";
+  if(markDuelCountedOnce(row.id+":grp")){
+    bumpMission("play_duel");
+    if(row.mode==="ffa"){
+      const ranked0=players.map(p=>({username:p.username,total:sumRounds(p.rounds||[])})).sort((a,b)=>compareDuelTotals(a.total,b.total));
+      const myRank=ranked0.findIndex(p=>p.username===name);
+      if(myRank===0){
+        bumpMission("win_duel");
+        const n=parseInt(localStorage.getItem("comidadle_ffa_firsts")||"0")+1;
+        localStorage.setItem("comidadle_ffa_firsts",String(n));
+      }
+    }else{
+      const teamATotal0=sumRounds(players.filter(p=>p.team==="A").flatMap(p=>p.rounds||[]));
+      const teamBTotal0=sumRounds(players.filter(p=>p.team==="B").flatMap(p=>p.rounds||[]));
+      const cmp0=compareDuelTotals(teamATotal0,teamBTotal0);
+      const myTeam0=(players.find(p=>p.username===name)||{}).team;
+      const cmpForMe0=myTeam0==="A"?cmp0:-cmp0;
+      if(cmpForMe0<0){
+        bumpMission("win_duel");
+        const n=parseInt(localStorage.getItem("comidadle_duel_wins_team")||"0")+1;
+        localStorage.setItem("comidadle_duel_wins_team",String(n));
+      }
+    }
+    checkAchievements();
+  }
   if(row.mode==="ffa"){
     const ranked=players.map(p=>({username:p.username,total:sumRounds(p.rounds||[]),left:p.left})).sort((a,b)=>compareDuelTotals(a.total,b.total));
     bodyHtml=ranked.map((p,i)=>{
@@ -3464,6 +3527,135 @@ async function exitGroup(row,players){
     await sb("/rest/v1/duel_messages",{method:"POST",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({duel_id:row.id,sender_username:"🔔 Sistema",message:name+" salió de la partida"})});
   }catch(e){}
   clearGroupPoll();clearGroupLocal();grp=null;renderDuelHome();
+}
+
+
+// ═══ ACHIEVEMENTS ═══
+const ACH_KEY="comidadle_achievements";
+const ACH_LIST=[
+  {id:"first_play",icon:"🍽️",cat:"Progreso",name:"Primer plato",desc:"Juega tu primera partida",check:()=>streak.played>=1},
+  {id:"play_50",icon:"🍽️",cat:"Progreso",name:"Comensal",desc:"Juega 50 platos",check:()=>streak.played>=50},
+  {id:"play_200",icon:"🍽️",cat:"Progreso",name:"Gourmet",desc:"Juega 200 platos",check:()=>streak.played>=200},
+  {id:"streak_7",icon:"🔥",cat:"Rachas",name:"Una semana fuerte",desc:"Racha de 7 días",check:()=>streak.best>=7},
+  {id:"streak_30",icon:"🔥",cat:"Rachas",name:"Imparable",desc:"Racha de 30 días",check:()=>streak.best>=30},
+  {id:"streak_100",icon:"🔥",cat:"Rachas",name:"Leyenda",desc:"Racha de 100 días",check:()=>streak.best>=100},
+  {id:"first_try_1",icon:"🎯",cat:"Precisión",name:"Ojo de águila",desc:"Acierta a la primera",check:()=>(getAttempts()[1]||0)>=1},
+  {id:"first_try_10",icon:"🎯",cat:"Precisión",name:"Francotirador",desc:"Acierta a la primera 10 veces",check:()=>(getAttempts()[1]||0)>=10},
+  {id:"first_try_50",icon:"🎯",cat:"Precisión",name:"Sexto sentido",desc:"Acierta a la primera 50 veces",check:()=>(getAttempts()[1]||0)>=50},
+  {id:"xp_500",icon:"⭐",cat:"Progreso",name:"Coleccionista",desc:"Alcanza 500 XP totales",check:()=>totalXP>=500},
+  {id:"xp_2000",icon:"⭐",cat:"Progreso",name:"Magnate",desc:"Alcanza 2000 XP totales",check:()=>totalXP>=2000},
+  {id:"duel_first_win",icon:"⚔️",cat:"Duelos",name:"Primera sangre",desc:"Gana tu primer duelo 1v1",check:()=>(parseInt(localStorage.getItem("comidadle_duel_wins_1v1")||"0"))>=1},
+  {id:"duel_10_wins",icon:"⚔️",cat:"Duelos",name:"Veterano",desc:"Gana 10 duelos 1v1",check:()=>(parseInt(localStorage.getItem("comidadle_duel_wins_1v1")||"0"))>=10},
+  {id:"team_first_win",icon:"🤝",cat:"Duelos",name:"Trabajo en equipo",desc:"Gana tu primer 2v2, 3v3 o 4v4",check:()=>(parseInt(localStorage.getItem("comidadle_duel_wins_team")||"0"))>=1},
+  {id:"ffa_first",icon:"🥇",cat:"Duelos",name:"Triunfador",desc:"Queda 1º en Todos contra todos",check:()=>(parseInt(localStorage.getItem("comidadle_ffa_firsts")||"0"))>=1},
+  {id:"ffa_5_firsts",icon:"🥇",cat:"Duelos",name:"Dominante",desc:"Queda 1º en FFA 5 veces",check:()=>(parseInt(localStorage.getItem("comidadle_ffa_firsts")||"0"))>=5},
+];
+function loadAchievements(){try{return JSON.parse(localStorage.getItem(ACH_KEY)||"[]");}catch(e){return[];}}
+function saveAchievements(arr){localStorage.setItem(ACH_KEY,JSON.stringify(arr));}
+function checkAchievements(){
+  const unlocked=loadAchievements();
+  let newly=[];
+  ACH_LIST.forEach(a=>{
+    if(unlocked.includes(a.id))return;
+    try{if(a.check()){unlocked.push(a.id);newly.push(a);}}catch(e){}
+  });
+  if(newly.length){
+    saveAchievements(unlocked);
+    newly.forEach(a=>{
+      addXP(25);
+      const t=document.createElement("div");
+      t.style.cssText="position:fixed;top:18%;left:50%;transform:translateX(-50%);background:var(--surface);border:2px solid var(--gold);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;padding:.75rem 1.25rem;border-radius:14px;z-index:9999;pointer-events:none;animation:toastUp 3s ease forwards;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.4)";
+      t.innerHTML=`<div style="font-size:28px">${a.icon}</div><div style="font-size:13px;font-weight:700;color:var(--gold);margin-top:2px">¡Logro desbloqueado!</div><div style="font-size:13px;color:var(--text)">${a.name} · +25 XP</div>`;
+      document.body.appendChild(t);
+      setTimeout(()=>t.remove(),3000);
+    });
+    localStorage.setItem(XPK,String(totalXP));
+    syncRanking().catch(()=>{});
+  }
+}
+async function openAchievements(){
+  const el=document.getElementById("achievements-content");if(!el)return;
+  checkAchievements();
+  const unlocked=loadAchievements();
+  const cats=[...new Set(ACH_LIST.map(a=>a.cat))];
+  el.innerHTML=`
+    <div style="text-align:center;font-size:13px;color:var(--text-muted);margin-bottom:1.25rem">${unlocked.length}/${ACH_LIST.length} desbloqueados</div>
+    ${cats.map(cat=>`
+      <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.5rem">${cat}</div>
+      ${ACH_LIST.filter(a=>a.cat===cat).map(a=>{
+        const got=unlocked.includes(a.id);
+        return `<div style="display:flex;align-items:center;gap:10px;padding:.6rem .75rem;background:var(--surface2);border:1px solid ${got?'var(--gold)':'var(--border)'};border-radius:var(--r-sm);margin-bottom:.4rem;opacity:${got?1:.5}">
+          <span style="font-size:24px">${got?a.icon:"🔒"}</span>
+          <div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--text)">${a.name}</div><div style="font-size:11px;color:var(--text-muted)">${a.desc}</div></div>
+          ${got?'<span style="font-size:14px;color:var(--gold)">✓</span>':""}
+        </div>`;
+      }).join("")}
+    `).join("")}
+  `;
+}
+
+// ═══ DAILY MISSIONS ═══
+const MISSION_KEY="comidadle_daily_missions";
+const MISSION_POOL=[
+  {id:"play_1",desc:"Juega 1 plato hoy",target:1,xp:10},
+  {id:"win_1",desc:"Acierta 1 plato hoy",target:1,xp:15},
+  {id:"win_2",desc:"Acierta 2 platos hoy",target:2,xp:20},
+  {id:"win_fast",desc:"Acierta un plato en 2 intentos o menos",target:1,xp:20},
+  {id:"play_duel",desc:"Juega un duelo hoy (cualquier modo)",target:1,xp:25},
+  {id:"win_duel",desc:"Gana un duelo hoy",target:1,xp:30},
+  {id:"play_infinite_2",desc:"Juega 2 platos en Modo Infinito",target:2,xp:15},
+  {id:"share_1",desc:"Comparte tu resultado",target:1,xp:10},
+  {id:"keep_streak",desc:"Mantén tu racha hoy",target:1,xp:10},
+];
+function getDailyMissions(){
+  let data=null;
+  try{data=JSON.parse(localStorage.getItem(MISSION_KEY));}catch(e){}
+  if(data&&data.date===todayStr)return data;
+  const seed=_year*10007+dayOfYear*131;
+  const picked=shuffleWithSeed(MISSION_POOL.map((m,i)=>i),seed).slice(0,3).map(i=>({...MISSION_POOL[i],progress:0,done:false}));
+  data={date:todayStr,missions:picked};
+  localStorage.setItem(MISSION_KEY,JSON.stringify(data));
+  return data;
+}
+function saveDailyMissions(data){localStorage.setItem(MISSION_KEY,JSON.stringify(data));}
+function bumpMission(id,amount=1){
+  const data=getDailyMissions();
+  const m=data.missions.find(x=>x.id===id);
+  if(!m||m.done)return;
+  m.progress=Math.min(m.target,m.progress+amount);
+  if(m.progress>=m.target){
+    m.done=true;
+    addXP(m.xp);
+    localStorage.setItem(XPK,String(totalXP));
+    syncRanking().catch(()=>{});
+    const t=document.createElement("div");
+    t.style.cssText="position:fixed;bottom:5rem;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;border-radius:12px;padding:.6rem 1.2rem;font-size:13px;font-weight:700;z-index:9999;pointer-events:none;animation:fadeUp .3s ease;text-align:center";
+    t.innerHTML=`🎯 Misión completada<br><span style="font-size:12px;font-weight:400">${m.desc} · +${m.xp} XP</span>`;
+    document.body.appendChild(t);
+    setTimeout(()=>t.remove(),2500);
+  }
+  saveDailyMissions(data);
+}
+function openMissions(){
+  const el=document.getElementById("missions-content");if(!el)return;
+  const data=getDailyMissions();
+  el.innerHTML=`
+    <div style="text-align:center;font-size:12px;color:var(--text-muted);margin-bottom:1.25rem">Se reinician cada día a las 00:00</div>
+    ${data.missions.map(m=>{
+      const pct=Math.round(m.progress/m.target*100);
+      return `<div style="padding:.75rem;background:var(--surface2);border:1px solid ${m.done?'var(--green)':'var(--border)'};border-radius:var(--r-sm);margin-bottom:.6rem">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:.4rem">
+          <span style="font-size:16px">${m.done?"✅":"🎯"}</span>
+          <span style="flex:1;font-size:13px;font-weight:600;color:var(--text)">${m.desc}</span>
+          <span style="font-size:12px;color:var(--gold);font-weight:700">+${m.xp} XP</span>
+        </div>
+        <div style="background:var(--surface);border-radius:99px;height:6px;overflow:hidden">
+          <div style="background:${m.done?'var(--green)':'var(--accent)'};height:100%;width:${pct}%;transition:width .3s"></div>
+        </div>
+        <div style="font-size:10px;color:var(--text-muted);text-align:right;margin-top:2px">${m.progress}/${m.target}</div>
+      </div>`;
+    }).join("")}
+  `;
 }
 
 (()=>{
