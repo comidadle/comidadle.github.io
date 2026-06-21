@@ -802,8 +802,8 @@ function renderProfile(){
 
 // ═══ ANNOUNCEMENTS ═══
 async function fetchAnn(){try{const r=await fetch(SB+"/rest/v1/announcements?active=eq.true&order=created_at.desc&limit=1",{headers:SH});if(!r.ok)return null;const d=await r.json();return d&&d[0]?d[0]:null;}catch(e){return null;}}
-async function postAnn(msg){try{await sb("/rest/v1/announcements?active=eq.true",{method:"DELETE"});}catch(e){}try{await sb("/rest/v1/announcements",{method:"POST",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({message:msg,active:true})});}catch(e){}}
-async function clearAnn(){try{await sb("/rest/v1/announcements?active=eq.true",{method:"PATCH",body:JSON.stringify({active:false})});}catch(e){}}
+async function postAnn(msg){try{await adminAction("post_announcement",{message:msg});}catch(e){}}
+async function clearAnn(){try{await adminAction("clear_announcement",{});}catch(e){}}
 async function fetchReactions(id){try{return await sb("/rest/v1/announcement_reactions?announcement_id=eq."+id+"&select=*");}catch(e){return[];}}
 async function react(annId,reaction){
   const name=myUser||"Anónimo";
@@ -838,14 +838,19 @@ async function showAnnBanner(){
   document.getElementById("ann-preview").onclick=()=>openAnnModal(ann);
 }
 
+// ═══ ADMIN ACTIONS (server-verified, not just client-side gating) ═══
+async function adminAction(action,payload){
+  if(!_ownerSecret)throw new Error("not logged in");
+  const r=await fetch(SB+"/rest/v1/rpc/admin_action",{method:"POST",headers:SH,body:JSON.stringify({p_secret:_ownerSecret,p_action:action,p_payload:payload})});
+  if(!r.ok)throw new Error(await r.text());
+  return r.json().catch(()=>null);
+}
+
 // ═══ BANS ═══
 async function banUser(username,reason){
-  try{await sb("/rest/v1/banned_users",{method:"POST",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({username,reason:reason||"Comportamiento inapropiado"})});}catch(e){}
-  const del=p=>sb(p,{method:"DELETE"}).catch(()=>{});
-  await del("/rest/v1/ranking?username=eq."+encodeURIComponent(username));
-  await del("/rest/v1/weekly_ranking?username=eq."+encodeURIComponent(username));
+  try{await adminAction("ban_user",{username,reason:reason||"Comportamiento inapropiado"});}catch(e){}
 }
-async function unbanUser(username){try{await sb("/rest/v1/banned_users?username=eq."+encodeURIComponent(username),{method:"DELETE"});}catch(e){}}
+async function unbanUser(username){try{await adminAction("unban_user",{username});}catch(e){}}
 async function checkIfBanned(){
   if(!myUser)return;
   try{
@@ -918,7 +923,7 @@ async function renderOwnerPanel(){
     if(!name||amount<=0){msg.style.color="var(--red)";msg.textContent="Pon nombre y cantidad";return;}
     giftBtn.textContent="Enviando...";giftBtn.disabled=true;
     try{
-      await sb("/rest/v1/xp_gifts",{method:"POST",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({username:name,amount,reason:reason||"Regalo del Owner"})});
+      await adminAction("gift_xp",{username:name,amount,reason:reason||"Regalo del Owner"});
       // Send notification to recipient
       await sendNotification(name,"xp_gift","🎁 +"+amount+" XP recibido","El Owner te ha regalado "+amount+" XP"+(reason?" — "+reason:"")+". ¡Sigue jugando!");
       msg.style.color="var(--green)";msg.textContent="✅ +"+amount+" XP enviado a "+name;
@@ -937,13 +942,8 @@ async function renderOwnerPanel(){
     removeBtn.textContent="Quitando...";removeBtn.disabled=true;
     // Store negative gift
     try{
-      await sb("/rest/v1/xp_gifts",{method:"POST",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({username:name,amount:-amount,reason:reason||"Sanción del Owner"})});
+      await adminAction("remove_xp",{username:name,amount,reason:reason||"Sanción del Owner",week:weekKey});
       await sendNotification(name,"system","⚠️ -"+amount+" XP retirado","El Owner te ha retirado "+amount+" XP"+(reason?" — "+reason:"")+".").catch(()=>{});
-      // Also directly reduce weekly ranking points
-      try{
-        const wk=await sb("/rest/v1/weekly_ranking?username=eq."+encodeURIComponent(name)+"&week=eq."+weekKey+"&select=id,points");
-        if(wk&&wk[0]){const newPts=Math.max(0,(wk[0].points||0)-amount);await sb("/rest/v1/weekly_ranking?id=eq."+wk[0].id,{method:"PATCH",body:JSON.stringify({points:newPts,updated_at:new Date().toISOString()})});}
-      }catch(e){}
       msg.style.color="var(--red)";msg.textContent="✅ -"+amount+" XP retirado a "+name;
       document.getElementById("gift-name-inp").value="";document.getElementById("gift-amount-inp").value="";
     }catch(e){msg.style.color="var(--red)";msg.textContent="Error 😔";}
@@ -952,9 +952,9 @@ async function renderOwnerPanel(){
 }
 
 // ═══ REVIEWS ═══
-const RVK="comidadle_reviewed",AK="comidadle_admin",AP="11DEDOSENLOSpies",OK="comidadle_owner",OP="Carmenchuelaa";
-let isAdmin=localStorage.getItem(AK)==="1",isOwner=localStorage.getItem(OK)==="1";
-if(isOwner)isAdmin=true;
+const RVK="comidadle_reviewed",AK="comidadle_admin",OK="comidadle_owner";
+let _ownerSecret=null; // solo en memoria, nunca en localStorage ni hardcodeado
+let isAdmin=false,isOwner=false; // ya no se recuerda entre sesiones — hay que reverificar la contraseña cada vez
 function starsHTML(n){return"⭐".repeat(n)+"☆".repeat(5-n);}
 function timeAgo(d){const m=Math.floor((Date.now()-new Date(d))/60000);if(m<60)return"hace "+m+"min";const h=Math.floor(m/60);if(h<24)return"hace "+h+"h";return"hace "+Math.floor(h/24)+"d";}
 async function openReviews(){openModal("reviews-modal");renderReviews();}
@@ -1013,7 +1013,7 @@ function renderReplies(rid,rc,container){
 
 // ═══ SUGGESTIONS ═══
 async function deleteSuggestion(id){
-  try{await fetch(SB+"/rest/v1/suggestions?id=eq."+id,{method:"DELETE",headers:SH});}catch(e){}
+  try{await adminAction("delete_suggestion",{id});}catch(e){}
   renderOwnerPanel();
 }
 
@@ -2048,12 +2048,24 @@ const onC=(id,fn)=>on(id,"click",fn);
 onC("notif-bell-btn",()=>openNotifications());
 onC("admin-login-close",()=>closeModal("admin-login-modal"));
 document.getElementById("admin-login-modal").addEventListener("click",e=>{if(e.target.id==="admin-login-modal")closeModal("admin-login-modal");});
-onC("admin-login-confirm",()=>{
+onC("admin-login-confirm",async()=>{
   const val=document.getElementById("admin-login-pass").value;
   const msg=document.getElementById("admin-login-msg");
-  if(val===OP){isOwner=true;isAdmin=true;localStorage.setItem(OK,"1");localStorage.setItem(AK,"1");closeModal("admin-login-modal");document.getElementById("owner-float").style.display="block";openOwnerPanel();}
-  else if(val===AP){isAdmin=true;localStorage.setItem(AK,"1");closeModal("admin-login-modal");alert("✅ Modo Admin activado");}
-  else{msg.style.color="var(--red)";msg.textContent="Contraseña incorrecta ❌";document.getElementById("admin-login-pass").value="";}
+  const btn=document.getElementById("admin-login-confirm");
+  btn.disabled=true;msg.style.color="var(--text-muted)";msg.textContent="Comprobando...";
+  try{
+    const r=await fetch(SB+"/rest/v1/rpc/check_owner_passcode",{method:"POST",headers:SH,body:JSON.stringify({p_secret:val})});
+    const valid=await r.json().catch(()=>false);
+    if(valid===true){
+      isOwner=true;isAdmin=true;_ownerSecret=val;
+      closeModal("admin-login-modal");document.getElementById("owner-float").style.display="block";openOwnerPanel();
+    }else{
+      msg.style.color="var(--red)";msg.textContent="Contraseña incorrecta ❌";document.getElementById("admin-login-pass").value="";
+    }
+  }catch(e){
+    msg.style.color="var(--red)";msg.textContent="Error comprobando la contraseña 😔";
+  }
+  btn.disabled=false;
 });
 document.getElementById("admin-login-pass").addEventListener("keydown",e=>{if(e.key==="Enter")document.getElementById("admin-login-confirm").click();});
 onC("notif-close",()=>closeModal("notif-modal"));
@@ -2066,7 +2078,7 @@ onC("ranking-close",()=>closeModal("ranking-modal"));onC("ranking-refresh-btn",a
 onC("weekly-close",()=>closeModal("weekly-modal"));onC("weekly-refresh-btn",async()=>{document.getElementById("weekly-list").innerHTML='<div class="ranking-empty">Cargando...</div>';try{renderWeeklyList(await fetchWeekly());}catch(e){}});
 onC("profile-close",()=>closeModal("profile-modal"));onC("profile-open-btn",()=>{openProfile();});
 onC("owner-minimize",()=>{closeModal("owner-modal");if(isOwner){document.getElementById("owner-float").style.display="block";}});
-onC("owner-logout",()=>{isOwner=false;isAdmin=false;localStorage.removeItem(OK);localStorage.removeItem(AK);closeModal("owner-modal");document.getElementById("owner-float").style.display="none";});
+onC("owner-logout",()=>{isOwner=false;isAdmin=false;_ownerSecret=null;closeModal("owner-modal");document.getElementById("owner-float").style.display="none";});
 onC("owner-float-btn",()=>openOwnerPanel());
 onC("reviews-close",()=>closeModal("reviews-modal"));
 onC("ann-modal-close",()=>closeModal("ann-modal"));
@@ -3687,7 +3699,6 @@ updateMiniAvatar();updateBadge();
 setTimeout(applyLang,100);
 const vEl=document.getElementById("about-version");if(vEl)vEl.textContent=VERSION;renderYesterday();renderTabs();renderAll();
 if(!localStorage.getItem("comidadle_visited")){openModal("how-modal");localStorage.setItem("comidadle_visited","1");}
-if(isOwner){document.getElementById("owner-float").style.display="block";}
 checkStreakExpiry();
 setTimeout(showAnnBanner,2000);setTimeout(checkMissedNotif,500);
 if(new URLSearchParams(location.search).get("duel"))setTimeout(openDuelModal,300);
