@@ -619,7 +619,7 @@ const VERSION="2.2.0";
 
 // ═══ DATA ═══
 function buildBlurRegex(c){const t=[c,...(DEMONYMS[c]||[])];const e=t.map(x=>x.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).sort((a,b)=>b.length-a.length);return new RegExp(e.join("|"),"gi");}
-const FLAGS={México:"🇲🇽",España:"🇪🇸",Argentina:"🇦🇷",Perú:"🇵🇪",Colombia:"🇨🇴",Venezuela:"🇻🇪",Chile:"🇨🇱",Cuba:"🇨🇺","El Salvador":"🇸🇻",Honduras:"🇭🇳","Costa Rica":"🇨🇷",Nicaragua:"🇳🇮",Guatemala:"🇬🇹",Ecuador:"🇪🇨",Bolivia:"🇧🇴",Uruguay:"🇺🇾",Brasil:"🇧🇷","Panamá":"🇵🇦","Rep. Dominicana":"🇩🇴","Puerto Rico":"🇵🇷",Paraguay:"🇵🇾"};
+const FLAGS={México:"🇲🇽",España:"🇪🇸",Argentina:"🇦🇷",Perú:"🇵🇪",Colombia:"🇨🇴",Venezuela:"🇻🇪",Chile:"🇨🇱",Cuba:"🇨🇺","El Salvador":"🇸🇻",Honduras:"🇭🇳","Costa Rica":"🇨🇷",Nicaragua:"🇳🇮",Guatemala:"🇬🇹",Ecuador:"🇪🇨",Bolivia:"🇧🇴",Uruguay:"🇺🇾",Brasil:"🇧🇷","Panamá":"🇵🇦","Rep. Dominicana":"🇩🇴","Puerto Rico":"🇵🇷",Paraguay:"🇵🇾",Italia:"🇮🇹",Portugal:"🇵🇹"};
 const ALL_COUNTRIES=Object.keys(FLAGS);
 function getFlag(c){return FLAGS[c]||"🏳️";}
 function seededRng(seed){let s=seed>>>0;return()=>{s=Math.imul(s^(s>>>15),s|1)^(s^(s>>>7))*(s|61);return((s^(s>>>14))>>>0)/0x100000000;};}
