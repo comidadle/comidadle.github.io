@@ -454,6 +454,8 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
   <div class="header-hard-row" id="header-hard-row">🔥 MODO DIFÍCIL · <span id="hard-multiplier">x1</span></div>
 </header>
 
+<div id="ann-banner-slot"></div>
+
 <div style="max-width:520px;width:100%;margin:0 auto;padding:.5rem 1.25rem 0;position:relative;z-index:1">
   <div style="display:flex;justify-content:space-between;align-items:center">
     <button id="menu-open-btn" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;color:var(--text-muted);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;padding:.25rem 0;transition:color .15s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-muted)'">
@@ -886,7 +888,7 @@ async function openAnnModal(ann){
   const likes=reactions.filter(r=>r.reaction==="like"),dislikes=reactions.filter(r=>r.reaction==="dislike");
   const mine=reactions.find(r=>r.username===(myUser||"Anónimo"));
   document.getElementById("ann-modal-content").innerHTML=`
-    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:1rem;margin-bottom:1rem;font-size:14px;color:var(--text);line-height:1.65">${ann.message}</div>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:1rem;margin-bottom:1rem;font-size:14px;color:var(--text);line-height:1.65">${ann.message.replace(/^📌\s*/,"")}</div>
     <div style="display:flex;gap:10px;justify-content:center">
       <button id="like-btn" style="flex:1;padding:.65rem;border-radius:var(--r-sm);border:2px solid ${mine?.reaction==="like"?"var(--green)":"var(--border-strong)"};background:${mine?.reaction==="like"?"rgba(34,197,94,.12)":"var(--surface2)"};color:${mine?.reaction==="like"?"var(--green)":"var(--text-muted)"};font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer">👍 <span>${likes.length}</span></button>
       <button id="dislike-btn" style="flex:1;padding:.65rem;border-radius:var(--r-sm);border:2px solid ${mine?.reaction==="dislike"?"var(--red)":"var(--border-strong)"};background:${mine?.reaction==="dislike"?"rgba(240,80,80,.12)":"var(--surface2)"};color:${mine?.reaction==="dislike"?"var(--red)":"var(--text-muted)"};font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer">👎 <span>${dislikes.length}</span></button>
@@ -895,18 +897,21 @@ async function openAnnModal(ann){
   document.getElementById("like-btn").onclick=async()=>{await react(ann.id,"like");openAnnModal(ann);};
   document.getElementById("dislike-btn").onclick=async()=>{await react(ann.id,"dislike");openAnnModal(ann);};
 }
+function isImportantAnn(ann){return ann&&ann.message&&ann.message.trim().startsWith("📌");}
 async function showAnnBanner(){
   const ann=await fetchAnn();if(!ann||!ann.message)return;
+  updateNotifBadge();
   if(localStorage.getItem("comidadle_ann_"+ann.id))return;
-  if(document.getElementById("ann-live-banner"))return;
+  if(!isImportantAnn(ann))return; // los no importantes solo llegan por la campana
+  const slot=document.getElementById("ann-banner-slot");if(!slot||slot.querySelector("#ann-live-banner"))return;
   const b=document.createElement("div");
   b.id="ann-live-banner";
-  b.style.cssText="position:fixed;top:0;left:0;right:0;background:var(--accent);color:#fff;padding:.875rem 1.25rem;display:flex;align-items:center;gap:10px;z-index:9999;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;box-shadow:0 2px 12px rgba(0,0,0,.3)";
-  b.innerHTML=`<span style="font-size:18px;flex-shrink:0">📢</span><span id="ann-preview" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer">${ann.message}</span><button id="ann-ver" style="background:rgba(0,0,0,.2);border:none;color:#fff;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:11px;white-space:nowrap;flex-shrink:0;margin-right:4px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600">Ver más</button><button id="ann-x" style="background:rgba(0,0,0,.25);border:none;color:#fff;border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:16px;font-weight:700;flex-shrink:0;display:flex;align-items:center;justify-content:center">✕</button>`;
-  document.body.prepend(b);
-  document.getElementById("ann-x").onclick=()=>{b.remove();localStorage.setItem("comidadle_ann_"+ann.id,"1");};
-  document.getElementById("ann-ver").onclick=()=>openAnnModal(ann);
-  document.getElementById("ann-preview").onclick=()=>openAnnModal(ann);
+  b.style.cssText="background:var(--accent);color:#fff;padding:.75rem 1.25rem;display:flex;align-items:center;gap:10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;position:relative;z-index:5";
+  b.innerHTML=`<span style="font-size:18px;flex-shrink:0">📌</span><span id="ann-preview" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer">${ann.message.replace(/^📌\s*/,"")}</span><button id="ann-ver" style="background:rgba(0,0,0,.2);border:none;color:#fff;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:11px;white-space:nowrap;flex-shrink:0;margin-right:4px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600">Ver más</button><button id="ann-x" style="background:rgba(0,0,0,.25);border:none;color:#fff;border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:16px;font-weight:700;flex-shrink:0;display:flex;align-items:center;justify-content:center">✕</button>`;
+  slot.appendChild(b);
+  document.getElementById("ann-x").onclick=()=>{b.remove();localStorage.setItem("comidadle_ann_"+ann.id,"1");updateNotifBadge();};
+  document.getElementById("ann-ver").onclick=()=>{openAnnModal(ann);localStorage.setItem("comidadle_ann_"+ann.id,"1");b.remove();updateNotifBadge();};
+  document.getElementById("ann-preview").onclick=()=>{openAnnModal(ann);localStorage.setItem("comidadle_ann_"+ann.id,"1");b.remove();updateNotifBadge();};
 }
 function startAnnPoll(){setInterval(()=>{showAnnBanner().catch(()=>{});},20000);}
 
@@ -957,9 +962,10 @@ async function renderOwnerPanel(){
       ${tabBtn("oc-ann","📢 Anuncio",true)}${tabBtn("oc-ban","🔒 Bans",false)}${tabBtn("oc-rank","🏆 Ranking",false)}${tabBtn("oc-xp","🎁 XP",false)}${tabBtn("oc-sug","💡 Ideas",false)}
     </div>
     <div id="oc-ann">
-      ${ann?`<div style="background:rgba(255,107,53,.08);border:1px solid var(--accent);border-radius:var(--r-sm);padding:1rem;margin-bottom:.875rem"><div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.06em">Anuncio activo</div><div style="font-size:13px;color:var(--text);line-height:1.6;margin-bottom:.75rem">${ann.message}</div><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem"><div style="display:flex;gap:12px;font-size:13px"><span style="color:var(--green);font-weight:700">👍 ${likes.length}</span><span style="color:var(--red);font-weight:700">👎 ${dislikes.length}</span></div><button onclick="clearAnn().then(renderOwnerPanel)" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text-muted);padding:4px 10px;cursor:pointer;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif">✕ Quitar</button></div>${reactions.length>0?`<div style="margin-top:.75rem;border-top:1px solid var(--border);padding-top:.75rem"><div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem">Votos</div><div style="display:flex;flex-wrap:wrap;gap:4px">${reactions.map(r=>`<span style="background:${r.reaction==="like"?"rgba(34,197,94,.15)":"rgba(240,80,80,.15)"};border:1px solid ${r.reaction==="like"?"var(--green)":"var(--red)"};border-radius:99px;padding:2px 8px;font-size:11px;color:${r.reaction==="like"?"var(--green)":"var(--red)"}">${r.reaction==="like"?"👍":"👎"} ${r.username}</span>`).join("")}</div></div>`:""}</div>`:'<div style="font-size:12px;color:var(--text-muted);margin-bottom:.875rem;text-align:center">No hay ningún anuncio activo</div>'}
+      ${ann?`<div style="background:rgba(255,107,53,.08);border:1px solid var(--accent);border-radius:var(--r-sm);padding:1rem;margin-bottom:.875rem"><div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.06em">Anuncio activo ${isImportantAnn(ann)?'<span style="color:var(--gold)">· 📌 Importante (con banner)</span>':'<span style="color:var(--text-muted)">· solo campana</span>'}</div><div style="font-size:13px;color:var(--text);line-height:1.6;margin-bottom:.75rem">${ann.message.replace(/^📌\s*/,"")}</div><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem"><div style="display:flex;gap:12px;font-size:13px"><span style="color:var(--green);font-weight:700">👍 ${likes.length}</span><span style="color:var(--red);font-weight:700">👎 ${dislikes.length}</span></div><button onclick="clearAnn().then(renderOwnerPanel)" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text-muted);padding:4px 10px;cursor:pointer;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif">✕ Quitar</button></div>${reactions.length>0?`<div style="margin-top:.75rem;border-top:1px solid var(--border);padding-top:.75rem"><div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem">Votos</div><div style="display:flex;flex-wrap:wrap;gap:4px">${reactions.map(r=>`<span style="background:${r.reaction==="like"?"rgba(34,197,94,.15)":"rgba(240,80,80,.15)"};border:1px solid ${r.reaction==="like"?"var(--green)":"var(--red)"};border-radius:99px;padding:2px 8px;font-size:11px;color:${r.reaction==="like"?"var(--green)":"var(--red)"}">${r.reaction==="like"?"👍":"👎"} ${r.username}</span>`).join("")}</div></div>`:""}</div>`:'<div style="font-size:12px;color:var(--text-muted);margin-bottom:.875rem;text-align:center">No hay ningún anuncio activo</div>'}
       <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem">Nuevo anuncio</div>
       <textarea id="ann-input" class="review-textarea" placeholder="Escribe un anuncio..." style="min-height:70px"></textarea>
+      <label style="display:flex;align-items:center;gap:8px;margin:.6rem 0;cursor:pointer;font-size:12px;color:var(--text-muted)"><input type="checkbox" id="ann-important-chk" style="width:16px;height:16px;accent-color:var(--accent)"> 📌 Importante (muestra un banner debajo del header a todos)</label>
       <button class="play-btn" id="ann-send-btn" style="width:100%;margin-top:.25rem">📢 Publicar</button>
     </div>
     <div id="oc-ban" style="display:none">
@@ -984,7 +990,7 @@ async function renderOwnerPanel(){
       <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem">Sugerencias (${sugs?sugs.length:0})</div>
       ${sugs&&sugs.length>0?sugs.map(s=>`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;margin-bottom:.4rem"><div style="display:flex;justify-content:space-between;margin-bottom:.3rem"><span style="font-size:12px;font-weight:700;color:var(--accent)">${s.username||"Anónimo"}</span><button onclick="deleteSuggestion('${s.id}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:12px">🗑️</button></div><div style="font-size:13px;color:var(--text);line-height:1.55">${s.message}</div></div>`).join(""):'<div style="font-size:12px;color:var(--text-muted);text-align:center;padding:1rem">Sin sugerencias aún</div>'}
     </div>`;
-  document.getElementById("ann-send-btn").onclick=async()=>{const msg=document.getElementById("ann-input").value.trim();if(!msg)return;const btn=document.getElementById("ann-send-btn");btn.textContent="Publicando...";btn.disabled=true;await postAnn(msg);renderOwnerPanel();};
+  document.getElementById("ann-send-btn").onclick=async()=>{const raw=document.getElementById("ann-input").value.trim();if(!raw)return;const important=document.getElementById("ann-important-chk").checked;const msg=important?"📌 "+raw:raw;const btn=document.getElementById("ann-send-btn");btn.textContent="Publicando...";btn.disabled=true;await postAnn(msg);localStorage.removeItem("comidadle_ann_"+(ann?ann.id:""));renderOwnerPanel();};
   document.getElementById("ban-btn").onclick=async()=>{const name=document.getElementById("ban-name-inp").value.trim(),reason=document.getElementById("ban-reason-inp").value.trim();if(!name||!confirm("¿Banear a '"+name+"'?"))return;await banUser(name,reason);setTimeout(renderOwnerPanel,600);};
   const giftBtn=document.getElementById("gift-xp-btn");
   if(giftBtn)giftBtn.onclick=async()=>{
@@ -1874,28 +1880,57 @@ async function markAllRead(){
   try{await sb("/rest/v1/notifications?username=eq."+encodeURIComponent(myUser)+"&read=eq.false",{method:"PATCH",body:JSON.stringify({read:true})});}catch(e){}
 }
 async function updateNotifBadge(){
-  if(!myUser){document.getElementById("notif-badge").style.display="none";return;}
+  const badge=document.getElementById("notif-badge");if(!badge)return;
+  let count=0;
+  if(myUser){
+    try{const rows=await sb("/rest/v1/notifications?username=eq."+encodeURIComponent(myUser)+"&read=eq.false&select=id");count+=rows?rows.length:0;}catch(e){}
+  }
   try{
-    const rows=await sb("/rest/v1/notifications?username=eq."+encodeURIComponent(myUser)+"&read=eq.false&select=id");
-    const count=rows?rows.length:0;
-    const badge=document.getElementById("notif-badge");
-    if(count>0){badge.style.display="";badge.textContent=count>9?"9+":count;}
-    else badge.style.display="none";
+    const ann=await fetchAnn();
+    if(ann&&ann.message&&!localStorage.getItem("comidadle_ann_"+ann.id))count+=1;
   }catch(e){}
+  if(count>0){badge.style.display="";badge.textContent=count>9?"9+":count;}
+  else badge.style.display="none";
 }
 async function openNotifications(){
   openModal("notif-modal");
   await markAllRead();
-  document.getElementById("notif-badge").style.display="none";
+  updateNotifBadge();
   renderNotifications();
+}
+let _currentAnnCache=null;
+function openAnnFromNotif(){
+  if(!_currentAnnCache)return;
+  openAnnModal(_currentAnnCache);
+  localStorage.setItem("comidadle_ann_"+_currentAnnCache.id,"1");
+  updateNotifBadge();renderNotifications();
+  const lb=document.getElementById("ann-live-banner");if(lb)lb.remove();
 }
 async function renderNotifications(){
   const el=document.getElementById("notif-content");if(!el)return;
-  if(!myUser){el.innerHTML='<div class="ranking-empty">Necesitas un nombre en el ranking para recibir notificaciones.</div>';return;}
+  let annHtml="";
+  try{
+    const ann=await fetchAnn();
+    if(ann&&ann.message){
+      _currentAnnCache=ann;
+      const seen=!!localStorage.getItem("comidadle_ann_"+ann.id);
+      annHtml=`<div onclick="openAnnFromNotif()" style="display:flex;gap:10px;padding:.75rem;background:var(--surface2);border:1px solid ${seen?"var(--border)":"var(--accent)"};border-radius:var(--r-sm);margin-bottom:.4rem;cursor:pointer">
+        <div style="font-size:24px;flex-shrink:0">📢</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px">Anuncio del Owner${seen?"":' <span style="color:var(--accent)">· nuevo</span>'}</div>
+          <div style="font-size:12px;color:var(--text-muted);line-height:1.5">${ann.message.replace(/^📌\s*/,"")}</div>
+        </div>
+      </div>`;
+    }
+  }catch(e){}
+  if(!myUser){
+    el.innerHTML=annHtml||'<div class="ranking-empty">Sin notificaciones aún 🔔</div>';
+    return;
+  }
   const rows=await fetchNotifications();
-  if(!rows||rows.length===0){el.innerHTML='<div class="ranking-empty">Sin notificaciones aún 🔔</div>';return;}
+  if((!rows||rows.length===0)&&!annHtml){el.innerHTML='<div class="ranking-empty">Sin notificaciones aún 🔔</div>';return;}
   const icons={xp_gift:"🎁",purchase:"🛒",ban:"🚫",unban:"✅",system:"📢"};
-  el.innerHTML=rows.map(n=>{
+  el.innerHTML=annHtml+(rows||[]).map(n=>{
     const d=new Date(n.created_at);
     const dateStr=d.getDate()+" "+MONTHS[d.getMonth()]+" · "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
     return`<div style="display:flex;gap:10px;padding:.75rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:.4rem">
