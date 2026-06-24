@@ -309,6 +309,30 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
   </div>
 </div>
 
+<!-- AMIGOS -->
+<div class="modal-overlay hidden" id="friends-modal">
+  <div class="modal" style="max-height:90vh;overflow-y:auto">
+    <button class="modal-close" id="friends-close">✕</button>
+    <div class="modal-title">🧑‍🤝‍🧑 Amigos</div>
+    <div style="display:flex;gap:4px;margin-bottom:1rem;background:var(--surface2);border-radius:var(--r-sm);padding:4px;overflow-x:auto">
+      <button onclick="friendsTab('list')" id="ft-list" class="shop-tab-btn active">Mis amigos</button>
+      <button onclick="friendsTab('requests')" id="ft-requests" class="shop-tab-btn">Solicitudes</button>
+      <button onclick="friendsTab('invites')" id="ft-invites" class="shop-tab-btn">Duelos</button>
+      <button onclick="friendsTab('add')" id="ft-add" class="shop-tab-btn">Añadir</button>
+    </div>
+    <div id="friends-content"><div class="ranking-empty">Cargando...</div></div>
+  </div>
+</div>
+
+<!-- RETAR A AMIGO: elegir modo -->
+<div class="modal-overlay hidden" id="challenge-modal">
+  <div class="modal">
+    <button class="modal-close" id="challenge-close">✕</button>
+    <div class="modal-title">⚔️ Retar a duelo</div>
+    <div id="challenge-content"></div>
+  </div>
+</div>
+
 <!-- RANKING SEMANAL -->
 <div class="modal-overlay hidden" id="weekly-modal">
   <div class="modal">
@@ -490,6 +514,7 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
   <div class="side-menu-section">
     <div class="side-menu-label">🌍 Comunidad</div>
     <button class="side-menu-item" id="sm-ranking"><div class="side-menu-item-icon">🏆</div><div><div class="side-menu-item-name">Ranking Global</div><div class="side-menu-item-desc">Los mejores jugadores del mundo</div></div></button>
+    <button class="side-menu-item" id="sm-friends"><div class="side-menu-item-icon">🧑‍🤝‍🧑</div><div><div class="side-menu-item-name">Amigos <span id="friends-badge" style="display:none;background:var(--accent);color:#fff;font-size:10px;font-weight:700;border-radius:99px;padding:1px 6px;margin-left:4px">0</span></div><div class="side-menu-item-desc">Solicitudes, lista e invitaciones de duelo</div></div></button>
     <button class="side-menu-item" id="sm-weekly"><div class="side-menu-item-icon">📅</div><div><div class="side-menu-item-name">Ranking Semanal</div><div class="side-menu-item-desc">Top de la semana, se reinicia cada lunes</div></div></button>
     <button class="side-menu-item" id="sm-reviews"><div class="side-menu-item-icon">⭐</div><div><div class="side-menu-item-name">Reseñas</div><div class="side-menu-item-desc">Lo que dice la gente de Comidadle</div></div></button>
     <button class="side-menu-item" id="sm-suggestions"><div class="side-menu-item-icon">💡</div><div><div class="side-menu-item-name">Sugerencias</div><div class="side-menu-item-desc">Manda tus ideas al creador</div></div></button>
@@ -627,7 +652,7 @@ const ALL_DISHES=[{name:"Tacos al Pastor",emoji:"🌮",country:"México",flag:"�
 
 const DEMONYMS={"México":["Mexicano","Mexicana","Mexicanos","Mexicanas"],"España":["Español","Española","Españoles","Españolas"],"Argentina":["Argentino","Argentinas","Argentinos"],"Perú":["Peruano","Peruana","Peruanos","Peruanas"],"Colombia":["Colombiano","Colombiana","Colombianos","Colombianas"],"Venezuela":["Venezolano","Venezolana","Venezolanos","Venezolanas"],"Chile":["Chileno","Chilena","Chilenos","Chilenas"],"Cuba":["Cubano","Cubana","Cubanos","Cubanas"],"El Salvador":["Salvadoreño","Salvadoreña","Salvadoreños","Salvadoreñas"],"Honduras":["Hondureño","Hondureña","Hondureños","Hondureñas"],"Costa Rica":["Costarricense","Tico","Tica"],"Nicaragua":["Nicaragüense","Nicaragüenses"],"Guatemala":["Guatemalteco","Guatemalteca","Guatemaltecos","Guatemaltecas"],"Ecuador":["Ecuatoriano","Ecuatoriana","Ecuatorianos","Ecuatorianas"],"Bolivia":["Boliviano","Boliviana","Bolivianos","Bolivianas"],"Uruguay":["Uruguayo","Uruguaya","Uruguayos","Uruguayas"],"Brasil":["Brasileño","Brasileña","Brasileños","Brasileñas"],"Panamá":["Panameño","Panameña","Panameños","Panameñas"],"Rep. Dominicana":["Dominicano","Dominicana","Dominicanos","Dominicanas"],"Puerto Rico":["Puertorriqueño","Puertorriqueña","Boricua","Boricuas"],"Paraguay":["Paraguayo","Paraguaya","Paraguayos","Paraguayas"]};
 // ═══ VERSION ═══
-const VERSION="2.3.0";
+const VERSION="2.4.0";
 const CHANGELOG=[
   {v:"1.0.0",date:"20 dic 2025",changes:["🎉 Lanzamiento de Comidadle: 3 platos diarios, pistas progresivas y grid de países para adivinar el origen."]},
   {v:"1.1.0",date:"5 ene 2026",changes:["Modo difícil configurable: menos intentos, más países en la tabla, sin pistas.","Pistas progresivas activables/desactivables."]},
@@ -643,6 +668,7 @@ const CHANGELOG=[
   {v:"2.1.0",date:"28 may 2026",changes:["16 logros desbloqueables con recompensa de XP.","Misiones diarias rotativas."]},
   {v:"2.2.0",date:"10 jun 2026",changes:["Notificaciones in-app (campana): avisos de regalos de XP, bans y sistema.","Panel de Owner reforzado: acciones administrativas verificadas por contraseña en servidor."]},
   {v:"2.3.0",date:"23 jun 2026",changes:["🎉 Especial Domingo: un plato festivo sustituye al 3er plato cada domingo, con XP extra aleatorio (15-75).","📸 Compartir resultado como imagen (antes solo texto).","🏳️ Corregidas banderas en blanco de Italia y Portugal en la tabla de países."]},
+  {v:"2.4.0",date:"24 jun 2026",changes:["🧑‍🤝‍🧑 Sistema de amigos: solicitudes, lista y búsqueda de jugadores.","⚔️ Reta a un amigo directamente: tu rival ve Aceptar/Rechazar/Ignorar sin necesidad de código. En modos de grupo, al aceptar entráis juntos al lobby y el código aparece ahí para el resto.","🏅 Logros públicos visibles en el perfil de cada jugador desde el Ranking Semanal."]},
 ];
 
 // ═══ DATA ═══
@@ -872,7 +898,9 @@ async function openAnnModal(ann){
 async function showAnnBanner(){
   const ann=await fetchAnn();if(!ann||!ann.message)return;
   if(localStorage.getItem("comidadle_ann_"+ann.id))return;
+  if(document.getElementById("ann-live-banner"))return;
   const b=document.createElement("div");
+  b.id="ann-live-banner";
   b.style.cssText="position:fixed;top:0;left:0;right:0;background:var(--accent);color:#fff;padding:.875rem 1.25rem;display:flex;align-items:center;gap:10px;z-index:9999;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;box-shadow:0 2px 12px rgba(0,0,0,.3)";
   b.innerHTML=`<span style="font-size:18px;flex-shrink:0">📢</span><span id="ann-preview" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer">${ann.message}</span><button id="ann-ver" style="background:rgba(0,0,0,.2);border:none;color:#fff;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:11px;white-space:nowrap;flex-shrink:0;margin-right:4px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600">Ver más</button><button id="ann-x" style="background:rgba(0,0,0,.25);border:none;color:#fff;border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:16px;font-weight:700;flex-shrink:0;display:flex;align-items:center;justify-content:center">✕</button>`;
   document.body.prepend(b);
@@ -880,6 +908,7 @@ async function showAnnBanner(){
   document.getElementById("ann-ver").onclick=()=>openAnnModal(ann);
   document.getElementById("ann-preview").onclick=()=>openAnnModal(ann);
 }
+function startAnnPoll(){setInterval(()=>{showAnnBanner().catch(()=>{});},20000);}
 
 // ═══ ADMIN ACTIONS (server-verified, not just client-side gating) ═══
 async function adminAction(action,payload){
@@ -1904,6 +1933,7 @@ async function openPlayerProfile(username){
         <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--text)">${username}${isMe?" (tú)":""}</div>
         ${eq.title?`<div style="font-size:13px;font-weight:700;color:var(--accent);margin-top:4px">${eq.title}</div>`:""}
         ${eq.badge?`<div style="display:inline-block;background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:3px 12px;font-size:12px;font-weight:600;color:var(--text);margin-top:6px">${eq.badge}</div>`:""}
+        ${!isMe?`<button id="profile-challenge-btn" class="ranking-btn primary" style="margin-top:.75rem">⚔️ Retar a duelo</button> <button id="profile-add-friend-btn" class="ranking-btn" style="margin-top:.75rem">🧑‍🤝‍🧑 Añadir amigo</button>`:""}
       </div>
       ${r?`
       <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">🏆 Estadísticas globales</div>
@@ -1926,6 +1956,8 @@ async function openPlayerProfile(username){
         <div><div style="font-size:16px;font-weight:700;color:var(--text)">${r.played}</div><div style="font-size:10px;color:var(--text-muted)">Partidas</div></div>
         <div><div style="font-size:16px;font-weight:700;color:var(--text)">${r.played-r.wins}</div><div style="font-size:10px;color:var(--text-muted)">Derrotas</div></div>
       </div>`:'<div class="ranking-empty">Sin datos de ranking global</div>'}`;
+    const cb=document.getElementById("profile-challenge-btn");if(cb)cb.onclick=()=>openChallengeModal(username);
+    const fb=document.getElementById("profile-add-friend-btn");if(fb)fb.onclick=async()=>{fb.textContent="Enviando...";fb.disabled=true;await sendFriendRequest(username);fb.textContent="✓ Solicitud enviada";};
   }catch(e){el.innerHTML='<div class="ranking-empty">Error cargando perfil 😔</div>';}
 }
 
@@ -1934,16 +1966,21 @@ async function openWeeklyPlayerProfile(username){
   const el=document.getElementById("player-content");
   el.innerHTML='<div class="ranking-empty">Cargando...</div>';
   try{
-    const equipData=await sb("/rest/v1/user_equip?username=eq."+encodeURIComponent(username)+"&select=username,avatar_color,avatar_frame,badge,title,emoji").catch(()=>[]);
+    const [equipData,achIds]=await Promise.all([
+      sb("/rest/v1/user_equip?username=eq."+encodeURIComponent(username)+"&select=username,avatar_color,avatar_frame,badge,title,emoji").catch(()=>[]),
+      fetchPublicAchievements(username)
+    ]);
     const eq={};
     if(equipData&&equipData[0]){Object.entries(equipData[0]).forEach(([k,v])=>{if(v!==null&&k!=="username")eq[k]=v;});}
     const isMe=username===myUser;
+    const achBadges=ACH_LIST.filter(a=>achIds.includes(a.id));
     el.innerHTML=`
       <div style="text-align:center;margin-bottom:1.25rem">
         <div style="display:flex;justify-content:center;margin-bottom:.75rem">${buildAvatar(username,eq,64,26)}</div>
         <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--text)">${username}${isMe?" (tú)":""}</div>
         ${eq.title?`<div style="font-size:13px;font-weight:700;color:var(--accent);margin-top:4px">${eq.title}</div>`:""}
         ${eq.badge?`<div style="display:inline-block;background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:3px 12px;font-size:12px;font-weight:600;color:var(--text);margin-top:6px">${eq.badge}</div>`:""}
+        ${!isMe?`<button id="profile-challenge-btn" class="ranking-btn primary" style="margin-top:.75rem">⚔️ Retar a duelo</button> <button id="profile-add-friend-btn" class="ranking-btn" style="margin-top:.75rem">🧑‍🤝‍🧑 Añadir amigo</button>`:""}
       </div>
 
       ${eq.badge||eq.title||eq.avatar_frame||eq.emoji?`
@@ -1953,7 +1990,11 @@ async function openWeeklyPlayerProfile(username){
         ${eq.title?`<span style="background:var(--surface);border:1px solid var(--accent);border-radius:99px;padding:4px 12px;font-size:12px;font-weight:600;color:var(--accent)">${eq.title}</span>`:""}
         ${eq.avatar_frame?`<span style="background:var(--surface);border:1px solid var(--gold);border-radius:99px;padding:4px 12px;font-size:12px;color:var(--gold)">Marco ${eq.avatar_frame}</span>`:""}
         ${eq.emoji?`<span style="background:var(--surface);border:1px solid var(--border);border-radius:99px;padding:4px 12px;font-size:13px">${eq.emoji} Emoji</span>`:""}
-      </div>`:""}`;
+      </div>`:""}
+      <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin:1rem 0 .5rem">🏅 Logros (${achBadges.length}/${ACH_LIST.length})</div>
+      ${achBadges.length?`<div style="display:flex;flex-wrap:wrap;gap:8px">${achBadges.map(a=>`<div title="${a.name}" style="display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--gold);border-radius:99px;padding:.35rem .7rem"><span style="font-size:16px">${a.icon}</span><span style="font-size:12px;font-weight:600;color:var(--text)">${a.name}</span></div>`).join("")}</div>`:'<div class="ranking-empty">Sin logros desbloqueados todavía</div>'}`;
+    const cb=document.getElementById("profile-challenge-btn");if(cb)cb.onclick=()=>openChallengeModal(username);
+    const fb=document.getElementById("profile-add-friend-btn");if(fb)fb.onclick=async()=>{fb.textContent="Enviando...";fb.disabled=true;await sendFriendRequest(username);fb.textContent="✓ Solicitud enviada";};
   }catch(e){el.innerHTML='<div class="ranking-empty">Error 😔</div>';}
 }
 
@@ -2226,6 +2267,11 @@ onC("infinite-close",()=>closeModal("infinite-modal"));
 document.getElementById("infinite-modal").addEventListener("click",e=>{if(e.target.id==="infinite-modal")closeModal("infinite-modal");});
 onC("shop-close",()=>closeModal("shop-modal"));
 onC("player-close",()=>closeModal("player-modal"));
+onC("sm-friends",()=>{closeSideMenu();openFriendsModal();});
+onC("friends-close",()=>closeModal("friends-modal"));
+onC("challenge-close",()=>closeModal("challenge-modal"));
+document.getElementById("friends-modal").addEventListener("click",e=>{if(e.target.id==="friends-modal")closeModal("friends-modal");});
+document.getElementById("challenge-modal").addEventListener("click",e=>{if(e.target.id==="challenge-modal")closeModal("challenge-modal");});
 document.getElementById("shop-modal").addEventListener("click",e=>{if(e.target.id==="shop-modal")closeModal("shop-modal");});
 document.getElementById("player-modal").addEventListener("click",e=>{if(e.target.id==="player-modal")closeModal("player-modal");});
 onC("duel-close",()=>closeModal("duel-modal"));
@@ -2302,6 +2348,240 @@ function checkMondaySummary(){
   if(localStorage.getItem("comidadle_summary_shown")===todayStr)return;
   localStorage.setItem("comidadle_summary_shown",todayStr);
   setTimeout(()=>openWeeklySummary(),1800);
+}
+
+// ═══ FRIENDS & DUEL INVITES ═══
+async function sendFriendRequest(username){
+  if(!myUser||!username||username===myUser)return null;
+  try{
+    const existing=await sb("/rest/v1/friends?or=(and(requester_username.eq."+encodeURIComponent(myUser)+",recipient_username.eq."+encodeURIComponent(username)+"),and(requester_username.eq."+encodeURIComponent(username)+",recipient_username.eq."+encodeURIComponent(myUser)+"))&select=id,status");
+    if(existing&&existing.length)return existing[0];
+    const rows=await sb("/rest/v1/friends",{method:"POST",headers:{...SH,"Prefer":"return=representation"},body:JSON.stringify({requester_username:myUser,recipient_username:username,status:"pending"})});
+    sendNotification(username,"system","🧑‍🤝‍🧑 Nueva solicitud de amistad",myUser+" quiere ser tu amigo en Comidadle. Mira en Extras → Amigos.").catch(()=>{});
+    return rows&&rows[0];
+  }catch(e){return null;}
+}
+async function fetchFriendsList(){
+  if(!myUser)return[];
+  try{
+    const rows=await sb("/rest/v1/friends?status=eq.accepted&or=(requester_username.eq."+encodeURIComponent(myUser)+",recipient_username.eq."+encodeURIComponent(myUser)+")&select=*");
+    return(rows||[]).map(r=>({id:r.id,username:r.requester_username===myUser?r.recipient_username:r.requester_username}));
+  }catch(e){return[];}
+}
+async function fetchIncomingRequests(){
+  if(!myUser)return[];
+  try{return await sb("/rest/v1/friends?status=eq.pending&recipient_username=eq."+encodeURIComponent(myUser)+"&recipient_hidden=eq.false&select=*")||[];}catch(e){return[];}
+}
+async function fetchSentRequests(){
+  if(!myUser)return[];
+  try{return await sb("/rest/v1/friends?status=eq.pending&requester_username=eq."+encodeURIComponent(myUser)+"&select=*")||[];}catch(e){return[];}
+}
+async function respondFriendRequest(id,action){
+  try{
+    if(action==="accept")await sb("/rest/v1/friends?id=eq."+id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({status:"accepted",updated_at:new Date().toISOString()})});
+    else if(action==="reject")await sb("/rest/v1/friends?id=eq."+id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({status:"rejected",updated_at:new Date().toISOString()})});
+    else if(action==="ignore")await sb("/rest/v1/friends?id=eq."+id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({recipient_hidden:true})});
+  }catch(e){}
+}
+async function removeFriend(username){
+  if(!myUser)return;
+  if(!confirm("¿Eliminar a "+username+" de tus amigos?"))return;
+  try{await sb("/rest/v1/friends?status=eq.accepted&or=(and(requester_username.eq."+encodeURIComponent(myUser)+",recipient_username.eq."+encodeURIComponent(username)+"),and(requester_username.eq."+encodeURIComponent(username)+",recipient_username.eq."+encodeURIComponent(myUser)+"))",{method:"DELETE"});}catch(e){}
+  friendsTab("list");
+}
+async function searchUsers(query){
+  if(!query||query.length<2)return[];
+  try{return await sb("/rest/v1/ranking?username=ilike.*"+encodeURIComponent(query)+"*&select=username&limit=15")||[];}catch(e){return[];}
+}
+
+// ── Invitaciones de duelo ──
+async function sendDuelInvite(toUsername,mode){
+  if(!myUser||!toUsername)return null;
+  try{
+    let duelId;
+    if(mode==="1v1"){
+      const rows=await sb("/rest/v1/duels",{method:"POST",headers:{...SH,"Prefer":"return=representation"},body:JSON.stringify({creator_username:myUser,status:"waiting",short_code:genShortCode()})});
+      duelId=rows&&rows[0]&&rows[0].id;
+    }else{
+      const maxPlayers=mode==="ffa"?4:(GROUP_MODES[mode]||4);
+      const rows=await sb("/rest/v1/duels",{method:"POST",headers:{...SH,"Prefer":"return=representation"},body:JSON.stringify({creator_username:myUser,mode,max_players:maxPlayers,status:"lobby",short_code:genShortCode()})});
+      duelId=rows&&rows[0]&&rows[0].id;
+      if(duelId)await sb("/rest/v1/duel_players",{method:"POST",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({duel_id:duelId,username:myUser,team:mode==="ffa"?null:"A"})});
+    }
+    if(!duelId)return null;
+    const invRows=await sb("/rest/v1/duel_invites",{method:"POST",headers:{...SH,"Prefer":"return=representation"},body:JSON.stringify({from_username:myUser,to_username:toUsername,mode,duel_id:duelId,status:"pending"})});
+    sendNotification(toUsername,"system","⚔️ Invitación a duelo",myUser+" te ha retado a un duelo ("+mode+"). Mira en Extras → Amigos → Duelos.").catch(()=>{});
+    return {duelId,invite:invRows&&invRows[0]};
+  }catch(e){return null;}
+}
+async function fetchIncomingDuelInvites(){
+  if(!myUser)return[];
+  try{return await sb("/rest/v1/duel_invites?status=eq.pending&to_username=eq."+encodeURIComponent(myUser)+"&recipient_hidden=eq.false&select=*")||[];}catch(e){return[];}
+}
+async function fetchSentDuelInvites(){
+  if(!myUser)return[];
+  try{return await sb("/rest/v1/duel_invites?status=eq.pending&from_username=eq."+encodeURIComponent(myUser)+"&select=*")||[];}catch(e){return[];}
+}
+async function acceptDuelInvite(invite){
+  try{
+    const duelRow=await fetchDuel(invite.duel_id);
+    if(!duelRow){await sb("/rest/v1/duel_invites?id=eq."+invite.id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({status:"cancelled"})});alert("Esta invitación ya no es válida 😔");friendsTab("invites");return;}
+    if(invite.mode==="1v1"){
+      await sb("/rest/v1/duels?id=eq."+invite.duel_id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({opponent_username:myUser,status:"voting"})});
+      saveDuelLocal(invite.duel_id,"opponent");
+    }else{
+      const players=await fetchGroupPlayers(invite.duel_id);
+      const team=invite.mode==="ffa"?null:(players.filter(p=>p.team==="A").length<=players.filter(p=>p.team==="B").length?"B":"A");
+      await sb("/rest/v1/duel_players",{method:"POST",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({duel_id:invite.duel_id,username:myUser,team})});
+      saveGroupLocal(invite.duel_id);
+    }
+    await sb("/rest/v1/duel_invites?id=eq."+invite.id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({status:"accepted"})});
+    closeModal("friends-modal");
+    openDuelModal();
+  }catch(e){alert("Error al aceptar el duelo 😔");}
+}
+async function respondDuelInvite(invite,action){
+  try{
+    if(action==="reject"){
+      await sb("/rest/v1/duel_invites?id=eq."+invite.id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({status:"rejected"})});
+      if(invite.mode==="1v1")await sb("/rest/v1/duels?id=eq."+invite.duel_id,{method:"DELETE"}).catch(()=>{});
+    }else if(action==="ignore"){
+      await sb("/rest/v1/duel_invites?id=eq."+invite.id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({recipient_hidden:true})});
+    }
+  }catch(e){}
+  friendsTab("invites");
+}
+async function cancelSentDuelInvite(invite){
+  try{
+    await sb("/rest/v1/duel_invites?id=eq."+invite.id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({status:"cancelled"})});
+    if(invite.mode==="1v1")await sb("/rest/v1/duels?id=eq."+invite.duel_id,{method:"DELETE"}).catch(()=>{});
+  }catch(e){}
+  friendsTab("invites");
+}
+
+// ── UI: modal de Amigos ──
+let _incomingInvitesCache=[],_sentInvitesCache=[];
+function openFriendsModal(){openModal("friends-modal");friendsTab("list");}
+function friendsTab(tab){
+  ["list","requests","invites","add"].forEach(t=>{const btn=document.getElementById("ft-"+t);if(btn)btn.classList.toggle("active",t===tab);});
+  renderFriendsTab(tab);
+}
+async function renderFriendsTab(tab){
+  const el=document.getElementById("friends-content");if(!el)return;
+  el.innerHTML='<div class="ranking-empty">Cargando...</div>';
+  if(!myUser){el.innerHTML='<div class="ranking-empty">Necesitas un nombre en el Ranking Global para usar amigos.</div>';return;}
+  if(tab==="list"){
+    const friends=await fetchFriendsList();
+    el.innerHTML=friends.length?friends.map(f=>`
+      <div style="display:flex;align-items:center;gap:8px;padding:.6rem .75rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:.4rem">
+        <span style="flex:1;font-size:13px;font-weight:600;color:var(--text);cursor:pointer" onclick="openPlayerProfile('${f.username}')">${escapeHtml(f.username)}</span>
+        <button class="ranking-btn primary" style="font-size:11px;padding:.3rem .6rem" onclick="openChallengeModal('${f.username}')">⚔️ Retar</button>
+        <button class="ranking-btn" style="font-size:11px;padding:.3rem .6rem;color:var(--red);border-color:var(--red)" onclick="removeFriend('${f.username}')">✕</button>
+      </div>`).join(""):'<div class="ranking-empty">Aún no tienes amigos. Búscalos en "Añadir" 👋</div>';
+  }else if(tab==="requests"){
+    const [incoming,sent]=await Promise.all([fetchIncomingRequests(),fetchSentRequests()]);
+    let html="";
+    if(incoming.length){
+      html+='<div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem">Recibidas</div>';
+      html+=incoming.map(r=>`
+        <div style="padding:.65rem .75rem;background:var(--surface2);border:1px solid var(--accent);border-radius:var(--r-sm);margin-bottom:.4rem">
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:.5rem">${escapeHtml(r.requester_username)} quiere ser tu amigo</div>
+          <div style="display:flex;gap:6px">
+            <button class="ranking-btn primary" style="flex:1;font-size:12px" onclick="respondFriendRequest('${r.id}','accept').then(()=>{friendsTab('requests');updateFriendsBadge();})">✓ Aceptar</button>
+            <button class="ranking-btn" style="flex:1;font-size:12px" onclick="respondFriendRequest('${r.id}','reject').then(()=>{friendsTab('requests');updateFriendsBadge();})">✕ Rechazar</button>
+            <button class="ranking-btn" style="flex:1;font-size:12px;color:var(--text-muted)" onclick="respondFriendRequest('${r.id}','ignore').then(()=>{friendsTab('requests');updateFriendsBadge();})">🙈 Ignorar</button>
+          </div>
+        </div>`).join("");
+    }
+    if(sent.length){
+      html+='<div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin:.875rem 0 .5rem">Enviadas</div>';
+      html+=sent.map(r=>`<div style="display:flex;align-items:center;gap:8px;padding:.55rem .75rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:.35rem"><span style="flex:1;font-size:12px;color:var(--text-muted)">Esperando respuesta de <strong style="color:var(--text)">${escapeHtml(r.recipient_username)}</strong></span></div>`).join("");
+    }
+    el.innerHTML=html||'<div class="ranking-empty">Sin solicitudes pendientes</div>';
+  }else if(tab==="invites"){
+    const [incoming,sent]=await Promise.all([fetchIncomingDuelInvites(),fetchSentDuelInvites()]);
+    _incomingInvitesCache=incoming;_sentInvitesCache=sent;
+    let html="";
+    if(incoming.length){
+      html+='<div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem">Invitaciones recibidas</div>';
+      html+=incoming.map((inv,i)=>`
+        <div style="padding:.65rem .75rem;background:var(--surface2);border:1px solid var(--accent);border-radius:var(--r-sm);margin-bottom:.4rem">
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:.5rem">⚔️ ${escapeHtml(inv.from_username)} te ha retado (${inv.mode})</div>
+          <div style="display:flex;gap:6px">
+            <button class="ranking-btn primary" style="flex:1;font-size:12px" onclick="acceptDuelInviteAt(${i})">✓ Aceptar</button>
+            <button class="ranking-btn" style="flex:1;font-size:12px" onclick="respondDuelInviteAt(${i},'reject')">✕ Rechazar</button>
+            <button class="ranking-btn" style="flex:1;font-size:12px;color:var(--text-muted)" onclick="respondDuelInviteAt(${i},'ignore')">🙈 Ignorar</button>
+          </div>
+        </div>`).join("");
+    }
+    if(sent.length){
+      html+='<div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin:.875rem 0 .5rem">Invitaciones enviadas</div>';
+      html+=sent.map((inv,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:.55rem .75rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:.35rem"><span style="flex:1;font-size:12px;color:var(--text-muted)">Esperando a <strong style="color:var(--text)">${escapeHtml(inv.to_username)}</strong> (${inv.mode})</span><button class="ranking-btn" style="font-size:11px;padding:.3rem .6rem" onclick="cancelSentDuelInviteAt(${i})">Cancelar</button></div>`).join("");
+    }
+    el.innerHTML=html||'<div class="ranking-empty">Sin invitaciones de duelo pendientes</div>';
+  }else if(tab==="add"){
+    el.innerHTML=`
+      <input id="friend-search-inp" class="username-input" placeholder="🔍 Buscar jugador por nombre..." style="margin:0 0 .75rem;width:100%;box-sizing:border-box" oninput="doFriendSearch(this.value)">
+      <div id="friend-search-results"></div>`;
+  }
+}
+function acceptDuelInviteAt(i){acceptDuelInvite(_incomingInvitesCache[i]);}
+function respondDuelInviteAt(i,action){respondDuelInvite(_incomingInvitesCache[i],action);}
+function cancelSentDuelInviteAt(i){cancelSentDuelInvite(_sentInvitesCache[i]);}
+let _friendSearchTimer=null;
+function doFriendSearch(q){
+  clearTimeout(_friendSearchTimer);
+  _friendSearchTimer=setTimeout(async()=>{
+    const el=document.getElementById("friend-search-results");if(!el)return;
+    if(!q||q.trim().length<2){el.innerHTML="";return;}
+    el.innerHTML='<div class="ranking-empty">Buscando...</div>';
+    const results=await searchUsers(q.trim());
+    const filtered=results.filter(r=>r.username!==myUser);
+    el.innerHTML=filtered.length?filtered.map(r=>`
+      <div style="display:flex;align-items:center;gap:8px;padding:.55rem .75rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:.35rem">
+        <span style="flex:1;font-size:13px;font-weight:600;color:var(--text)">${escapeHtml(r.username)}</span>
+        <button class="ranking-btn primary friend-add-btn" data-u="${r.username}" style="font-size:11px;padding:.3rem .6rem">+ Añadir</button>
+      </div>`).join(""):'<div class="ranking-empty">Sin resultados</div>';
+    el.querySelectorAll(".friend-add-btn").forEach(b=>b.onclick=async()=>{b.textContent="...";b.disabled=true;await sendFriendRequest(b.dataset.u);b.textContent="✓ Enviada";});
+  },400);
+}
+async function updateFriendsBadge(){
+  if(!myUser){const b=document.getElementById("friends-badge");if(b)b.style.display="none";return;}
+  try{
+    const [reqs,invs]=await Promise.all([fetchIncomingRequests(),fetchIncomingDuelInvites()]);
+    const count=reqs.length+invs.length;
+    const b=document.getElementById("friends-badge");
+    if(b){if(count>0){b.style.display="";b.textContent=count>9?"9+":count;}else b.style.display="none";}
+  }catch(e){}
+}
+
+// ── Reto desde lista de amigos / perfil: elegir modo ──
+function openChallengeModal(username){
+  openModal("challenge-modal");
+  const el=document.getElementById("challenge-content");
+  el.innerHTML=`
+    <div style="text-align:center;font-size:14px;font-weight:700;color:var(--text);margin-bottom:1rem">Retar a ${escapeHtml(username)}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <button class="ranking-btn challenge-mode-btn" data-m="1v1" style="padding:.9rem">⚔️<br>1v1</button>
+      <button class="ranking-btn challenge-mode-btn" data-m="2v2" style="padding:.9rem">⚔️<br>2v2</button>
+      <button class="ranking-btn challenge-mode-btn" data-m="3v3" style="padding:.9rem">⚔️<br>3v3</button>
+      <button class="ranking-btn challenge-mode-btn" data-m="4v4" style="padding:.9rem">⚔️<br>4v4</button>
+      <button class="ranking-btn challenge-mode-btn" data-m="ffa" style="padding:.9rem;grid-column:1/3">🎯<br>Todos contra todos</button>
+    </div>
+    <div id="challenge-status" style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:1rem"></div>`;
+  el.querySelectorAll(".challenge-mode-btn").forEach(b=>b.onclick=async()=>{
+    const mode=b.dataset.m;
+    document.getElementById("challenge-status").textContent="Enviando invitación...";
+    el.querySelectorAll(".challenge-mode-btn").forEach(x=>x.disabled=true);
+    const res=await sendDuelInvite(username,mode);
+    if(res){
+      document.getElementById("challenge-status").innerHTML=`<span style="color:var(--green)">✓ Invitación enviada a ${escapeHtml(username)}</span>`;
+      setTimeout(()=>{closeModal("challenge-modal");closeModal("player-modal");openDuelModal();},1200);
+    }else{
+      document.getElementById("challenge-status").innerHTML='<span style="color:var(--red)">Error enviando la invitación 😔</span>';
+      el.querySelectorAll(".challenge-mode-btn").forEach(x=>x.disabled=false);
+    }
+  });
 }
 
 // ═══ DUEL MODE ═══
@@ -3721,7 +4001,17 @@ function checkAchievements(){
     });
     localStorage.setItem(XPK,String(totalXP));
     syncRanking().catch(()=>{});
+    syncAchievementsToServer(newly.map(a=>a.id)).catch(()=>{});
   }
+}
+async function syncAchievementsToServer(ids){
+  if(!myUser||!ids.length)return;
+  try{
+    await sb("/rest/v1/user_achievements",{method:"POST",headers:{...SH,"Prefer":"return=minimal,resolution=ignore-duplicates"},body:JSON.stringify(ids.map(id=>({username:myUser,achievement_id:id})))});
+  }catch(e){}
+}
+async function fetchPublicAchievements(username){
+  try{const rows=await sb("/rest/v1/user_achievements?username=eq."+encodeURIComponent(username)+"&select=achievement_id");return(rows||[]).map(r=>r.achievement_id);}catch(e){return[];}
 }
 async function openAchievements(){
   const el=document.getElementById("achievements-content");if(!el)return;
@@ -3829,11 +4119,13 @@ document.getElementById("date-pill").textContent=_now.getDate()+" "+MONTHS[_now.
 // Load equip from server on init
 if(myUser){sb("/rest/v1/user_equip?username=eq."+encodeURIComponent(myUser)+"&select=*").then(eq=>{if(eq&&eq[0]){myEquip={...myEquip,...eq[0]};saveEquipLocal();updateMiniAvatar();}}).catch(()=>{});}
 updateMiniAvatar();updateBadge();
+setTimeout(updateFriendsBadge,1500);setInterval(updateFriendsBadge,30000);
+if(myUser)syncAchievementsToServer(loadAchievements()).catch(()=>{});
 setTimeout(applyLang,100);
 const vEl=document.getElementById("about-version");if(vEl)vEl.textContent=VERSION;renderYesterday();renderTabs();renderAll();
 if(!localStorage.getItem("comidadle_visited")){openModal("how-modal");localStorage.setItem("comidadle_visited","1");}
 checkStreakExpiry();
-setTimeout(showAnnBanner,2000);setTimeout(checkMissedNotif,500);
+setTimeout(showAnnBanner,2000);setTimeout(checkMissedNotif,500);startAnnPoll();
 if(new URLSearchParams(location.search).get("duel"))setTimeout(openDuelModal,300);
 setTimeout(checkIfBanned,1000);
 setTimeout(checkXPGifts,3000);
