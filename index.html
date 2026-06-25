@@ -214,9 +214,12 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
 .avatar-frame-neon{box-shadow:0 0 0 3px #22C55E,0 0 8px rgba(34,197,94,.6)}
 .avatar-frame-fire{box-shadow:0 0 0 3px #EF4444,0 0 8px rgba(239,68,68,.6)}
 @keyframes toastUp{0%{opacity:0;transform:translateX(-50%) translateY(20px)}20%{opacity:1;transform:translateX(-50%) translateY(0)}80%{opacity:1;transform:translateX(-50%) translateY(0)}100%{opacity:0;transform:translateX(-50%) translateY(-20px)}}
+@keyframes toastSlideUp{from{opacity:0;transform:translateY(16px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes splashFadeOut{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.05)}}
 @media(max-width:380px){.country-btn{font-size:13px;padding:.5rem .6rem}.dish-emoji{font-size:46px}}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" defer></script>
 </head>
 <body>
 
@@ -330,6 +333,19 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
     <button class="modal-close" id="challenge-close">✕</button>
     <div class="modal-title">⚔️ Retar a duelo</div>
     <div id="challenge-content"></div>
+  </div>
+</div>
+
+<!-- CÓDIGO QR DE AMIGOS -->
+<div class="modal-overlay hidden" id="qr-modal">
+  <div class="modal">
+    <button class="modal-close" id="qr-close">✕</button>
+    <div class="modal-title">📱 Añadir por QR</div>
+    <div style="display:flex;gap:4px;margin-bottom:1rem;background:var(--surface2);border-radius:var(--r-sm);padding:4px">
+      <button onclick="qrTab('show')" id="qt-show" class="shop-tab-btn active">🔳 Mostrar mi QR</button>
+      <button onclick="qrTab('scan')" id="qt-scan" class="shop-tab-btn">📷 Escanear QR</button>
+    </div>
+    <div id="qr-content"></div>
   </div>
 </div>
 
@@ -454,12 +470,11 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
   <div class="header-hard-row" id="header-hard-row">🔥 MODO DIFÍCIL · <span id="hard-multiplier">x1</span></div>
 </header>
 
-<div id="ann-banner-slot"></div>
-
 <div style="max-width:520px;width:100%;margin:0 auto;padding:.5rem 1.25rem 0;position:relative;z-index:1">
   <div style="display:flex;justify-content:space-between;align-items:center">
-    <button id="menu-open-btn" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;color:var(--text-muted);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;padding:.25rem 0;transition:color .15s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-muted)'">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>Extras
+    <button id="menu-open-btn" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;color:var(--text-muted);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;padding:.25rem 0;transition:color .15s;position:relative" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-muted)'">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg><span id="extras-label">Extras</span>
+      <span id="extras-dot" style="display:none;position:absolute;top:-3px;left:14px;width:9px;height:9px;background:var(--red);border-radius:50%;border:1.5px solid var(--bg)"></span>
     </button>
     <button id="profile-open-btn" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;color:var(--text-muted);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;padding:.25rem 0;transition:color .15s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-muted)'">
       Perfil
@@ -654,7 +669,7 @@ const ALL_DISHES=[{name:"Tacos al Pastor",emoji:"🌮",country:"México",flag:"�
 
 const DEMONYMS={"México":["Mexicano","Mexicana","Mexicanos","Mexicanas"],"España":["Español","Española","Españoles","Españolas"],"Argentina":["Argentino","Argentinas","Argentinos"],"Perú":["Peruano","Peruana","Peruanos","Peruanas"],"Colombia":["Colombiano","Colombiana","Colombianos","Colombianas"],"Venezuela":["Venezolano","Venezolana","Venezolanos","Venezolanas"],"Chile":["Chileno","Chilena","Chilenos","Chilenas"],"Cuba":["Cubano","Cubana","Cubanos","Cubanas"],"El Salvador":["Salvadoreño","Salvadoreña","Salvadoreños","Salvadoreñas"],"Honduras":["Hondureño","Hondureña","Hondureños","Hondureñas"],"Costa Rica":["Costarricense","Tico","Tica"],"Nicaragua":["Nicaragüense","Nicaragüenses"],"Guatemala":["Guatemalteco","Guatemalteca","Guatemaltecos","Guatemaltecas"],"Ecuador":["Ecuatoriano","Ecuatoriana","Ecuatorianos","Ecuatorianas"],"Bolivia":["Boliviano","Boliviana","Bolivianos","Bolivianas"],"Uruguay":["Uruguayo","Uruguaya","Uruguayos","Uruguayas"],"Brasil":["Brasileño","Brasileña","Brasileños","Brasileñas"],"Panamá":["Panameño","Panameña","Panameños","Panameñas"],"Rep. Dominicana":["Dominicano","Dominicana","Dominicanos","Dominicanas"],"Puerto Rico":["Puertorriqueño","Puertorriqueña","Boricua","Boricuas"],"Paraguay":["Paraguayo","Paraguaya","Paraguayos","Paraguayas"]};
 // ═══ VERSION ═══
-const VERSION="2.4.0";
+const VERSION="2.6.0";
 const CHANGELOG=[
   {v:"1.0.0",date:"20 dic 2025",changes:["🎉 Lanzamiento de Comidadle: 3 platos diarios, pistas progresivas y grid de países para adivinar el origen."]},
   {v:"1.1.0",date:"5 ene 2026",changes:["Modo difícil configurable: menos intentos, más países en la tabla, sin pistas.","Pistas progresivas activables/desactivables."]},
@@ -671,6 +686,8 @@ const CHANGELOG=[
   {v:"2.2.0",date:"10 jun 2026",changes:["Notificaciones in-app (campana): avisos de regalos de XP, bans y sistema.","Panel de Owner reforzado: acciones administrativas verificadas por contraseña en servidor."]},
   {v:"2.3.0",date:"23 jun 2026",changes:["🎉 Especial Domingo: un plato festivo sustituye al 3er plato cada domingo, con XP extra aleatorio (15-75).","📸 Compartir resultado como imagen (antes solo texto).","🏳️ Corregidas banderas en blanco de Italia y Portugal en la tabla de países."]},
   {v:"2.4.0",date:"24 jun 2026",changes:["🧑‍🤝‍🧑 Sistema de amigos: solicitudes, lista y búsqueda de jugadores.","⚔️ Reta a un amigo directamente: tu rival ve Aceptar/Rechazar/Ignorar sin necesidad de código. En modos de grupo, al aceptar entráis juntos al lobby y el código aparece ahí para el resto.","🏅 Logros públicos visibles en el perfil de cada jugador desde el Ranking Semanal."]},
+  {v:"2.5.0",date:"25 jun 2026",changes:["📢 Nuevo sistema de avisos del Owner: aparecen como notificaciones flotantes abajo (no tapan el header). Si hay varias, la más reciente se ve nítida abajo y las anteriores con un blur suave encima.","Los avisos marcados como 📌 Importante no se cierran solos.","Todos los avisos quedan accesibles después en la campana 🔔, vistos o no."]},
+  {v:"2.6.0",date:"26 jun 2026",changes:["📱 Añade amigos por código QR: muéstralo o escanéalo con la cámara, también funciona como enlace compartible.","🔴 Indicador en el botón Extras cuando tienes solicitudes de amistad o invitaciones de duelo pendientes."]},
 ];
 
 // ═══ DATA ═══
@@ -888,7 +905,7 @@ async function openAnnModal(ann){
   const likes=reactions.filter(r=>r.reaction==="like"),dislikes=reactions.filter(r=>r.reaction==="dislike");
   const mine=reactions.find(r=>r.username===(myUser||"Anónimo"));
   document.getElementById("ann-modal-content").innerHTML=`
-    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:1rem;margin-bottom:1rem;font-size:14px;color:var(--text);line-height:1.65">${ann.message.replace(/^📌\s*/,"")}</div>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:1rem;margin-bottom:1rem;font-size:14px;color:var(--text);line-height:1.65">${ann.message}</div>
     <div style="display:flex;gap:10px;justify-content:center">
       <button id="like-btn" style="flex:1;padding:.65rem;border-radius:var(--r-sm);border:2px solid ${mine?.reaction==="like"?"var(--green)":"var(--border-strong)"};background:${mine?.reaction==="like"?"rgba(34,197,94,.12)":"var(--surface2)"};color:${mine?.reaction==="like"?"var(--green)":"var(--text-muted)"};font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer">👍 <span>${likes.length}</span></button>
       <button id="dislike-btn" style="flex:1;padding:.65rem;border-radius:var(--r-sm);border:2px solid ${mine?.reaction==="dislike"?"var(--red)":"var(--border-strong)"};background:${mine?.reaction==="dislike"?"rgba(240,80,80,.12)":"var(--surface2)"};color:${mine?.reaction==="dislike"?"var(--red)":"var(--text-muted)"};font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer">👎 <span>${dislikes.length}</span></button>
@@ -898,22 +915,73 @@ async function openAnnModal(ann){
   document.getElementById("dislike-btn").onclick=async()=>{await react(ann.id,"dislike");openAnnModal(ann);};
 }
 function isImportantAnn(ann){return ann&&ann.message&&ann.message.trim().startsWith("📌");}
-async function showAnnBanner(){
-  const ann=await fetchAnn();if(!ann||!ann.message)return;
-  updateNotifBadge();
-  if(localStorage.getItem("comidadle_ann_"+ann.id))return;
-  if(!isImportantAnn(ann))return; // los no importantes solo llegan por la campana
-  const slot=document.getElementById("ann-banner-slot");if(!slot||slot.querySelector("#ann-live-banner"))return;
-  const b=document.createElement("div");
-  b.id="ann-live-banner";
-  b.style.cssText="background:var(--accent);color:#fff;padding:.75rem 1.25rem;display:flex;align-items:center;gap:10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;position:relative;z-index:5";
-  b.innerHTML=`<span style="font-size:18px;flex-shrink:0">📌</span><span id="ann-preview" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer">${ann.message.replace(/^📌\s*/,"")}</span><button id="ann-ver" style="background:rgba(0,0,0,.2);border:none;color:#fff;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:11px;white-space:nowrap;flex-shrink:0;margin-right:4px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600">Ver más</button><button id="ann-x" style="background:rgba(0,0,0,.25);border:none;color:#fff;border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:16px;font-weight:700;flex-shrink:0;display:flex;align-items:center;justify-content:center">✕</button>`;
-  slot.appendChild(b);
-  document.getElementById("ann-x").onclick=()=>{b.remove();localStorage.setItem("comidadle_ann_"+ann.id,"1");updateNotifBadge();};
-  document.getElementById("ann-ver").onclick=()=>{openAnnModal(ann);localStorage.setItem("comidadle_ann_"+ann.id,"1");b.remove();updateNotifBadge();};
-  document.getElementById("ann-preview").onclick=()=>{openAnnModal(ann);localStorage.setItem("comidadle_ann_"+ann.id,"1");b.remove();updateNotifBadge();};
+function getAnnSeenKey(id){return "comidadle_ann_"+id;}
+function isAnnSeen(id){return !!localStorage.getItem(getAnnSeenKey(id));}
+function markAnnSeen(id){localStorage.setItem(getAnnSeenKey(id),"1");}
+async function fetchActiveAnns(limit){
+  try{
+    const r=await fetch(SB+"/rest/v1/announcements?active=eq.true&order=created_at.desc&limit="+(limit||5),{headers:SH});
+    if(!r.ok)return[];
+    return await r.json();
+  }catch(e){return[];}
 }
-function startAnnPoll(){setInterval(()=>{showAnnBanner().catch(()=>{});},20000);}
+const TOAST_AUTO_DISMISS_MS=7000,TOAST_MAX_STACK=3;
+function ensureToastStack(){
+  let stack=document.getElementById("ann-toast-stack");
+  if(!stack){
+    stack=document.createElement("div");
+    stack.id="ann-toast-stack";
+    stack.style.cssText="position:fixed;bottom:1rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;z-index:9999;width:calc(100% - 2rem);max-width:420px;pointer-events:none";
+    document.body.appendChild(stack);
+  }
+  return stack;
+}
+function restackToastBlur(){
+  const stack=document.getElementById("ann-toast-stack");if(!stack)return;
+  const items=[...stack.children],n=items.length;
+  items.forEach((el,i)=>{
+    const distFromBottom=n-1-i; // 0 = la más nueva (abajo)
+    if(distFromBottom===0){el.style.filter="none";el.style.opacity="1";el.style.transform="scale(1)";}
+    else{
+      const blurPx=Math.min(distFromBottom*1.5,4);
+      const op=Math.max(1-distFromBottom*0.18,0.45);
+      el.style.filter="blur("+blurPx+"px)";
+      el.style.opacity=String(op);
+      el.style.transform="scale("+(1-distFromBottom*0.03)+")";
+    }
+  });
+}
+function removeToast(el){
+  if(!el||!el.parentElement)return;
+  el.style.transition="opacity .25s,transform .25s";
+  el.style.opacity="0";el.style.transform="translateY(8px) scale(.96)";
+  setTimeout(()=>{el.remove();restackToastBlur();},250);
+}
+function showAnnToast(ann){
+  if(document.getElementById("ann-toast-"+ann.id))return;
+  const stack=ensureToastStack();
+  const important=isImportantAnn(ann);
+  const t=document.createElement("div");
+  t.id="ann-toast-"+ann.id;
+  t.style.cssText="pointer-events:auto;background:var(--surface);border:1px solid "+(important?"var(--gold)":"var(--border-strong)")+";border-radius:14px;padding:.75rem .9rem;display:flex;align-items:center;gap:10px;box-shadow:0 6px 24px rgba(0,0,0,.35);font-family:'Plus Jakarta Sans',sans-serif;transition:filter .3s,opacity .3s,transform .3s;animation:toastSlideUp .3s ease both";
+  t.innerHTML=`<span style="font-size:18px;flex-shrink:0">${important?"📌":"📢"}</span><span class="ann-toast-text" style="flex:1;font-size:12.5px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer">${ann.message.replace(/^📌\s*/,"")}</span><button class="ann-toast-ver" style="background:var(--surface2);border:1px solid var(--border);color:var(--accent);border-radius:8px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:'Plus Jakarta Sans',sans-serif">Ver</button><button class="ann-toast-x" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:15px;font-weight:700;flex-shrink:0;width:22px;height:22px;display:flex;align-items:center;justify-content:center">✕</button>`;
+  stack.appendChild(t);
+  while(stack.children.length>TOAST_MAX_STACK)stack.firstElementChild.remove();
+  restackToastBlur();
+  const closeIt=()=>removeToast(t);
+  t.querySelector(".ann-toast-x").onclick=()=>{markAnnSeen(ann.id);closeIt();updateNotifBadge();};
+  const openIt=()=>{markAnnSeen(ann.id);openAnnModal(ann);closeIt();updateNotifBadge();};
+  t.querySelector(".ann-toast-ver").onclick=openIt;
+  t.querySelector(".ann-toast-text").onclick=openIt;
+  if(!important){setTimeout(()=>{if(document.getElementById("ann-toast-"+ann.id))closeIt();},TOAST_AUTO_DISMISS_MS);}
+}
+async function pollAnnouncementsForToasts(){
+  const anns=await fetchActiveAnns(5);
+  if(!anns||!anns.length)return;
+  anns.filter(a=>a.message&&!isAnnSeen(a.id)).sort((a,b)=>new Date(a.created_at)-new Date(b.created_at)).forEach(a=>showAnnToast(a));
+  updateNotifBadge();
+}
+function startAnnPoll(){setInterval(()=>{pollAnnouncementsForToasts().catch(()=>{});},20000);}
 
 // ═══ ADMIN ACTIONS (server-verified, not just client-side gating) ═══
 async function adminAction(action,payload){
@@ -962,10 +1030,10 @@ async function renderOwnerPanel(){
       ${tabBtn("oc-ann","📢 Anuncio",true)}${tabBtn("oc-ban","🔒 Bans",false)}${tabBtn("oc-rank","🏆 Ranking",false)}${tabBtn("oc-xp","🎁 XP",false)}${tabBtn("oc-sug","💡 Ideas",false)}
     </div>
     <div id="oc-ann">
-      ${ann?`<div style="background:rgba(255,107,53,.08);border:1px solid var(--accent);border-radius:var(--r-sm);padding:1rem;margin-bottom:.875rem"><div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.06em">Anuncio activo ${isImportantAnn(ann)?'<span style="color:var(--gold)">· 📌 Importante (con banner)</span>':'<span style="color:var(--text-muted)">· solo campana</span>'}</div><div style="font-size:13px;color:var(--text);line-height:1.6;margin-bottom:.75rem">${ann.message.replace(/^📌\s*/,"")}</div><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem"><div style="display:flex;gap:12px;font-size:13px"><span style="color:var(--green);font-weight:700">👍 ${likes.length}</span><span style="color:var(--red);font-weight:700">👎 ${dislikes.length}</span></div><button onclick="clearAnn().then(renderOwnerPanel)" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text-muted);padding:4px 10px;cursor:pointer;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif">✕ Quitar</button></div>${reactions.length>0?`<div style="margin-top:.75rem;border-top:1px solid var(--border);padding-top:.75rem"><div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem">Votos</div><div style="display:flex;flex-wrap:wrap;gap:4px">${reactions.map(r=>`<span style="background:${r.reaction==="like"?"rgba(34,197,94,.15)":"rgba(240,80,80,.15)"};border:1px solid ${r.reaction==="like"?"var(--green)":"var(--red)"};border-radius:99px;padding:2px 8px;font-size:11px;color:${r.reaction==="like"?"var(--green)":"var(--red)"}">${r.reaction==="like"?"👍":"👎"} ${r.username}</span>`).join("")}</div></div>`:""}</div>`:'<div style="font-size:12px;color:var(--text-muted);margin-bottom:.875rem;text-align:center">No hay ningún anuncio activo</div>'}
+      ${ann?`<div style="background:rgba(255,107,53,.08);border:1px solid var(--accent);border-radius:var(--r-sm);padding:1rem;margin-bottom:.875rem"><div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.06em">Anuncio activo</div><div style="font-size:13px;color:var(--text);line-height:1.6;margin-bottom:.75rem">${ann.message}</div><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem"><div style="display:flex;gap:12px;font-size:13px"><span style="color:var(--green);font-weight:700">👍 ${likes.length}</span><span style="color:var(--red);font-weight:700">👎 ${dislikes.length}</span></div><button onclick="clearAnn().then(renderOwnerPanel)" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text-muted);padding:4px 10px;cursor:pointer;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif">✕ Quitar</button></div>${reactions.length>0?`<div style="margin-top:.75rem;border-top:1px solid var(--border);padding-top:.75rem"><div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem">Votos</div><div style="display:flex;flex-wrap:wrap;gap:4px">${reactions.map(r=>`<span style="background:${r.reaction==="like"?"rgba(34,197,94,.15)":"rgba(240,80,80,.15)"};border:1px solid ${r.reaction==="like"?"var(--green)":"var(--red)"};border-radius:99px;padding:2px 8px;font-size:11px;color:${r.reaction==="like"?"var(--green)":"var(--red)"}">${r.reaction==="like"?"👍":"👎"} ${r.username}</span>`).join("")}</div></div>`:""}</div>`:'<div style="font-size:12px;color:var(--text-muted);margin-bottom:.875rem;text-align:center">No hay ningún anuncio activo</div>'}
       <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem">Nuevo anuncio</div>
       <textarea id="ann-input" class="review-textarea" placeholder="Escribe un anuncio..." style="min-height:70px"></textarea>
-      <label style="display:flex;align-items:center;gap:8px;margin:.6rem 0;cursor:pointer;font-size:12px;color:var(--text-muted)"><input type="checkbox" id="ann-important-chk" style="width:16px;height:16px;accent-color:var(--accent)"> 📌 Importante (muestra un banner debajo del header a todos)</label>
+      <label style="display:flex;align-items:center;gap:8px;margin:.6rem 0;cursor:pointer;font-size:12px;color:var(--text-muted)"><input type="checkbox" id="ann-important-chk" style="width:16px;height:16px;accent-color:var(--accent)"> 📌 Importante (la notificación no se cierra sola, hay que cerrarla a mano)</label>
       <button class="play-btn" id="ann-send-btn" style="width:100%;margin-top:.25rem">📢 Publicar</button>
     </div>
     <div id="oc-ban" style="display:none">
@@ -990,7 +1058,7 @@ async function renderOwnerPanel(){
       <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem">Sugerencias (${sugs?sugs.length:0})</div>
       ${sugs&&sugs.length>0?sugs.map(s=>`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;margin-bottom:.4rem"><div style="display:flex;justify-content:space-between;margin-bottom:.3rem"><span style="font-size:12px;font-weight:700;color:var(--accent)">${s.username||"Anónimo"}</span><button onclick="deleteSuggestion('${s.id}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:12px">🗑️</button></div><div style="font-size:13px;color:var(--text);line-height:1.55">${s.message}</div></div>`).join(""):'<div style="font-size:12px;color:var(--text-muted);text-align:center;padding:1rem">Sin sugerencias aún</div>'}
     </div>`;
-  document.getElementById("ann-send-btn").onclick=async()=>{const raw=document.getElementById("ann-input").value.trim();if(!raw)return;const important=document.getElementById("ann-important-chk").checked;const msg=important?"📌 "+raw:raw;const btn=document.getElementById("ann-send-btn");btn.textContent="Publicando...";btn.disabled=true;await postAnn(msg);localStorage.removeItem("comidadle_ann_"+(ann?ann.id:""));renderOwnerPanel();};
+  document.getElementById("ann-send-btn").onclick=async()=>{const raw=document.getElementById("ann-input").value.trim();if(!raw)return;const important=document.getElementById("ann-important-chk").checked;const msg=important?"📌 "+raw:raw;const btn=document.getElementById("ann-send-btn");btn.textContent="Publicando...";btn.disabled=true;await postAnn(msg);renderOwnerPanel();};
   document.getElementById("ban-btn").onclick=async()=>{const name=document.getElementById("ban-name-inp").value.trim(),reason=document.getElementById("ban-reason-inp").value.trim();if(!name||!confirm("¿Banear a '"+name+"'?"))return;await banUser(name,reason);setTimeout(renderOwnerPanel,600);};
   const giftBtn=document.getElementById("gift-xp-btn");
   if(giftBtn)giftBtn.onclick=async()=>{
@@ -1440,7 +1508,7 @@ function showResultBox(won, xpEarned){
   document.getElementById("share-btn-"+currentDish).onclick=openShareModal;
   const ndb=document.getElementById("next-dish-btn");if(ndb)ndb.onclick=()=>switchDish(currentDish+1);
   startCountdown();
-  if(!localStorage.getItem("notif_asked"))setTimeout(askNotif,2000);else if(Notification.permission==="granted"){checkMissedNotif();scheduleNotif();}
+  // Sistema de notificaciones de racha desactivado por ahora
 }
 
 
@@ -1547,38 +1615,7 @@ function loadInfinite(d){
   }ri();
 }
 
-// ═══ NOTIFICATIONS ═══
-async function askNotif(){
-  if(!("Notification"in window)||Notification.permission==="denied")return;
-  if(Notification.permission==="granted"){checkMissedNotif();scheduleNotif();return;}
-  const b=document.createElement("div");b.style.cssText="position:fixed;bottom:1rem;left:50%;transform:translateX(-50%);width:calc(100% - 2rem);max-width:480px;background:#1C1208;border:1px solid rgba(255,150,50,.4);border-radius:12px;padding:1rem 1.25rem;display:flex;align-items:center;gap:12px;z-index:50;box-shadow:0 4px 24px rgba(0,0,0,.4)";b.innerHTML=`<div style="font-size:28px">🔥</div><div style="flex:1"><div style="font-size:14px;font-weight:600;color:#FFF3E0">¿Activar avisos de racha?</div><div style="font-size:12px;color:#9A7050">Te avisamos a las 21:00 si no has jugado</div></div><div style="display:flex;gap:6px"><button id="ny" style="background:#FF6B35;color:#fff;border:none;border-radius:8px;padding:.45rem .875rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer">¡Sí!</button><button id="nn" style="background:#251A0D;color:#9A7050;border:1px solid rgba(255,150,50,.2);border-radius:8px;padding:.45rem .875rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;cursor:pointer">No</button></div>`;
-  document.body.appendChild(b);
-  document.getElementById("ny").onclick=async()=>{b.remove();const p=await Notification.requestPermission();if(p==="granted")scheduleNotif();localStorage.setItem("notif_asked","1");};
-  document.getElementById("nn").onclick=()=>{b.remove();localStorage.setItem("notif_asked","dismissed");};
-}
-function _notifBody(){return streak.lastDate!==todayStr;}
-function _fireNotif(){if(Notification.permission!=="granted")return;if(_notifBody()){new Notification("🔥 Comidadle",{body:"¡No has jugado hoy! Tu racha está en peligro 🌶️",tag:"comidadle-streak",icon:"/favicon.ico",badge:"/favicon.ico"});}localStorage.removeItem("notif_at");}
-function scheduleNotif(){
-  if(!("Notification"in window)||Notification.permission!=="granted")return;
-  const now=new Date(),target=new Date(now.getFullYear(),now.getMonth(),now.getDate(),21,0,0);
-  if(target<=now)target.setDate(target.getDate()+1);
-  const delay=target-now;
-  localStorage.setItem("notif_at",target.getTime().toString());
-  // Enviar al Service Worker (funciona aunque el tab esté cerrado)
-  if("serviceWorker"in navigator){
-    navigator.serviceWorker.ready.then(reg=>{
-      if(reg.active)reg.active.postMessage({type:"SCHEDULE_NOTIF",delay});
-    }).catch(()=>{});
-  }
-  // Fallback setTimeout (por si el SW no está disponible)
-  if(window._notifTimer)clearTimeout(window._notifTimer);
-  window._notifTimer=setTimeout(_fireNotif,delay);
-}
-function checkMissedNotif(){
-  if(!("Notification"in window)||Notification.permission!=="granted")return;
-  const at=localStorage.getItem("notif_at");if(!at)return;
-  if(Date.now()>=parseInt(at)){_fireNotif();scheduleNotif();}
-}
+// ═══ NOTIFICATIONS (desactivado por ahora, se revisará más adelante) ═══
 
 
 // ═══ SHOP + EQUIP ═══
@@ -1886,8 +1923,8 @@ async function updateNotifBadge(){
     try{const rows=await sb("/rest/v1/notifications?username=eq."+encodeURIComponent(myUser)+"&read=eq.false&select=id");count+=rows?rows.length:0;}catch(e){}
   }
   try{
-    const ann=await fetchAnn();
-    if(ann&&ann.message&&!localStorage.getItem("comidadle_ann_"+ann.id))count+=1;
+    const anns=await fetchActiveAnns(5);
+    count+=(anns||[]).filter(a=>a.message&&!isAnnSeen(a.id)).length;
   }catch(e){}
   if(count>0){badge.style.display="";badge.textContent=count>9?"9+":count;}
   else badge.style.display="none";
@@ -1898,30 +1935,30 @@ async function openNotifications(){
   updateNotifBadge();
   renderNotifications();
 }
-let _currentAnnCache=null;
-function openAnnFromNotif(){
-  if(!_currentAnnCache)return;
-  openAnnModal(_currentAnnCache);
-  localStorage.setItem("comidadle_ann_"+_currentAnnCache.id,"1");
+let _annCache=[];
+function openAnnFromNotifAt(i){
+  const ann=_annCache[i];if(!ann)return;
+  markAnnSeen(ann.id);
+  openAnnModal(ann);
+  const t=document.getElementById("ann-toast-"+ann.id);if(t)removeToast(t);
   updateNotifBadge();renderNotifications();
-  const lb=document.getElementById("ann-live-banner");if(lb)lb.remove();
 }
 async function renderNotifications(){
   const el=document.getElementById("notif-content");if(!el)return;
   let annHtml="";
   try{
-    const ann=await fetchAnn();
-    if(ann&&ann.message){
-      _currentAnnCache=ann;
-      const seen=!!localStorage.getItem("comidadle_ann_"+ann.id);
-      annHtml=`<div onclick="openAnnFromNotif()" style="display:flex;gap:10px;padding:.75rem;background:var(--surface2);border:1px solid ${seen?"var(--border)":"var(--accent)"};border-radius:var(--r-sm);margin-bottom:.4rem;cursor:pointer">
-        <div style="font-size:24px;flex-shrink:0">📢</div>
+    const anns=await fetchActiveAnns(5);
+    _annCache=anns||[];
+    annHtml=_annCache.map((a,i)=>{
+      const seen=isAnnSeen(a.id),important=isImportantAnn(a);
+      return`<div onclick="openAnnFromNotifAt(${i})" style="display:flex;gap:10px;padding:.75rem;background:var(--surface2);border:1px solid ${seen?"var(--border)":(important?"var(--gold)":"var(--accent)")};border-radius:var(--r-sm);margin-bottom:.4rem;cursor:pointer">
+        <div style="font-size:24px;flex-shrink:0">${important?"📌":"📢"}</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px">Anuncio del Owner${seen?"":' <span style="color:var(--accent)">· nuevo</span>'}</div>
-          <div style="font-size:12px;color:var(--text-muted);line-height:1.5">${ann.message.replace(/^📌\s*/,"")}</div>
+          <div style="font-size:12px;color:var(--text-muted);line-height:1.5">${a.message.replace(/^📌\s*/,"")}</div>
         </div>
       </div>`;
-    }
+    }).join("");
   }catch(e){}
   if(!myUser){
     el.innerHTML=annHtml||'<div class="ranking-empty">Sin notificaciones aún 🔔</div>';
@@ -2223,8 +2260,8 @@ function applyLang(){
     if(el)el.textContent=t(key);
   });
   // Update extras and profile buttons
-  const menuBtn=document.getElementById("menu-open-btn");
-  if(menuBtn){const span=menuBtn.childNodes[menuBtn.childNodes.length-1];if(span&&span.nodeType===3)menuBtn.childNodes[menuBtn.childNodes.length-1].textContent=t("extras");}
+  const menuLabel=document.getElementById("extras-label");
+  if(menuLabel)menuLabel.textContent=t("extras");
   const profBtn=document.getElementById("profile-open-btn");
   if(profBtn){const span=profBtn.childNodes[0];if(span&&span.nodeType===3)profBtn.childNodes[0].textContent=t("profile")+" ";}
   // Update how-to-play if visible
@@ -2305,6 +2342,8 @@ onC("player-close",()=>closeModal("player-modal"));
 onC("sm-friends",()=>{closeSideMenu();openFriendsModal();});
 onC("friends-close",()=>closeModal("friends-modal"));
 onC("challenge-close",()=>closeModal("challenge-modal"));
+onC("qr-close",()=>{stopQrScan();closeModal("qr-modal");});
+document.getElementById("qr-modal").addEventListener("click",e=>{if(e.target.id==="qr-modal"){stopQrScan();closeModal("qr-modal");}});
 document.getElementById("friends-modal").addEventListener("click",e=>{if(e.target.id==="friends-modal")closeModal("friends-modal");});
 document.getElementById("challenge-modal").addEventListener("click",e=>{if(e.target.id==="challenge-modal")closeModal("challenge-modal");});
 document.getElementById("shop-modal").addEventListener("click",e=>{if(e.target.id==="shop-modal")closeModal("shop-modal");});
@@ -2556,8 +2595,11 @@ async function renderFriendsTab(tab){
     el.innerHTML=html||'<div class="ranking-empty">Sin invitaciones de duelo pendientes</div>';
   }else if(tab==="add"){
     el.innerHTML=`
+      <button class="ranking-btn primary" style="width:100%;margin-bottom:.875rem" id="open-qr-btn">📱 Añadir por código QR</button>
+      <div style="text-align:center;font-size:11px;color:var(--text-muted);margin-bottom:.875rem">— o busca por nombre —</div>
       <input id="friend-search-inp" class="username-input" placeholder="🔍 Buscar jugador por nombre..." style="margin:0 0 .75rem;width:100%;box-sizing:border-box" oninput="doFriendSearch(this.value)">
       <div id="friend-search-results"></div>`;
+    document.getElementById("open-qr-btn").onclick=()=>{openModal("qr-modal");qrTab("show");};
   }
 }
 function acceptDuelInviteAt(i){acceptDuelInvite(_incomingInvitesCache[i]);}
@@ -2581,12 +2623,14 @@ function doFriendSearch(q){
   },400);
 }
 async function updateFriendsBadge(){
-  if(!myUser){const b=document.getElementById("friends-badge");if(b)b.style.display="none";return;}
+  const dot=document.getElementById("extras-dot");
+  if(!myUser){const b=document.getElementById("friends-badge");if(b)b.style.display="none";if(dot)dot.style.display="none";return;}
   try{
     const [reqs,invs]=await Promise.all([fetchIncomingRequests(),fetchIncomingDuelInvites()]);
     const count=reqs.length+invs.length;
     const b=document.getElementById("friends-badge");
     if(b){if(count>0){b.style.display="";b.textContent=count>9?"9+":count;}else b.style.display="none";}
+    if(dot)dot.style.display=count>0?"":"none";
   }catch(e){}
 }
 
@@ -2617,6 +2661,82 @@ function openChallengeModal(username){
       el.querySelectorAll(".challenge-mode-btn").forEach(x=>x.disabled=false);
     }
   });
+}
+
+// ═══ AMIGOS POR CÓDIGO QR ═══
+let _qrScanStream=null,_qrScanLoopId=null;
+function getAddFriendUrl(username){return location.origin+location.pathname+"?addfriend="+encodeURIComponent(username);}
+function extractAddFriendUsername(text){
+  try{const url=new URL(text);const u=url.searchParams.get("addfriend");if(u)return u;}catch(e){}
+  const m=text.match(/addfriend=([^&\s]+)/);
+  return m?decodeURIComponent(m[1]):null;
+}
+function stopQrScan(){
+  if(_qrScanLoopId){clearTimeout(_qrScanLoopId);_qrScanLoopId=null;}
+  if(_qrScanStream){_qrScanStream.getTracks().forEach(t=>t.stop());_qrScanStream=null;}
+}
+function qrTab(tab){
+  document.getElementById("qt-show").classList.toggle("active",tab==="show");
+  document.getElementById("qt-scan").classList.toggle("active",tab==="scan");
+  stopQrScan();
+  if(tab==="show")renderQrShow();else renderQrScan();
+}
+function renderQrShow(){
+  const el=document.getElementById("qr-content");if(!el)return;
+  if(!myUser){el.innerHTML='<div class="ranking-empty">Necesitas un nombre en el Ranking Global para tener tu QR.</div>';return;}
+  el.innerHTML=`<div style="text-align:center"><div id="qr-svg-holder" style="display:inline-block;background:#fff;padding:.75rem;border-radius:12px;margin-bottom:.75rem"></div><div style="font-size:13px;font-weight:700;color:var(--text)">${escapeHtml(myUser)}</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px">Pide a tu amigo que escanee este código</div></div>`;
+  try{
+    const qr=qrcode(0,"M");
+    qr.addData(getAddFriendUrl(myUser));
+    qr.make();
+    document.getElementById("qr-svg-holder").innerHTML=qr.createSvgTag({cellSize:5,margin:3});
+  }catch(e){
+    document.getElementById("qr-svg-holder").innerHTML='<div style="padding:1rem;color:#333;font-size:12px">Error generando el QR 😔</div>';
+  }
+}
+async function renderQrScan(){
+  const el=document.getElementById("qr-content");if(!el)return;
+  el.innerHTML=`
+    <div style="text-align:center">
+      <video id="qr-video" playsinline style="width:100%;max-width:320px;border-radius:12px;background:#000"></video>
+      <canvas id="qr-canvas" style="display:none"></canvas>
+      <div id="qr-scan-status" style="font-size:12px;color:var(--text-muted);margin-top:.6rem">Iniciando cámara...</div>
+    </div>`;
+  try{
+    _qrScanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
+    const video=document.getElementById("qr-video");
+    video.srcObject=_qrScanStream;
+    await video.play();
+    document.getElementById("qr-scan-status").textContent="Apunta al código QR de tu amigo";
+    const canvas=document.getElementById("qr-canvas"),ctx=canvas.getContext("2d");
+    const tick=()=>{
+      if(!_qrScanStream)return;
+      if(video.readyState===video.HAVE_ENOUGH_DATA){
+        canvas.width=video.videoWidth;canvas.height=video.videoHeight;
+        ctx.drawImage(video,0,0,canvas.width,canvas.height);
+        try{
+          const imgData=ctx.getImageData(0,0,canvas.width,canvas.height);
+          const code=jsQR(imgData.data,imgData.width,imgData.height);
+          if(code&&code.data){
+            const username=extractAddFriendUsername(code.data);
+            if(username&&username!==myUser){
+              document.getElementById("qr-scan-status").innerHTML='<span style="color:var(--green)">✓ Encontrado: '+escapeHtml(username)+'</span>';
+              stopQrScan();
+              sendFriendRequest(username).then(()=>{
+                document.getElementById("qr-scan-status").innerHTML='<span style="color:var(--green)">✓ Solicitud enviada a '+escapeHtml(username)+'</span>';
+                setTimeout(()=>{closeModal("qr-modal");friendsTab("requests");},1200);
+              });
+              return;
+            }
+          }
+        }catch(e){}
+      }
+      _qrScanLoopId=setTimeout(tick,180);
+    };
+    tick();
+  }catch(e){
+    document.getElementById("qr-scan-status").textContent="No se pudo acceder a la cámara 😔 Revisa los permisos.";
+  }
 }
 
 // ═══ DUEL MODE ═══
@@ -4160,8 +4280,18 @@ setTimeout(applyLang,100);
 const vEl=document.getElementById("about-version");if(vEl)vEl.textContent=VERSION;renderYesterday();renderTabs();renderAll();
 if(!localStorage.getItem("comidadle_visited")){openModal("how-modal");localStorage.setItem("comidadle_visited","1");}
 checkStreakExpiry();
-setTimeout(showAnnBanner,2000);setTimeout(checkMissedNotif,500);startAnnPoll();
+setTimeout(pollAnnouncementsForToasts,2000);startAnnPoll();
 if(new URLSearchParams(location.search).get("duel"))setTimeout(openDuelModal,300);
+const _qpAddFriend=new URLSearchParams(location.search).get("addfriend");
+if(_qpAddFriend){
+  setTimeout(()=>{
+    if(!myUser){alert("Necesitas un nombre en el Ranking Global antes de añadir amigos.");return;}
+    if(_qpAddFriend===myUser)return;
+    if(confirm("¿Añadir a "+_qpAddFriend+" como amigo?")){
+      sendFriendRequest(_qpAddFriend).then(()=>{openFriendsModal();friendsTab("requests");});
+    }
+  },800);
+}
 setTimeout(checkIfBanned,1000);
 setTimeout(checkXPGifts,3000);
 setTimeout(updateNotifBadge,2000);
