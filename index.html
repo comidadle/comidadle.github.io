@@ -2005,7 +2005,7 @@ async function openPlayerProfile(username){
         <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--text)">${username}${isMe?" (tú)":""}</div>
         ${eq.title?`<div style="font-size:13px;font-weight:700;color:var(--accent);margin-top:4px">${eq.title}</div>`:""}
         ${eq.badge?`<div style="display:inline-block;background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:3px 12px;font-size:12px;font-weight:600;color:var(--text);margin-top:6px">${eq.badge}</div>`:""}
-        ${!isMe?`<button id="profile-challenge-btn" class="ranking-btn primary" style="margin-top:.75rem">⚔️ Retar a duelo</button> <button id="profile-add-friend-btn" class="ranking-btn" style="margin-top:.75rem">🧑‍🤝‍🧑 Añadir amigo</button>`:""}
+        ${!isMe?`<button id="profile-add-friend-btn" class="ranking-btn primary" style="margin-top:.75rem">🧑‍🤝‍🧑 Añadir amigo</button>`:""}
       </div>
       ${r?`
       <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">🏆 Estadísticas globales</div>
@@ -2052,7 +2052,7 @@ async function openWeeklyPlayerProfile(username){
         <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--text)">${username}${isMe?" (tú)":""}</div>
         ${eq.title?`<div style="font-size:13px;font-weight:700;color:var(--accent);margin-top:4px">${eq.title}</div>`:""}
         ${eq.badge?`<div style="display:inline-block;background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:3px 12px;font-size:12px;font-weight:600;color:var(--text);margin-top:6px">${eq.badge}</div>`:""}
-        ${!isMe?`<button id="profile-challenge-btn" class="ranking-btn primary" style="margin-top:.75rem">⚔️ Retar a duelo</button> <button id="profile-add-friend-btn" class="ranking-btn" style="margin-top:.75rem">🧑‍🤝‍🧑 Añadir amigo</button>`:""}
+
       </div>
 
       ${eq.badge||eq.title||eq.avatar_frame||eq.emoji?`
@@ -2065,8 +2065,6 @@ async function openWeeklyPlayerProfile(username){
       </div>`:""}
       <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin:1rem 0 .5rem">🏅 Logros (${achBadges.length}/${ACH_LIST.length})</div>
       ${achBadges.length?`<div style="display:flex;flex-wrap:wrap;gap:8px">${achBadges.map(a=>`<div title="${a.name}" style="display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--gold);border-radius:99px;padding:.35rem .7rem"><span style="font-size:16px">${a.icon}</span><span style="font-size:12px;font-weight:600;color:var(--text)">${a.name}</span></div>`).join("")}</div>`:'<div class="ranking-empty">Sin logros desbloqueados todavía</div>'}`;
-    const cb=document.getElementById("profile-challenge-btn");if(cb)cb.onclick=()=>openChallengeModal(username);
-    const fb=document.getElementById("profile-add-friend-btn");if(fb)fb.onclick=async()=>{fb.textContent="Enviando...";fb.disabled=true;await sendFriendRequest(username);fb.textContent="✓ Solicitud enviada";};
   }catch(e){el.innerHTML='<div class="ranking-empty">Error 😔</div>';}
 }
 
@@ -2470,7 +2468,6 @@ async function respondFriendRequest(id,action){
       if(row)sendNotification(row.requester_username,"system","❌ Solicitud rechazada",myUser+" ha rechazado tu solicitud de amistad.").catch(()=>{});
     }else if(action==="ignore"){
       await sb("/rest/v1/friends?id=eq."+id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({recipient_hidden:true})});
-      if(row)sendNotification(row.requester_username,"system","🙈 Solicitud ignorada",myUser+" ha ignorado tu solicitud de amistad.").catch(()=>{});
     }
   }catch(e){}
 }
