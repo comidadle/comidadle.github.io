@@ -2428,8 +2428,16 @@ function checkMondaySummary(){
 async function sendFriendRequest(username){
   if(!myUser||!username||username===myUser)return null;
   try{
-    const existing=await sb("/rest/v1/friends?or=(and(requester_username.eq."+encodeURIComponent(myUser)+",recipient_username.eq."+encodeURIComponent(username)+"),and(requester_username.eq."+encodeURIComponent(username)+",recipient_username.eq."+encodeURIComponent(myUser)+"))&select=id,status");
-    if(existing&&existing.length)return existing[0];
+    const existing=await sb("/rest/v1/friends?or=(and(requester_username.eq."+encodeURIComponent(myUser)+",recipient_username.eq."+encodeURIComponent(username)+"),and(requester_username.eq."+encodeURIComponent(username)+",recipient_username.eq."+encodeURIComponent(myUser)+"))&select=*");
+    const row=existing&&existing[0];
+    if(row){
+      if(row.status==="accepted")return row; // ya son amigos
+      if(row.status==="pending"&&!row.recipient_hidden)return row; // ya hay una solicitud real pendiente
+      // estaba rechazada, ignorada u oculta: la reactivamos como una nueva solicitud
+      const rows=await sb("/rest/v1/friends?id=eq."+row.id,{method:"PATCH",headers:{...SH,"Prefer":"return=representation"},body:JSON.stringify({requester_username:myUser,recipient_username:username,status:"pending",recipient_hidden:false,updated_at:new Date().toISOString()})});
+      sendNotification(username,"system","🧑‍🤝‍🧑 Nueva solicitud de amistad",myUser+" quiere ser tu amigo en Comidadle. Mira en Extras → Amigos.").catch(()=>{});
+      return rows&&rows[0];
+    }
     const rows=await sb("/rest/v1/friends",{method:"POST",headers:{...SH,"Prefer":"return=representation"},body:JSON.stringify({requester_username:myUser,recipient_username:username,status:"pending"})});
     sendNotification(username,"system","🧑‍🤝‍🧑 Nueva solicitud de amistad",myUser+" quiere ser tu amigo en Comidadle. Mira en Extras → Amigos.").catch(()=>{});
     return rows&&rows[0];
@@ -2452,9 +2460,18 @@ async function fetchSentRequests(){
 }
 async function respondFriendRequest(id,action){
   try{
-    if(action==="accept")await sb("/rest/v1/friends?id=eq."+id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({status:"accepted",updated_at:new Date().toISOString()})});
-    else if(action==="reject")await sb("/rest/v1/friends?id=eq."+id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({status:"rejected",updated_at:new Date().toISOString()})});
-    else if(action==="ignore")await sb("/rest/v1/friends?id=eq."+id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({recipient_hidden:true})});
+    const rows0=await sb("/rest/v1/friends?id=eq."+id+"&select=requester_username,recipient_username");
+    const row=rows0&&rows0[0];
+    if(action==="accept"){
+      await sb("/rest/v1/friends?id=eq."+id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({status:"accepted",updated_at:new Date().toISOString()})});
+      if(row)sendNotification(row.requester_username,"system","✅ Solicitud aceptada",myUser+" ha aceptado tu solicitud de amistad 🎉").catch(()=>{});
+    }else if(action==="reject"){
+      await sb("/rest/v1/friends?id=eq."+id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({status:"rejected",updated_at:new Date().toISOString()})});
+      if(row)sendNotification(row.requester_username,"system","❌ Solicitud rechazada",myUser+" ha rechazado tu solicitud de amistad.").catch(()=>{});
+    }else if(action==="ignore"){
+      await sb("/rest/v1/friends?id=eq."+id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({recipient_hidden:true})});
+      if(row)sendNotification(row.requester_username,"system","🙈 Solicitud ignorada",myUser+" ha ignorado tu solicitud de amistad.").catch(()=>{});
+    }
   }catch(e){}
 }
 async function removeFriend(username){
@@ -2674,6 +2691,7 @@ function extractAddFriendUsername(text){
 function stopQrScan(){
   if(_qrScanLoopId){clearTimeout(_qrScanLoopId);_qrScanLoopId=null;}
   if(_qrScanStream){_qrScanStream.getTracks().forEach(t=>t.stop());_qrScanStream=null;}
+  _qrTickFn=null;_qrHandled=false;
 }
 function qrTab(tab){
   document.getElementById("qt-show").classList.toggle("active",tab==="show");
@@ -2694,24 +2712,32 @@ function renderQrShow(){
     document.getElementById("qr-svg-holder").innerHTML='<div style="padding:1rem;color:#333;font-size:12px">Error generando el QR 😔</div>';
   }
 }
+let _qrHandled=false,_qrTickFn=null;
 async function renderQrScan(){
   const el=document.getElementById("qr-content");if(!el)return;
+  stopQrScan(); // por si quedó una cámara anterior abierta
+  _qrHandled=false;
+  if(typeof jsQR==="undefined"){el.innerHTML='<div class="ranking-empty">Cargando el lector de QR, espera un segundo y vuelve a abrir esta pestaña 🙏</div>';return;}
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){el.innerHTML='<div class="ranking-empty">Tu navegador no soporta acceso a la cámara 😔</div>';return;}
   el.innerHTML=`
     <div style="text-align:center">
-      <video id="qr-video" playsinline style="width:100%;max-width:320px;border-radius:12px;background:#000"></video>
+      <video id="qr-video" playsinline muted autoplay style="width:100%;max-width:320px;border-radius:12px;background:#000"></video>
       <canvas id="qr-canvas" style="display:none"></canvas>
       <div id="qr-scan-status" style="font-size:12px;color:var(--text-muted);margin-top:.6rem">Iniciando cámara...</div>
     </div>`;
   try{
     _qrScanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
     const video=document.getElementById("qr-video");
+    if(!video){stopQrScan();return;} // el modal se cerró mientras se pedía permiso
     video.srcObject=_qrScanStream;
     await video.play();
-    document.getElementById("qr-scan-status").textContent="Apunta al código QR de tu amigo";
-    const canvas=document.getElementById("qr-canvas"),ctx=canvas.getContext("2d");
+    const statusEl=document.getElementById("qr-scan-status");
+    if(statusEl)statusEl.textContent="Apunta al código QR de tu amigo";
+    const canvas=document.getElementById("qr-canvas"),ctx=canvas.getContext("2d",{willReadFrequently:true});
     const tick=()=>{
-      if(!_qrScanStream)return;
-      if(video.readyState===video.HAVE_ENOUGH_DATA){
+      if(!_qrScanStream||_qrHandled)return;
+      const sEl=document.getElementById("qr-scan-status");
+      if(video.readyState===video.HAVE_ENOUGH_DATA&&video.videoWidth>0){
         canvas.width=video.videoWidth;canvas.height=video.videoHeight;
         ctx.drawImage(video,0,0,canvas.width,canvas.height);
         try{
@@ -2720,24 +2746,48 @@ async function renderQrScan(){
           if(code&&code.data){
             const username=extractAddFriendUsername(code.data);
             if(username&&username!==myUser){
-              document.getElementById("qr-scan-status").innerHTML='<span style="color:var(--green)">✓ Encontrado: '+escapeHtml(username)+'</span>';
-              stopQrScan();
-              sendFriendRequest(username).then(()=>{
-                document.getElementById("qr-scan-status").innerHTML='<span style="color:var(--green)">✓ Solicitud enviada a '+escapeHtml(username)+'</span>';
-                setTimeout(()=>{closeModal("qr-modal");friendsTab("requests");},1200);
-              });
+              _qrHandled=true;
+              if(sEl)sEl.innerHTML='<span style="color:var(--gold)">Comprobando '+escapeHtml(username)+'...</span>';
+              handleScannedUsername(username);
               return;
+            }else if(username&&username===myUser){
+              if(sEl)sEl.innerHTML='<span style="color:var(--red)">Ese es tu propio QR 😅 pide el de tu amigo</span>';
             }
           }
         }catch(e){}
       }
       _qrScanLoopId=setTimeout(tick,180);
     };
+    _qrTickFn=tick;
     tick();
   }catch(e){
-    document.getElementById("qr-scan-status").textContent="No se pudo acceder a la cámara 😔 Revisa los permisos.";
+    const statusEl=document.getElementById("qr-scan-status");
+    if(statusEl){
+      if(e&&e.name==="NotAllowedError")statusEl.textContent="Permiso de cámara denegado. Revisa los permisos del navegador 🙏";
+      else if(e&&e.name==="NotFoundError")statusEl.textContent="No se encontró ninguna cámara en este dispositivo 😔";
+      else statusEl.textContent="No se pudo acceder a la cámara 😔";
+    }
   }
 }
+async function handleScannedUsername(username){
+  const sEl=document.getElementById("qr-scan-status");
+  try{
+    const rows=await sb("/rest/v1/ranking?username=eq."+encodeURIComponent(username)+"&select=username");
+    if(!rows||!rows.length){
+      if(sEl)sEl.innerHTML='<span style="color:var(--red)">No existe ningún jugador llamado "'+escapeHtml(username)+'" 😔</span>';
+      setTimeout(()=>{_qrHandled=false;if(_qrScanStream&&_qrTickFn)_qrTickFn();},1800);
+      return;
+    }
+    await sendFriendRequest(username);
+    if(sEl)sEl.innerHTML='<span style="color:var(--green)">✓ Solicitud enviada a '+escapeHtml(username)+'</span>';
+    stopQrScan();
+    setTimeout(()=>{closeModal("qr-modal");friendsTab("requests");},1200);
+  }catch(e){
+    if(sEl)sEl.innerHTML='<span style="color:var(--red)">Error comprobando el usuario 😔</span>';
+    _qrHandled=false;
+  }
+}
+
 
 // ═══ DUEL MODE ═══
 const DUEL_KEY="comidadle_duel_active";
