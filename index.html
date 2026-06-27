@@ -422,6 +422,15 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
   </div>
 </div>
 
+<!-- MEMORY MODAL -->
+<div class="modal-overlay hidden" id="memory-modal">
+  <div class="modal" style="max-height:90vh;overflow-y:auto">
+    <button class="modal-close" id="memory-close">✕</button>
+    <div class="modal-title">🧠 Modo Memoria</div>
+    <div id="memory-modal-content"></div>
+  </div>
+</div>
+
 <!-- DUEL -->
 <div class="modal-overlay hidden" id="duel-modal">
   <div class="modal">
@@ -527,6 +536,7 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
   <div class="side-menu-section">
     <div class="side-menu-label">🕹️ Modos</div>
     <button class="side-menu-item" id="sm-infinite"><div class="side-menu-item-icon">♾️</div><div><div class="side-menu-item-name">Modo Infinito</div><div class="side-menu-item-desc">Juega platos sin límite</div></div></button>
+    <button class="side-menu-item" id="sm-memory"><div class="side-menu-item-icon">🧠</div><div><div class="side-menu-item-name">Modo Memoria</div><div class="side-menu-item-desc">Memoriza el plato antes de que desaparezca</div></div></button>
     <button class="side-menu-item" id="sm-duel"><div class="side-menu-item-icon">⚔️</div><div><div class="side-menu-item-name">Modo Duelo</div><div class="side-menu-item-desc">Reta a un amigo con un plato sorpresa</div></div></button>
   </div>
   <div class="side-menu-section">
@@ -695,7 +705,7 @@ const CHANGELOG=[
   {v:"2.4.0",date:"24 jun 2026",changes:["🧑‍🤝‍🧑 Sistema de amigos: solicitudes, lista y búsqueda de jugadores.","⚔️ Reta a un amigo directamente: tu rival ve Aceptar/Rechazar/Ignorar sin necesidad de código. En modos de grupo, al aceptar entráis juntos al lobby y el código aparece ahí para el resto.","🏅 Logros públicos visibles en el perfil de cada jugador desde el Ranking Semanal."]},
   {v:"2.5.0",date:"25 jun 2026",changes:["📢 Nuevo sistema de avisos del Owner: aparecen como notificaciones flotantes abajo (no tapan el header). Si hay varias, la más reciente se ve nítida abajo y las anteriores con un blur suave encima.","Los avisos marcados como 📌 Importante no se cierran solos.","Todos los avisos quedan accesibles después en la campana 🔔, vistos o no."]},
   {v:"2.6.0",date:"26 jun 2026",changes:["📱 Añade amigos por código QR: muéstralo o escanéalo con la cámara, también funciona como enlace compartible.","🔴 Indicador en el botón Extras cuando tienes solicitudes de amistad o invitaciones de duelo pendientes."]},
-  {v:"2.7.0",date:"27 jun 2026",changes:["🎁 Regala XP a tus amigos con un mensaje opcional, hasta 100 XP al día en total entre todos."]},
+  {v:"2.7.0",date:"27 jun 2026",changes:["🎁 Regala XP a tus amigos con un mensaje opcional, hasta 100 XP al día en total entre todos.","🧠 Nuevo Modo Memoria: memoriza el plato antes de que desaparezca y adivina el país de un solo intento, +10 XP fijo si aciertas."]},
 ];
 
 // ═══ DATA ═══
@@ -1881,6 +1891,99 @@ function renderInfiniteGame(){
   render();
 }
 
+// ═══ MODO MEMORIA ═══
+let memWins=0,memTotal=0,memStreak=0,memDish=null;
+function openMemoryModal(){
+  openModal("memory-modal");
+  memDish=ALL_DISHES[Math.floor(Math.random()*ALL_DISHES.length)];
+  memWins=0;memTotal=0;memStreak=0;
+  showMemoryIntro();
+}
+function showMemoryIntro(){
+  const el=document.getElementById("memory-modal-content");if(!el)return;
+  let secs=5;
+  el.innerHTML=`
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:1.25rem;line-height:1.6">Ves el plato unos segundos, luego desaparece. Adivina de memoria, sin pistas y un solo intento. ¡Acierta para ganar +10 XP fijo!</div>
+    <button class="play-btn" id="mem-start-btn" disabled style="margin:0;background:var(--surface2);color:var(--text-muted);cursor:not-allowed">Entendido (${secs})</button>`;
+  const btn=document.getElementById("mem-start-btn");
+  const timer=setInterval(()=>{
+    secs--;
+    if(secs<=0){
+      clearInterval(timer);
+      btn.disabled=false;btn.textContent="Entendido";btn.style.background="";btn.style.color="";btn.style.cursor="pointer";
+    }else btn.textContent="Entendido ("+secs+")";
+  },1000);
+  btn.onclick=()=>{if(!btn.disabled){clearInterval(timer);startMemoryRound();}};
+}
+function startMemoryRound(){
+  const el=document.getElementById("memory-modal-content");if(!el)return;
+  const d=memDish;
+  const SHOW_MS=3000;
+  function renderShow(){
+    const maskedName=d.name.replace(buildBlurRegex(d.country),m=>`<span style="filter:blur(5px);user-select:none">${m}</span>`);
+    el.innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+        <div style="font-size:12px;font-weight:700;color:var(--text-muted)">🔥 Racha: ${memStreak}</div>
+        <div style="font-size:13px;font-weight:700;color:var(--gold)">✅ ${memWins}/${memTotal}</div>
+      </div>
+      <div class="dish-card" style="margin-bottom:.875rem"><span class="dish-emoji">${d.emoji}</span><div class="dish-name">${maskedName}</div>${!cfg.noDesc?`<div class="dish-desc">${d.desc}</div>`:""}</div>
+      <div style="background:var(--surface2);border-radius:99px;height:6px;overflow:hidden;margin-bottom:.5rem"><div id="mem-bar" style="width:100%;height:100%;background:var(--accent);border-radius:99px;transition:width ${SHOW_MS}ms linear"></div></div>
+      <div style="text-align:center;font-size:12px;color:var(--text-muted)">Memorízalo, va a desaparecer...</div>`;
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{const bar=document.getElementById("mem-bar");if(bar)bar.style.width="0%";}));
+    setTimeout(renderGuess,SHOW_MS);
+  }
+  function renderGuess(){
+    const opts=cfg.moreCountries?shuffleWithSeed(ALL_COUNTRIES,Math.random()*9999999|0):shuffleWithSeed([d.country,...d.dist],(d.name.split("").reduce((a,c)=>a+c.charCodeAt(0),0)*7919^SESSION_SEED^memTotal)>>>0);
+    const grid=opts.map(c=>`<button class="country-btn" data-c="${c}"><span>${getFlag(c)}</span><span>${c}</span></button>`).join("");
+    el.innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+        <div style="font-size:12px;font-weight:700;color:var(--text-muted)">🔥 Racha: ${memStreak}</div>
+        <div style="font-size:13px;font-weight:700;color:var(--gold)">✅ ${memWins}/${memTotal}</div>
+      </div>
+      <div class="dish-card" style="margin-bottom:.875rem;filter:blur(10px);user-select:none"><span class="dish-emoji">${d.emoji}</span><div class="dish-name">${d.name}</div></div>
+      <div style="text-align:center;font-size:13px;font-weight:700;color:var(--text);margin-bottom:.875rem">¿De qué país es?</div>
+      <div class="country-grid">${grid}</div>`;
+    el.querySelectorAll(".country-btn").forEach(btn=>{
+      btn.onclick=()=>{
+        el.querySelectorAll(".country-btn").forEach(b=>b.disabled=true);
+        const c=btn.dataset.c;memTotal++;
+        if(c===d.country){
+          playCorrect();memWins++;memStreak++;
+          btn.classList.add("correct-answer");
+          grantXP(10);
+          setTimeout(()=>{launchConfetti();playWin();},150);
+          bumpMission("play_infinite_2");
+          showMemResult(true);
+        }else{
+          playWrong();memStreak=0;
+          btn.style.borderColor="var(--red)";
+          setTimeout(()=>{playLose();hapticLose();},200);
+          showMemResult(false);
+        }
+        updateMiniAvatar();
+      };
+    });
+  }
+  function showMemResult(won){
+    el.innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+        <div style="font-size:12px;font-weight:700;color:var(--text-muted)">🔥 Racha: ${memStreak}</div>
+        <div style="font-size:13px;font-weight:700;color:var(--gold)">✅ ${memWins}/${memTotal}</div>
+      </div>
+      <div class="dish-card" style="margin-bottom:.875rem"><span class="dish-emoji">${d.emoji}</span><div class="dish-name">${d.name}</div>${!cfg.noDesc?`<div class="dish-desc">${d.desc}</div>`:""}</div>
+      <div style="background:${won?"var(--green-bg)":"rgba(240,80,80,.1)"};border:1px solid ${won?"var(--green)":"var(--red)"};border-radius:var(--r-sm);padding:.75rem;text-align:center">
+        <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:.5rem">${won?"¡Correcto! "+d.flag+" "+d.country+" · +10 XP 🎉":"Era "+d.flag+" "+d.country}</div>
+        <button class="play-btn" id="mem-next-btn" style="margin-top:.25rem">Siguiente plato ➜</button>
+      </div>`;
+    document.getElementById("mem-next-btn").onclick=()=>{
+      const pool=ALL_DISHES.filter(x=>x.name!==memDish.name);
+      memDish=pool[Math.floor(Math.random()*pool.length)];
+      startMemoryRound();
+    };
+  }
+  renderShow();
+}
+
 // ═══ FRIEND XP GIFTS ═══
 const FRIEND_GIFT_DAILY_LIMIT=100;
 async function getFriendGiftedToday(){
@@ -2425,7 +2528,9 @@ onC("rules-ok-btn",()=>closeModal("rules-modal"));
 onC("sm-rules",()=>{closeSideMenu();openModal("rules-modal");});
 onC("sm-shop",()=>{closeSideMenu();openShop();});
 onC("sm-infinite",()=>{closeSideMenu();openInfiniteModal();});
+onC("sm-memory",()=>{closeSideMenu();openMemoryModal();});
 onC("infinite-close",()=>closeModal("infinite-modal"));
+onC("memory-close",()=>closeModal("memory-modal"));
 document.getElementById("infinite-modal").addEventListener("click",e=>{if(e.target.id==="infinite-modal")closeModal("infinite-modal");});
 onC("shop-close",()=>closeModal("shop-modal"));
 onC("player-close",()=>closeModal("player-modal"));
@@ -2442,7 +2547,7 @@ document.getElementById("shop-modal").addEventListener("click",e=>{if(e.target.i
 document.getElementById("player-modal").addEventListener("click",e=>{if(e.target.id==="player-modal")closeModal("player-modal");});
 onC("duel-close",()=>closeModal("duel-modal"));
 onC("sm-duel",()=>{openDuelModal();closeSideMenu();});
-["how-modal","cfg-modal","share-modal","stats-modal","ranking-modal","weekly-modal","profile-modal","owner-modal","reviews-modal","ann-modal","suggestions-modal","about-modal","duel-modal","rules-modal","infinite-modal","player-modal","shop-modal"].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener("click",e=>{if(e.target.id===id)closeModal(id);});});
+["how-modal","cfg-modal","share-modal","stats-modal","ranking-modal","weekly-modal","profile-modal","owner-modal","reviews-modal","ann-modal","suggestions-modal","about-modal","duel-modal","rules-modal","infinite-modal","memory-modal","player-modal","shop-modal"].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener("click",e=>{if(e.target.id===id)closeModal(id);});});
 onC("menu-open-btn",openSideMenu);onC("side-menu-close",closeSideMenu);onC("side-overlay",closeSideMenu);
 onC("sm-achievements",()=>{openModal("achievements-modal");closeSideMenu();openAchievements();});onC("achievements-close",()=>closeModal("achievements-modal"));
 onC("sm-missions",()=>{openModal("missions-modal");closeSideMenu();openMissions();});onC("missions-close",()=>closeModal("missions-modal"));
