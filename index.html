@@ -22,6 +22,7 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 .hidden{display:none!important}
 :root{--bg:#100900;--surface:#1C1208;--surface2:#251A0D;--border:rgba(255,150,50,.14);--border-strong:rgba(255,150,50,.28);--text:#FFF3E0;--text-muted:#9A7050;--accent:#FF6B35;--gold:#FFB627;--green:#22C55E;--green-bg:rgba(34,197,94,.12);--red:#F05050;--r:12px;--r-sm:8px}
+body.colorblind{--green:#2D7DD2;--green-bg:rgba(45,125,210,.14);--red:#F59E0B}
 body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center}
 body::before{content:'';position:fixed;top:-80px;left:50%;transform:translateX(-50%);width:700px;height:500px;background:radial-gradient(ellipse at center,rgba(255,107,53,.07) 0%,transparent 65%);pointer-events:none;z-index:0}
 header{width:100%;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(16,9,0,.92);backdrop-filter:blur(10px);z-index:10}
@@ -263,7 +264,15 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
     <div class="setting-row"><div class="setting-info"><div class="setting-label">Pistas progresivas</div><div class="setting-desc">Las pistas aparecen de una en una con cada fallo.</div></div><label class="toggle"><input type="checkbox" id="prog-toggle" checked><div class="toggle-track"></div></label></div>
     <div class="setting-row"><div class="setting-info"><div class="setting-label">Ocultar descripción</div><div class="setting-desc">Solo ves el nombre y el emoji.</div></div><label class="toggle"><input type="checkbox" id="no-desc-toggle"><div class="toggle-track"></div></label></div>
     <div class="setting-row"><div class="setting-info"><div class="setting-label">Plato de ayer</div><div class="setting-desc">Muestra el resultado de ayer encima del plato de hoy.</div></div><label class="toggle"><input type="checkbox" id="show-yesterday-toggle" checked><div class="toggle-track"></div></label></div>
-    <div class="setting-row"><div class="setting-info"><div class="setting-label">Vibración</div><div class="setting-desc">Feedback háptico al acertar o fallar.</div></div><label class="toggle"><input type="checkbox" id="haptics-toggle" checked><div class="toggle-track"></div></label></div>
+    <div class="setting-row"><div class="setting-info"><div class="setting-label">Vibración</div><div class="setting-desc">Feedback háptico al acertar o fallar. <strong>No funciona en iPhone</strong> — es una limitación de iOS, no del juego.</div></div><label class="toggle"><input type="checkbox" id="haptics-toggle" checked><div class="toggle-track"></div></label></div>
+    <div class="setting-row"><div class="setting-info"><div class="setting-label">Modo daltónico</div><div class="setting-desc">Cambia el verde/rojo de aciertos por colores más distinguibles.</div></div><label class="toggle"><input type="checkbox" id="colorblind-toggle"><div class="toggle-track"></div></label></div>
+    <div class="setting-row"><div class="setting-info"><div class="setting-label">Ocultar mi posición en rankings</div><div class="setting-desc">Sigues jugando y guardando tu progreso, pero nadie más te verá en el Ranking Global ni Semanal.</div></div><label class="toggle"><input type="checkbox" id="hide-ranking-toggle"><div class="toggle-track"></div></label></div>
+    <div class="modal-divider"></div>
+    <div class="settings-section-label">💾 Datos</div>
+    <button class="ranking-btn" id="export-progress-btn" style="width:100%">⬇️ Exportar mi progreso (.json)</button>
+    <button class="ranking-btn" id="import-progress-btn" style="width:100%;margin-top:.5rem">⬆️ Importar progreso (.json)</button>
+    <input type="file" id="import-progress-file" accept="application/json" style="display:none">
+    <div id="import-progress-msg" style="font-size:12px;text-align:center;margin-top:.5rem"></div>
   </div>
 </div>
 
@@ -534,6 +543,9 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
     <button class="side-menu-close" id="side-menu-close">✕</button>
   </div>
   <div class="side-menu-section">
+    <button class="side-menu-item" id="sm-reload"><div class="side-menu-item-icon">🔄</div><div><div class="side-menu-item-name">Recargar app</div><div class="side-menu-item-desc">Útil si la app instalada se queda desactualizada</div></div></button>
+  </div>
+  <div class="side-menu-section">
     <div class="side-menu-label">🕹️ Modos</div>
     <button class="side-menu-item" id="sm-infinite"><div class="side-menu-item-icon">♾️</div><div><div class="side-menu-item-name">Modo Infinito</div><div class="side-menu-item-desc">Juega platos sin límite</div></div></button>
     <button class="side-menu-item" id="sm-memory"><div class="side-menu-item-icon">🧠</div><div><div class="side-menu-item-name">Modo Memoria</div><div class="side-menu-item-desc">Memoriza el plato antes de que desaparezca</div></div></button>
@@ -686,7 +698,7 @@ const ALL_DISHES=[{name:"Tacos al Pastor",emoji:"🌮",country:"México",flag:"�
 
 const DEMONYMS={"México":["Mexicano","Mexicana","Mexicanos","Mexicanas"],"España":["Español","Española","Españoles","Españolas"],"Argentina":["Argentino","Argentinas","Argentinos"],"Perú":["Peruano","Peruana","Peruanos","Peruanas"],"Colombia":["Colombiano","Colombiana","Colombianos","Colombianas"],"Venezuela":["Venezolano","Venezolana","Venezolanos","Venezolanas"],"Chile":["Chileno","Chilena","Chilenos","Chilenas"],"Cuba":["Cubano","Cubana","Cubanos","Cubanas"],"El Salvador":["Salvadoreño","Salvadoreña","Salvadoreños","Salvadoreñas"],"Honduras":["Hondureño","Hondureña","Hondureños","Hondureñas"],"Costa Rica":["Costarricense","Tico","Tica"],"Nicaragua":["Nicaragüense","Nicaragüenses"],"Guatemala":["Guatemalteco","Guatemalteca","Guatemaltecos","Guatemaltecas"],"Ecuador":["Ecuatoriano","Ecuatoriana","Ecuatorianos","Ecuatorianas"],"Bolivia":["Boliviano","Boliviana","Bolivianos","Bolivianas"],"Uruguay":["Uruguayo","Uruguaya","Uruguayos","Uruguayas"],"Brasil":["Brasileño","Brasileña","Brasileños","Brasileñas"],"Panamá":["Panameño","Panameña","Panameños","Panameñas"],"Rep. Dominicana":["Dominicano","Dominicana","Dominicanos","Dominicanas"],"Puerto Rico":["Puertorriqueño","Puertorriqueña","Boricua","Boricuas"],"Paraguay":["Paraguayo","Paraguaya","Paraguayos","Paraguayas"]};
 // ═══ VERSION ═══
-const VERSION="2.7.0";
+const VERSION="2.8.0";
 const CHANGELOG=[
   {v:"1.0.0",date:"20 dic 2025",changes:["🎉 Lanzamiento de Comidadle: 3 platos diarios, pistas progresivas y grid de países para adivinar el origen."]},
   {v:"1.1.0",date:"5 ene 2026",changes:["Modo difícil configurable: menos intentos, más países en la tabla, sin pistas.","Pistas progresivas activables/desactivables."]},
@@ -705,7 +717,8 @@ const CHANGELOG=[
   {v:"2.4.0",date:"24 jun 2026",changes:["🧑‍🤝‍🧑 Sistema de amigos: solicitudes, lista y búsqueda de jugadores.","⚔️ Reta a un amigo directamente: tu rival ve Aceptar/Rechazar/Ignorar sin necesidad de código. En modos de grupo, al aceptar entráis juntos al lobby y el código aparece ahí para el resto.","🏅 Logros públicos visibles en el perfil de cada jugador desde el Ranking Semanal."]},
   {v:"2.5.0",date:"25 jun 2026",changes:["📢 Nuevo sistema de avisos del Owner: aparecen como notificaciones flotantes abajo (no tapan el header). Si hay varias, la más reciente se ve nítida abajo y las anteriores con un blur suave encima.","Los avisos marcados como 📌 Importante no se cierran solos.","Todos los avisos quedan accesibles después en la campana 🔔, vistos o no."]},
   {v:"2.6.0",date:"26 jun 2026",changes:["📱 Añade amigos por código QR: muéstralo o escanéalo con la cámara, también funciona como enlace compartible.","🔴 Indicador en el botón Extras cuando tienes solicitudes de amistad o invitaciones de duelo pendientes."]},
-  {v:"2.7.0",date:"27 jun 2026",changes:["🎁 Regala XP a tus amigos con un mensaje opcional, hasta 100 XP al día en total entre todos.","🧠 Nuevo Modo Memoria: memoriza el plato antes de que desaparezca y adivina el país de un solo intento, +10 XP fijo si aciertas."]},
+  {v:"2.7.0",date:"27 jun 2026",changes:["🎁 Regala XP a tus amigos con un mensaje opcional, hasta 100 XP al día en total entre todos.","🧠 Nuevo Modo Memoria: memoriza el plato antes de que desaparezca y adivina el país de un solo intento, +10 XP fijo si aciertas.","🎨 Modo daltónico, opción para ocultar tu posición en los rankings, y exportar/importar tu progreso como archivo .json."]},
+  {v:"2.8.0",date:"27 jun 2026",changes:["⏰ Lista de amigos: ahora se ve cuánto tiempo lleva cada amigo sin jugar, con un botón 📣 para recordarle que vuelva (1 vez al día por amigo)."]},
 ];
 
 // ═══ DATA ═══
@@ -743,9 +756,10 @@ let currentDish=0,dish=DAILY[0];
 
 // ═══ CONFIG ═══
 const CFG_KEY="comidadle_cfg_v3";
-let cfg={fewAttempts:false,moreCountries:false,noHints:false,progressive:true,noDesc:false,showYesterday:true,hapticsOn:true};
+let cfg={fewAttempts:false,moreCountries:false,noHints:false,progressive:true,noDesc:false,showYesterday:true,hapticsOn:true,colorblind:false,hideFromRanking:false};
 try{const s=JSON.parse(localStorage.getItem(CFG_KEY));if(s)cfg={...cfg,...s};}catch(e){}
 const saveCfg=()=>{try{localStorage.setItem(CFG_KEY,JSON.stringify(cfg));}catch(e){}};
+document.body.classList.toggle("colorblind",!!cfg.colorblind);
 const getMax=()=>cfg.fewAttempts?3:6;
 const getOpts=()=>cfg.moreCountries?shuffleWithSeed(ALL_COUNTRIES,SESSION_SEED):shuffleWithSeed([dish.country,...dish.dist],SESSION_SEED);
 
@@ -804,7 +818,7 @@ async function upsertRanking(){
   if(!myUser||isBanned)return;
   const yd=new Date(_now);yd.setDate(yd.getDate()-1);
   const active=(streak.lastDate===todayStr||streak.lastDate===yd.toISOString().slice(0,10))?streak.streak:0;
-  const d={streak:active,best_streak:streak.best,wins:streak.wins,played:streak.played,updated_at:new Date().toISOString()};
+  const d={streak:active,best_streak:streak.best,wins:streak.wins,played:streak.played,hidden:!!cfg.hideFromRanking,updated_at:new Date().toISOString()};
   if(myId){
     try{await sb("/rest/v1/ranking?id=eq."+myId,{method:"PATCH",body:JSON.stringify(d)});}catch(e){}
   }else{
@@ -862,9 +876,9 @@ async function syncWeekly(){
     const ex=await sb("/rest/v1/weekly_ranking?username=eq."+encodeURIComponent(myUser)+"&week=eq."+weekKey+"&select=id,points");
     if(ex&&ex.length>0){
       // Always update to latest points
-      await sb("/rest/v1/weekly_ranking?id=eq."+ex[0].id,{method:"PATCH",body:JSON.stringify({points:weekly.points,updated_at:new Date().toISOString()})});
+      await sb("/rest/v1/weekly_ranking?id=eq."+ex[0].id,{method:"PATCH",body:JSON.stringify({points:weekly.points,hidden:!!cfg.hideFromRanking,updated_at:new Date().toISOString()})});
     }else{
-      await sb("/rest/v1/weekly_ranking",{method:"POST",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({username:myUser,week:weekKey,points:weekly.points})});
+      await sb("/rest/v1/weekly_ranking",{method:"POST",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({username:myUser,week:weekKey,points:weekly.points,hidden:!!cfg.hideFromRanking})});
     }
   }catch(e){console.warn("syncWeekly error:",e);}
 }
@@ -1292,6 +1306,7 @@ function filterWeekly(q){
 
 async function renderRankingList(rows,cache=true){
   const el=document.getElementById("ranking-list");if(!el)return;
+  rows=(rows||[]).filter(r=>!r.hidden||r.id===myId||r.username===myUser);
   if(cache)_rankingRows=rows||[];
   if(!rows||rows.length===0){el.innerHTML='<div class="ranking-empty">'+(_rankingRows.length>0?"Sin resultados 🔍":"¡Sé el primero! 🌶️")+'</div>';return;}
   // Fetch equip data for visible players
@@ -1375,6 +1390,7 @@ async function openRanking(){
 }
 async function renderWeeklyList(rows,cache=true){
   const el=document.getElementById("weekly-list");if(!el)return;
+  rows=(rows||[]).filter(r=>!r.hidden||r.username===myUser);
   if(cache)_weeklyRows=rows||[];
   if(!rows||rows.length===0){el.innerHTML='<div class="ranking-empty">'+(_weeklyRows.length>0?"Sin resultados 🔍":"¡Sé el primero esta semana! 📅")+'</div>';return;}
   let equipMap={};
@@ -1948,7 +1964,7 @@ function startMemoryRound(){
         el.querySelectorAll(".country-btn").forEach(b=>b.disabled=true);
         const c=btn.dataset.c;memTotal++;
         if(c===d.country){
-          playCorrect();memWins++;memStreak++;
+          playCorrect();hapticCorrect();memWins++;memStreak++;
           btn.classList.add("correct-answer");
           grantXP(10);
           setTimeout(()=>{launchConfetti();playWin();},150);
@@ -2474,7 +2490,67 @@ function setLang(lang){
 
 // ═══ SETTINGS TOGGLES ═══
 [["few-attempts-toggle","fewAttempts"],["more-countries-toggle","moreCountries"],["no-hints-toggle","noHints"],["prog-toggle","progressive"],["no-desc-toggle","noDesc"]].forEach(([id,key])=>{const el=document.getElementById(id);if(el){el.checked=cfg[key];el.onchange=()=>{cfg[key]=el.checked;saveCfg();updateBadge();renderAll();};}});
+function exportProgress(){
+  try{
+    const data={
+      exportedAt:new Date().toISOString(),
+      version:VERSION,
+      username:myUser,
+      userId:myId,
+      xp:totalXP,
+      streak:JSON.parse(localStorage.getItem(STREAK_KEY)||"null"),
+      weekly:JSON.parse(localStorage.getItem(WK)||"null"),
+      history:JSON.parse(localStorage.getItem(HK)||"null"),
+      equip:JSON.parse(localStorage.getItem(EQUIP_KEY)||"null"),
+      achievements:JSON.parse(localStorage.getItem(ACH_KEY)||"null"),
+      missions:JSON.parse(localStorage.getItem(MISSION_KEY)||"null"),
+      lang:localStorage.getItem(LANG_KEY),
+      cfg:cfg
+    };
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;a.download="comidadle_progreso_"+(myUser||"jugador")+"_"+todayStr+".json";
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }catch(e){alert("Error al exportar 😔");}
+}
+function importProgress(file){
+  const msg=document.getElementById("import-progress-msg");
+  if(msg){msg.style.color="";msg.textContent="";}
+  const reader=new FileReader();
+  reader.onload=()=>{
+    let data;
+    try{data=JSON.parse(reader.result);}catch(e){if(msg){msg.style.color="var(--red)";msg.textContent="Archivo inválido 😔";}return;}
+    if(!data||typeof data!=="object"||!("xp" in data)){if(msg){msg.style.color="var(--red)";msg.textContent="Este archivo no es un progreso de Comidadle válido.";}return;}
+    if(!confirm("Esto va a reemplazar tu progreso actual (XP, racha, logros, misiones...) por el del archivo. ¿Continuar?"))return;
+    try{
+      if(data.username)localStorage.setItem(UK,data.username);
+      if(data.userId)localStorage.setItem(UDK,data.userId);
+      if(typeof data.xp==="number")localStorage.setItem(XPK,String(data.xp));
+      if(data.streak)localStorage.setItem(STREAK_KEY,JSON.stringify(data.streak));
+      if(data.weekly)localStorage.setItem(WK,JSON.stringify(data.weekly));
+      if(data.history)localStorage.setItem(HK,JSON.stringify(data.history));
+      if(data.equip)localStorage.setItem(EQUIP_KEY,JSON.stringify(data.equip));
+      if(data.achievements)localStorage.setItem(ACH_KEY,JSON.stringify(data.achievements));
+      if(data.missions)localStorage.setItem(MISSION_KEY,JSON.stringify(data.missions));
+      if(data.lang)localStorage.setItem(LANG_KEY,data.lang);
+      if(data.cfg)localStorage.setItem(CFG_KEY,JSON.stringify(data.cfg));
+      if(msg){msg.style.color="var(--green)";msg.textContent="¡Progreso importado! Recargando...";}
+      setTimeout(()=>location.reload(),900);
+    }catch(e){if(msg){msg.style.color="var(--red)";msg.textContent="Error al importar 😔";}}
+  };
+  reader.readAsText(file);
+}
 const hapEl=document.getElementById("haptics-toggle");if(hapEl){hapEl.checked=cfg.hapticsOn;hapEl.onchange=()=>{cfg.hapticsOn=hapEl.checked;saveCfg();if(cfg.hapticsOn)vibrate(30);};}
+const cbEl=document.getElementById("colorblind-toggle");if(cbEl){cbEl.checked=cfg.colorblind;cbEl.onchange=()=>{cfg.colorblind=cbEl.checked;saveCfg();document.body.classList.toggle("colorblind",cfg.colorblind);};}
+const hrEl=document.getElementById("hide-ranking-toggle");if(hrEl){hrEl.checked=cfg.hideFromRanking;hrEl.onchange=()=>{cfg.hideFromRanking=hrEl.checked;saveCfg();syncRanking().catch(()=>{});syncWeekly().catch(()=>{});};}
+const expBtn=document.getElementById("export-progress-btn");if(expBtn)expBtn.onclick=exportProgress;
+const impBtn=document.getElementById("import-progress-btn"),impFile=document.getElementById("import-progress-file");
+if(impBtn&&impFile){
+  impBtn.onclick=()=>impFile.click();
+  impFile.onchange=()=>{if(impFile.files&&impFile.files[0])importProgress(impFile.files[0]);impFile.value="";};
+}
 const syEl=document.getElementById("show-yesterday-toggle");if(syEl){syEl.checked=cfg.showYesterday;syEl.onchange=()=>{cfg.showYesterday=syEl.checked;saveCfg();renderYesterday();};}
 
 // ═══ EVENT LISTENERS ═══
@@ -2528,6 +2604,7 @@ onC("rules-ok-btn",()=>closeModal("rules-modal"));
 onC("sm-rules",()=>{closeSideMenu();openModal("rules-modal");});
 onC("sm-shop",()=>{closeSideMenu();openShop();});
 onC("sm-infinite",()=>{closeSideMenu();openInfiniteModal();});
+onC("sm-reload",()=>{location.href=location.pathname+"?_r="+Date.now();});
 onC("sm-memory",()=>{closeSideMenu();openMemoryModal();});
 onC("infinite-close",()=>closeModal("infinite-modal"));
 onC("memory-close",()=>closeModal("memory-modal"));
@@ -2759,13 +2836,35 @@ async function renderFriendsTab(tab){
   if(!myUser){el.innerHTML='<div class="ranking-empty">Necesitas un nombre en el Ranking Global para usar amigos.</div>';return;}
   if(tab==="list"){
     const friends=await fetchFriendsList();
-    el.innerHTML=friends.length?friends.map(f=>`
+    let activityMap={};
+    if(friends.length){
+      try{
+        const usernames=friends.map(f=>encodeURIComponent(f.username));
+        const rows=await sb("/rest/v1/ranking?username=in.("+usernames.join(",")+")&select=username,updated_at");
+        (rows||[]).forEach(r=>activityMap[r.username]=r.updated_at);
+      }catch(e){}
+    }
+    const now=new Date();
+    el.innerHTML=friends.length?friends.map(f=>{
+      const last=activityMap[f.username];
+      const days=last?Math.floor((now-new Date(last))/86400000):null;
+      let badge="";
+      if(days===null)badge=`<div style="font-size:11px;color:var(--text-muted);margin-top:2px">⏰ Aún no ha jugado</div>`;
+      else if(days>=3)badge=`<div style="font-size:11px;color:var(--gold);margin-top:2px">⏰ No juega hace ${days} días</div>`;
+      const nudged=localStorage.getItem("comidadle_nudge_"+f.username)===todayStr;
+      const nudgeBtn=(days!==null&&days>=3)?`<button class="ranking-btn" style="font-size:11px;padding:.3rem .55rem;color:var(--text-muted);border-color:var(--text-muted)" ${nudged?"disabled":""} onclick="nudgeFriend('${f.username}',this)">${nudged?"✓":"📣"}</button>`:"";
+      return`
       <div style="display:flex;align-items:center;gap:8px;padding:.6rem .75rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:.4rem">
-        <span style="flex:1;font-size:13px;font-weight:600;color:var(--text);cursor:pointer" onclick="openPlayerProfile('${f.username}')">${escapeHtml(f.username)}</span>
+        <div style="flex:1;min-width:0">
+          <span style="font-size:13px;font-weight:600;color:var(--text);cursor:pointer" onclick="openPlayerProfile('${f.username}')">${escapeHtml(f.username)}</span>
+          ${badge}
+        </div>
+        ${nudgeBtn}
         <button class="ranking-btn primary" style="font-size:11px;padding:.3rem .6rem" onclick="openChallengeModal('${f.username}')">⚔️ Retar</button>
         <button class="ranking-btn" style="font-size:11px;padding:.3rem .6rem;color:var(--gold);border-color:var(--gold)" onclick="openGiftXPModal('${f.username}')">🎁</button>
         <button class="ranking-btn" style="font-size:11px;padding:.3rem .6rem;color:var(--red);border-color:var(--red)" onclick="removeFriend('${f.username}')">✕</button>
-      </div>`).join(""):'<div class="ranking-empty">Aún no tienes amigos. Búscalos en "Añadir" 👋</div>';
+      </div>`;
+    }).join(""):'<div class="ranking-empty">Aún no tienes amigos. Búscalos en "Añadir" 👋</div>';
   }else if(tab==="requests"){
     const [incoming,sent]=await Promise.all([fetchIncomingRequests(),fetchSentRequests()]);
     let html="";
@@ -2814,6 +2913,16 @@ async function renderFriendsTab(tab){
       <input id="friend-search-inp" class="username-input" placeholder="🔍 Buscar jugador por nombre..." style="margin:0 0 .75rem;width:100%;box-sizing:border-box" oninput="doFriendSearch(this.value)">
       <div id="friend-search-results"></div>`;
     document.getElementById("open-qr-btn").onclick=()=>{openModal("qr-modal");qrTab("show");};
+  }
+}
+async function nudgeFriend(username,btn){
+  if(btn){btn.disabled=true;btn.textContent="...";}
+  try{
+    await sendNotification(username,"nudge","👋 "+myUser+" te echa de menos","¡Hace días que no juegas a Comidadle! Vuelve hoy 🌶️");
+    localStorage.setItem("comidadle_nudge_"+username,todayStr);
+    if(btn)btn.textContent="✓";
+  }catch(e){
+    if(btn){btn.disabled=false;btn.textContent="📣";}
   }
 }
 function acceptDuelInviteAt(i){acceptDuelInvite(_incomingInvitesCache[i]);}
@@ -3526,15 +3635,18 @@ function renderDuelFinalResult(row,role){
 }
 
 let _duelChatLastCount=0;
-async function loadDuelMessages(duelId){
-  const list=document.getElementById("duel-chat-list");if(!list)return;
+function chatIds(kind){return kind==="grp"?{list:"grp-chat-list",input:"grp-chat-input"}:{list:"duel-chat-list",input:"duel-chat-input"};}
+async function loadDuelMessages(duelId,kind="duel"){
+  const ids=chatIds(kind);
+  const list=document.getElementById(ids.list);if(!list)return;
   try{
     const msgs=await sb("/rest/v1/duel_messages?duel_id=eq."+duelId+"&select=*&order=created_at.asc");
-    renderDuelChatMessages(msgs||[]);
+    renderDuelChatMessages(msgs||[],kind);
   }catch(e){}
 }
-function renderDuelChatMessages(msgs){
-  const list=document.getElementById("duel-chat-list");if(!list)return;
+function renderDuelChatMessages(msgs,kind="duel"){
+  const ids=chatIds(kind);
+  const list=document.getElementById(ids.list);if(!list)return;
   const myName=myUser||"Anónimo";
   list.innerHTML=msgs.length?msgs.map(m=>{
     const mine=m.sender_username===myName;
@@ -3546,13 +3658,14 @@ function renderDuelChatMessages(msgs){
   list.scrollTop=list.scrollHeight;
   _duelChatLastCount=msgs.length;
 }
-async function sendDuelMessage(duelId,senderName){
-  const input=document.getElementById("duel-chat-input");if(!input)return;
+async function sendDuelMessage(duelId,senderName,kind="duel"){
+  const ids=chatIds(kind);
+  const input=document.getElementById(ids.input);if(!input)return;
   const msg=input.value.trim();if(!msg)return;
   input.value="";
   try{
     await sb("/rest/v1/duel_messages",{method:"POST",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({duel_id:duelId,sender_username:senderName,message:msg})});
-    loadDuelMessages(duelId);
+    loadDuelMessages(duelId,kind);
   }catch(e){}
 }
 
@@ -4299,17 +4412,17 @@ function renderGroupFinalResult(row,players){
       <button class="play-btn" id="grp-exit-btn" style="flex:1;background:var(--surface2);color:var(--text)">🚪 Salir</button>
     </div>
     <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.5rem">💬 Chat</div>
-    <div id="duel-chat-list" style="max-height:160px;overflow-y:auto;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.6rem;margin-bottom:.6rem;display:flex;flex-direction:column;gap:.4rem"></div>
+    <div id="grp-chat-list" style="max-height:160px;overflow-y:auto;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.6rem;margin-bottom:.6rem;display:flex;flex-direction:column;gap:.4rem"></div>
     <div style="display:flex;gap:6px">
-      <input id="duel-chat-input" placeholder="Escribe un mensaje..." maxlength="200" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.5rem .65rem;font-size:13px;color:var(--text)">
-      <button class="ranking-btn primary" id="duel-chat-send">Enviar</button>
+      <input id="grp-chat-input" placeholder="Escribe un mensaje..." maxlength="200" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.5rem .65rem;font-size:13px;color:var(--text)">
+      <button class="ranking-btn primary" id="grp-chat-send">Enviar</button>
     </div>
   `;
   document.getElementById("grp-rematch-btn").onclick=()=>requestGroupRematch(row,players);
   document.getElementById("grp-exit-btn").onclick=()=>exitGroup(row,players);
-  document.getElementById("duel-chat-send").onclick=()=>sendDuelMessage(row.id,name);
-  document.getElementById("duel-chat-input").addEventListener("keydown",e=>{if(e.key==="Enter")sendDuelMessage(row.id,name);});
-  loadDuelMessages(row.id);
+  document.getElementById("grp-chat-send").onclick=()=>sendDuelMessage(row.id,name,"grp");
+  document.getElementById("grp-chat-input").addEventListener("keydown",e=>{if(e.key==="Enter")sendDuelMessage(row.id,name,"grp");});
+  loadDuelMessages(row.id,"grp");
   startGroupResultPoll(row,players);
 }
 
@@ -4325,7 +4438,7 @@ function startGroupResultPoll(row,players){
       if(voteEl)voteEl.textContent=rematchCount>0?rematchCount+"/"+active.length:"";
       if(active.length>0&&active.every(p=>p.rematch)){clearGroupPoll();return;} // handled by requestGroupRematch's own flow
       if(fresh.status==="voting"){clearGroupPoll();saveGroupLocal(fresh.id);routeGroupState(fresh,fp);return;}
-      loadDuelMessages(row.id);
+      loadDuelMessages(row.id,"grp");
     }catch(e){}
   },1500);
 }
