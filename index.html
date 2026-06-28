@@ -23,6 +23,9 @@
 .hidden{display:none!important}
 :root{--bg:#100900;--surface:#1C1208;--surface2:#251A0D;--border:rgba(255,150,50,.14);--border-strong:rgba(255,150,50,.28);--text:#FFF3E0;--text-muted:#9A7050;--accent:#FF6B35;--gold:#FFB627;--green:#22C55E;--green-bg:rgba(34,197,94,.12);--red:#F05050;--r:12px;--r-sm:8px}
 body.colorblind{--green:#2D7DD2;--green-bg:rgba(45,125,210,.14);--red:#F59E0B}
+.passport-card{display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.6rem .3rem;cursor:pointer;text-align:center;color:var(--text);font-family:inherit;transition:transform .15s ease}
+.passport-card:active{transform:scale(.95)}
+.passport-card.unlocked{border-color:var(--gold);background:rgba(255,182,39,.08)}
 body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center}
 body::before{content:'';position:fixed;top:-80px;left:50%;transform:translateX(-50%);width:700px;height:500px;background:radial-gradient(ellipse at center,rgba(255,107,53,.07) 0%,transparent 65%);pointer-events:none;z-index:0}
 header{width:100%;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(16,9,0,.92);backdrop-filter:blur(10px);z-index:10}
@@ -177,19 +180,19 @@ main{flex:1;width:100%;display:flex;justify-content:center;position:relative;z-i
 /* SIDE MENU */
 .side-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;opacity:0;pointer-events:none;transition:opacity .3s}
 .side-overlay.open{opacity:1;pointer-events:all}
-.side-menu{position:fixed;top:0;left:0;height:100%;width:280px;max-width:85vw;background:#1C1208;border-right:1px solid rgba(255,150,50,.2);z-index:201;transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;overflow-y:auto}
+.side-menu{position:fixed;top:0;left:0;height:100%;width:280px;max-width:85vw;background:var(--surface);border-right:1px solid var(--border);z-index:201;transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;overflow-y:auto}
 .side-menu.open{transform:translateX(0)}
 .side-menu-header{padding:1.25rem;border-bottom:1px solid rgba(255,150,50,.14);display:flex;align-items:center;justify-content:space-between}
-.side-menu-title{font-family:'Fraunces',serif;font-size:18px;font-weight:900;color:#FFF3E0}
-.side-menu-close{background:none;border:none;color:#9A7050;cursor:pointer;font-size:20px;line-height:1;padding:4px}
+.side-menu-title{font-family:'Fraunces',serif;font-size:18px;font-weight:900;color:var(--text)}
+.side-menu-close{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:20px;line-height:1;padding:4px}
 .side-menu-section{padding:.75rem 1.25rem;border-bottom:1px solid rgba(255,150,50,.08)}
-.side-menu-label{font-size:10px;font-weight:700;color:#9A7050;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem}
-.side-menu-item{display:flex;align-items:center;gap:12px;padding:.75rem;border-radius:10px;cursor:pointer;transition:background .15s;width:100%;background:none;border:none;text-align:left;color:#FFF3E0;font-family:'Plus Jakarta Sans',sans-serif}
+.side-menu-label{font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem}
+.side-menu-item{display:flex;align-items:center;gap:12px;padding:.75rem;border-radius:10px;cursor:pointer;transition:background .15s;width:100%;background:none;border:none;text-align:left;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif}
 .side-menu-item:hover{background:rgba(255,107,53,.08)}
-.side-menu-item-icon{width:36px;height:36px;border-radius:10px;background:#251A0D;border:1px solid rgba(255,150,50,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px}
-.side-menu-item-name{font-size:14px;font-weight:600;color:#FFF3E0}
-.side-menu-item-desc{font-size:11px;color:#9A7050;margin-top:1px}
-.side-menu-footer{padding:1rem 1.25rem;margin-top:auto;font-size:11px;color:#9A7050;text-align:center}
+.side-menu-item-icon{width:36px;height:36px;border-radius:10px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px}
+.side-menu-item-name{font-size:14px;font-weight:600;color:var(--text)}
+.side-menu-item-desc{font-size:11px;color:var(--text-muted);margin-top:1px}
+.side-menu-footer{padding:1rem 1.25rem;margin-top:auto;font-size:11px;color:var(--text-muted);text-align:center}
 /* FOOTER */
 footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;position:relative;z-index:1}
 .footer-inner{max-width:520px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem}
@@ -225,10 +228,10 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
 <body>
 
 <!-- SPLASH -->
-<div id="splash" style="position:fixed;inset:0;background:#100900;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0">
+<div id="splash" style="position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0">
   <div style="font-size:80px;animation:splashPop .6s cubic-bezier(.34,1.56,.64,1) both">🌶️</div>
-  <div id="splash-title" style="font-family:'Fraunces',serif;font-size:32px;font-weight:900;color:#FFF3E0;opacity:0;transform:translateY(12px);transition:all .5s ease .3s">Comidadle</div>
-  <div id="splash-sub" style="font-size:13px;color:#9A7050;opacity:0;transform:translateY(8px);transition:all .5s ease .5s;margin-top:6px">Adivina de dónde es la comida</div>
+  <div id="splash-title" style="font-family:'Fraunces',serif;font-size:32px;font-weight:900;color:var(--text);opacity:0;transform:translateY(12px);transition:all .5s ease .3s">Comidadle</div>
+  <div id="splash-sub" style="font-size:13px;color:var(--text-muted);opacity:0;transform:translateY(8px);transition:all .5s ease .5s;margin-top:6px">Adivina de dónde es la comida</div>
 </div>
 
 <!-- HOW TO PLAY -->
@@ -264,6 +267,7 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
     <div class="setting-row"><div class="setting-info"><div class="setting-label">Pistas progresivas</div><div class="setting-desc">Las pistas aparecen de una en una con cada fallo.</div></div><label class="toggle"><input type="checkbox" id="prog-toggle" checked><div class="toggle-track"></div></label></div>
     <div class="setting-row"><div class="setting-info"><div class="setting-label">Ocultar descripción</div><div class="setting-desc">Solo ves el nombre y el emoji.</div></div><label class="toggle"><input type="checkbox" id="no-desc-toggle"><div class="toggle-track"></div></label></div>
     <div class="setting-row"><div class="setting-info"><div class="setting-label">Plato de ayer</div><div class="setting-desc">Muestra el resultado de ayer encima del plato de hoy.</div></div><label class="toggle"><input type="checkbox" id="show-yesterday-toggle" checked><div class="toggle-track"></div></label></div>
+    <div class="setting-row"><div class="setting-info"><div class="setting-label">Sonido</div><div class="setting-desc">Efectos de sonido al acertar o fallar, independiente de la vibración.</div></div><label class="toggle"><input type="checkbox" id="sound-toggle" checked><div class="toggle-track"></div></label></div>
     <div class="setting-row"><div class="setting-info"><div class="setting-label">Vibración</div><div class="setting-desc">Feedback háptico al acertar o fallar. <strong>No funciona en iPhone</strong> — es una limitación de iOS, no del juego.</div></div><label class="toggle"><input type="checkbox" id="haptics-toggle" checked><div class="toggle-track"></div></label></div>
     <div class="setting-row"><div class="setting-info"><div class="setting-label">Modo daltónico</div><div class="setting-desc">Cambia el verde/rojo de aciertos por colores más distinguibles.</div></div><label class="toggle"><input type="checkbox" id="colorblind-toggle"><div class="toggle-track"></div></label></div>
     <div class="setting-row"><div class="setting-info"><div class="setting-label">Ocultar mi posición en rankings</div><div class="setting-desc">Sigues jugando y guardando tu progreso, pero nadie más te verá en el Ranking Global ni Semanal.</div></div><label class="toggle"><input type="checkbox" id="hide-ranking-toggle"><div class="toggle-track"></div></label></div>
@@ -440,6 +444,22 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
   </div>
 </div>
 
+<!-- PASSPORT MODAL -->
+<div class="modal-overlay hidden" id="passport-modal">
+  <div class="modal" style="max-height:90vh;overflow-y:auto">
+    <button class="modal-close" id="passport-close">✕</button>
+    <div class="modal-title">🗺️ Pasaporte Culinario</div>
+    <div id="passport-progress"></div>
+    <div id="passport-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px"></div>
+  </div>
+</div>
+<div class="modal-overlay hidden" id="passport-country-modal">
+  <div class="modal" style="max-height:90vh;overflow-y:auto">
+    <button class="modal-close" id="passport-country-close">✕</button>
+    <div id="passport-detail"></div>
+  </div>
+</div>
+
 <!-- DUEL -->
 <div class="modal-overlay hidden" id="duel-modal">
   <div class="modal">
@@ -549,6 +569,7 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
     <div class="side-menu-label">🕹️ Modos</div>
     <button class="side-menu-item" id="sm-infinite"><div class="side-menu-item-icon">♾️</div><div><div class="side-menu-item-name">Modo Infinito</div><div class="side-menu-item-desc">Juega platos sin límite</div></div></button>
     <button class="side-menu-item" id="sm-memory"><div class="side-menu-item-icon">🧠</div><div><div class="side-menu-item-name">Modo Memoria</div><div class="side-menu-item-desc">Memoriza el plato antes de que desaparezca</div></div></button>
+    <button class="side-menu-item" id="sm-passport"><div class="side-menu-item-icon">🗺️</div><div><div class="side-menu-item-name">Pasaporte Culinario</div><div class="side-menu-item-desc">Desbloquea países a medida que aciertas</div></div></button>
     <button class="side-menu-item" id="sm-duel"><div class="side-menu-item-icon">⚔️</div><div><div class="side-menu-item-name">Modo Duelo</div><div class="side-menu-item-desc">Reta a un amigo con un plato sorpresa</div></div></button>
   </div>
   <div class="side-menu-section">
@@ -572,7 +593,7 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
     <button class="side-menu-item" id="sm-about"><div class="side-menu-item-icon">🌶️</div><div><div class="side-menu-item-name">Sobre Comidadle</div><div class="side-menu-item-desc">La historia del juego y su creador</div></div></button>
     <button class="side-menu-item" id="sm-changelog"><div class="side-menu-item-icon">📜</div><div><div class="side-menu-item-name">Historial de versiones</div><div class="side-menu-item-desc">Qué ha cambiado en cada actualización</div></div></button>
   </div>
-  <div class="side-menu-footer">Hecho con 🌶️ por <strong style="color:#FFF3E0">Anas</strong></div>
+  <div class="side-menu-footer">Hecho con 🌶️ por <strong style="color:var(--text)">Anas</strong></div>
 </div>
 
 <footer>
@@ -698,7 +719,7 @@ const ALL_DISHES=[{name:"Tacos al Pastor",emoji:"🌮",country:"México",flag:"�
 
 const DEMONYMS={"México":["Mexicano","Mexicana","Mexicanos","Mexicanas"],"España":["Español","Española","Españoles","Españolas"],"Argentina":["Argentino","Argentinas","Argentinos"],"Perú":["Peruano","Peruana","Peruanos","Peruanas"],"Colombia":["Colombiano","Colombiana","Colombianos","Colombianas"],"Venezuela":["Venezolano","Venezolana","Venezolanos","Venezolanas"],"Chile":["Chileno","Chilena","Chilenos","Chilenas"],"Cuba":["Cubano","Cubana","Cubanos","Cubanas"],"El Salvador":["Salvadoreño","Salvadoreña","Salvadoreños","Salvadoreñas"],"Honduras":["Hondureño","Hondureña","Hondureños","Hondureñas"],"Costa Rica":["Costarricense","Tico","Tica"],"Nicaragua":["Nicaragüense","Nicaragüenses"],"Guatemala":["Guatemalteco","Guatemalteca","Guatemaltecos","Guatemaltecas"],"Ecuador":["Ecuatoriano","Ecuatoriana","Ecuatorianos","Ecuatorianas"],"Bolivia":["Boliviano","Boliviana","Bolivianos","Bolivianas"],"Uruguay":["Uruguayo","Uruguaya","Uruguayos","Uruguayas"],"Brasil":["Brasileño","Brasileña","Brasileños","Brasileñas"],"Panamá":["Panameño","Panameña","Panameños","Panameñas"],"Rep. Dominicana":["Dominicano","Dominicana","Dominicanos","Dominicanas"],"Puerto Rico":["Puertorriqueño","Puertorriqueña","Boricua","Boricuas"],"Paraguay":["Paraguayo","Paraguaya","Paraguayos","Paraguayas"]};
 // ═══ VERSION ═══
-const VERSION="2.8.0";
+const VERSION="3.0.0";
 const CHANGELOG=[
   {v:"1.0.0",date:"20 dic 2025",changes:["🎉 Lanzamiento de Comidadle: 3 platos diarios, pistas progresivas y grid de países para adivinar el origen."]},
   {v:"1.1.0",date:"5 ene 2026",changes:["Modo difícil configurable: menos intentos, más países en la tabla, sin pistas.","Pistas progresivas activables/desactivables."]},
@@ -719,6 +740,8 @@ const CHANGELOG=[
   {v:"2.6.0",date:"26 jun 2026",changes:["📱 Añade amigos por código QR: muéstralo o escanéalo con la cámara, también funciona como enlace compartible.","🔴 Indicador en el botón Extras cuando tienes solicitudes de amistad o invitaciones de duelo pendientes."]},
   {v:"2.7.0",date:"27 jun 2026",changes:["🎁 Regala XP a tus amigos con un mensaje opcional, hasta 100 XP al día en total entre todos.","🧠 Nuevo Modo Memoria: memoriza el plato antes de que desaparezca y adivina el país de un solo intento, +10 XP fijo si aciertas.","🎨 Modo daltónico, opción para ocultar tu posición en los rankings, y exportar/importar tu progreso como archivo .json."]},
   {v:"2.8.0",date:"27 jun 2026",changes:["⏰ Lista de amigos: ahora se ve cuánto tiempo lleva cada amigo sin jugar, con un botón 📣 para recordarle que vuelva (1 vez al día por amigo)."]},
+  {v:"2.9.0",date:"27 jun 2026",changes:["🔊 Sonido on/off independiente de la vibración, en Configuración."]},
+  {v:"3.0.0",date:"27 jun 2026",changes:["🗺️ Nuevo Pasaporte Culinario: desbloquea cada país a medida que aciertas sus platos. Incluye un mapa de países por descubrir (🔒 próximamente) para los que todavía no tienen platos en Comidadle."]},
 ];
 
 // ═══ DATA ═══
@@ -756,7 +779,7 @@ let currentDish=0,dish=DAILY[0];
 
 // ═══ CONFIG ═══
 const CFG_KEY="comidadle_cfg_v3";
-let cfg={fewAttempts:false,moreCountries:false,noHints:false,progressive:true,noDesc:false,showYesterday:true,hapticsOn:true,colorblind:false,hideFromRanking:false};
+let cfg={fewAttempts:false,moreCountries:false,noHints:false,progressive:true,noDesc:false,showYesterday:true,hapticsOn:true,colorblind:false,hideFromRanking:false,soundOn:true};
 try{const s=JSON.parse(localStorage.getItem(CFG_KEY));if(s)cfg={...cfg,...s};}catch(e){}
 const saveCfg=()=>{try{localStorage.setItem(CFG_KEY,JSON.stringify(cfg));}catch(e){}};
 document.body.classList.toggle("colorblind",!!cfg.colorblind);
@@ -1037,8 +1060,8 @@ async function checkIfBanned(){
     isBanned=true;localStorage.setItem(BK,"1");
     myUser="";myId="";localStorage.removeItem(UK);localStorage.removeItem(UDK);
     const s=document.createElement("div");
-    s.style.cssText="position:fixed;inset:0;background:#100900;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Plus Jakarta Sans',sans-serif;text-align:center;padding:2rem;z-index:9999";
-    s.innerHTML=`<div style="font-size:64px;margin-bottom:1rem">🚫</div><div style="font-family:'Fraunces',serif;font-size:24px;font-weight:900;color:#FFF3E0;margin-bottom:.5rem">Has sido eliminado del ranking</div><div style="font-size:13px;color:#9A7050;line-height:1.7;max-width:320px;margin-bottom:1rem">El Owner de Comidadle te ha eliminado.<br><br><strong style="color:#FFF3E0">Razón:</strong> ${reason}</div><button onclick="this.parentElement.remove()" style="margin-top:1rem;background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);padding:.65rem 1.5rem;border-radius:var(--r-sm);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px">Entendido</button>`;
+    s.style.cssText="position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Plus Jakarta Sans',sans-serif;text-align:center;padding:2rem;z-index:9999";
+    s.innerHTML=`<div style="font-size:64px;margin-bottom:1rem">🚫</div><div style="font-family:'Fraunces',serif;font-size:24px;font-weight:900;color:var(--text);margin-bottom:.5rem">Has sido eliminado del ranking</div><div style="font-size:13px;color:var(--text-muted);line-height:1.7;max-width:320px;margin-bottom:1rem">El Owner de Comidadle te ha eliminado.<br><br><strong style="color:var(--text)">Razón:</strong> ${reason}</div><button onclick="this.parentElement.remove()" style="margin-top:1rem;background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);padding:.65rem 1.5rem;border-radius:var(--r-sm);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px">Entendido</button>`;
     document.body.appendChild(s);
   }catch(e){}
 }
@@ -1235,10 +1258,10 @@ async function renderSuggestions(){
 // ═══ SOUNDS ═══
 let _ac=null;
 const getAC=()=>{if(!_ac)_ac=new(window.AudioContext||window.webkitAudioContext)();return _ac;};
-function playCorrect(){try{const c=getAC(),ns=[523,659,784,1047];ns.forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type="sine";o.frequency.value=f;const s=c.currentTime+i*.1;g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(.18,s+.02);g.gain.exponentialRampToValueAtTime(.001,s+.25);o.start(s);o.stop(s+.25);});}catch(e){}}
-function playWrong(){try{const c=getAC(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type="sawtooth";o.frequency.setValueAtTime(220,c.currentTime);o.frequency.linearRampToValueAtTime(150,c.currentTime+.15);g.gain.setValueAtTime(.15,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.2);o.start();o.stop(c.currentTime+.2);}catch(e){}}
-function playWin(){try{const c=getAC(),ns=[523,659,784,659,784,1047];ns.forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type="sine";o.frequency.value=f;const s=c.currentTime+i*.12;g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(.2,s+.03);g.gain.exponentialRampToValueAtTime(.001,s+.3);o.start(s);o.stop(s+.3);});}catch(e){}}
-function playLose(){try{const c=getAC(),ns=[392,349,330,294];ns.forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type="sine";o.frequency.value=f;const s=c.currentTime+i*.13;g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(.15,s+.03);g.gain.exponentialRampToValueAtTime(.001,s+.3);o.start(s);o.stop(s+.3);});}catch(e){}}
+function playCorrect(){if(!cfg.soundOn)return;try{const c=getAC(),ns=[523,659,784,1047];ns.forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type="sine";o.frequency.value=f;const s=c.currentTime+i*.1;g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(.18,s+.02);g.gain.exponentialRampToValueAtTime(.001,s+.25);o.start(s);o.stop(s+.25);});}catch(e){}}
+function playWrong(){if(!cfg.soundOn)return;try{const c=getAC(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type="sawtooth";o.frequency.setValueAtTime(220,c.currentTime);o.frequency.linearRampToValueAtTime(150,c.currentTime+.15);g.gain.setValueAtTime(.15,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.2);o.start();o.stop(c.currentTime+.2);}catch(e){}}
+function playWin(){if(!cfg.soundOn)return;try{const c=getAC(),ns=[523,659,784,659,784,1047];ns.forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type="sine";o.frequency.value=f;const s=c.currentTime+i*.12;g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(.2,s+.03);g.gain.exponentialRampToValueAtTime(.001,s+.3);o.start(s);o.stop(s+.3);});}catch(e){}}
+function playLose(){if(!cfg.soundOn)return;try{const c=getAC(),ns=[392,349,330,294];ns.forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type="sine";o.frequency.value=f;const s=c.currentTime+i*.13;g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(.15,s+.03);g.gain.exponentialRampToValueAtTime(.001,s+.3);o.start(s);o.stop(s+.3);});}catch(e){}}
 function vibrate(pattern){if(!cfg.hapticsOn)return;try{if(navigator.vibrate)navigator.vibrate(pattern);}catch(e){}}
 function hapticCorrect(){vibrate(40);}
 function hapticWrong(){vibrate([0,30,40,30]);}
@@ -1467,7 +1490,7 @@ function renderAll(){
 function handleGuess(c,btn){
   if(done)return;const MAX=getMax();
   if(c===dish.country){
-    playCorrect();hapticCorrect();log.push(true);done=true;saveState();
+    playCorrect();hapticCorrect();log.push(true);done=true;saveState();recordPassport(dish);
     // Record attempt and award XP BEFORE renderAll (which calls showResult with animate=false)
     const earnedXP=recordAttempt(true,log.length);
     updateStreak(true);syncRanking();
@@ -1897,7 +1920,7 @@ function renderInfiniteGame(){
     el.querySelectorAll(".country-btn:not([disabled])").forEach(btn=>{
       btn.onclick=()=>{
         const c=btn.dataset.c;
-        if(c===d.country){playCorrect();iLog.push(true);infWins++;infTotal++;iDone=true;render();setTimeout(()=>{launchConfetti();playWin();},200);bumpMission("play_infinite_2");}
+        if(c===d.country){playCorrect();iLog.push(true);infWins++;infTotal++;iDone=true;recordPassport(d);render();setTimeout(()=>{launchConfetti();playWin();},200);bumpMission("play_infinite_2");}
         else{playWrong();iLog.push(false);iWrong.add(c);if(iLog.length>=MAX){infTotal++;iDone=true;render();setTimeout(()=>{playLose();hapticLose();},300);bumpMission("play_infinite_2");}else render();}
       };
     });
@@ -1965,6 +1988,7 @@ function startMemoryRound(){
         const c=btn.dataset.c;memTotal++;
         if(c===d.country){
           playCorrect();hapticCorrect();memWins++;memStreak++;
+          recordPassport(d);
           btn.classList.add("correct-answer");
           grantXP(10);
           setTimeout(()=>{launchConfetti();playWin();},150);
@@ -2084,6 +2108,80 @@ function openGiftXPModal(username){
   });
 }
 let _giftTargetUser=null;
+// ═══ PASAPORTE CULINARIO ═══
+const PASSPORT_KEY="comidadle_passport";
+let passport={};
+try{passport=JSON.parse(localStorage.getItem(PASSPORT_KEY)||"{}");}catch(e){passport={};}
+function recordPassport(dish){
+  if(!dish||!dish.country||!dish.name)return;
+  if(!passport[dish.country])passport[dish.country]=[];
+  if(!passport[dish.country].includes(dish.name)){
+    passport[dish.country].push(dish.name);
+    try{localStorage.setItem(PASSPORT_KEY,JSON.stringify(passport));}catch(e){}
+  }
+}
+function isoFlag(code){return String.fromCodePoint(...code.toUpperCase().split("").map(c=>127397+c.charCodeAt(0)));}
+const ACTIVE_ISO={México:"MX",España:"ES",Argentina:"AR",Perú:"PE",Colombia:"CO",Venezuela:"VE",Chile:"CL",Cuba:"CU","El Salvador":"SV",Honduras:"HN","Costa Rica":"CR",Nicaragua:"NI",Guatemala:"GT",Ecuador:"EC",Bolivia:"BO",Uruguay:"UY",Brasil:"BR",Panamá:"PA","Rep. Dominicana":"DO","Puerto Rico":"PR",Paraguay:"PY"};
+const FUTURE_ISO={Francia:"FR",Italia:"IT",Portugal:"PT",Alemania:"DE","Reino Unido":"GB",Grecia:"GR","Países Bajos":"NL",Bélgica:"BE",Suiza:"CH",Austria:"AT",Suecia:"SE",Noruega:"NO",Dinamarca:"DK",Polonia:"PL",Rusia:"RU",Turquía:"TR",Irlanda:"IE",Hungría:"HU","Rep. Checa":"CZ",Rumanía:"RO",Japón:"JP",China:"CN","Corea del Sur":"KR",India:"IN",Tailandia:"TH",Vietnam:"VN",Indonesia:"ID",Filipinas:"PH",Malasia:"MY",Singapur:"SG",Israel:"IL",Líbano:"LB","Arabia Saudita":"SA",Emiratos:"AE",Irán:"IR",Pakistán:"PK",Marruecos:"MA",Egipto:"EG",Sudáfrica:"ZA",Nigeria:"NG",Kenia:"KE",Etiopía:"ET",Túnez:"TN",Ghana:"GH",Senegal:"SN",Australia:"AU","Nueva Zelanda":"NZ","Estados Unidos":"US",Canadá:"CA"};
+const PASSPORT_COUNTRIES=[
+  ...Object.keys(ACTIVE_ISO).map(name=>({name,iso:ACTIVE_ISO[name],active:true})),
+  ...Object.keys(FUTURE_ISO).map(name=>({name,iso:FUTURE_ISO[name],active:false}))
+];
+function passportStats(){
+  const unlocked=Object.keys(ACTIVE_ISO).filter(c=>passport[c]&&passport[c].length>0).length;
+  return{unlocked,total:Object.keys(ACTIVE_ISO).length};
+}
+function openPassportModal(){
+  openModal("passport-modal");
+  renderPassportGrid();
+}
+function renderPassportGrid(){
+  const el=document.getElementById("passport-grid");if(!el)return;
+  const st=passportStats();
+  const head=document.getElementById("passport-progress");
+  if(head)head.innerHTML=`<div style="text-align:center;margin-bottom:1rem"><div style="font-size:28px;font-weight:900;font-family:'Fraunces',serif;color:var(--gold)">${st.unlocked}/${st.total}</div><div style="font-size:12px;color:var(--text-muted)">países desbloqueados</div><div style="background:var(--surface2);border-radius:99px;height:8px;overflow:hidden;margin-top:.6rem"><div style="width:${st.total?Math.round(st.unlocked/st.total*100):0}%;height:100%;background:var(--gold);border-radius:99px"></div></div></div>`;
+  el.innerHTML=PASSPORT_COUNTRIES.map(c=>{
+    const flag=isoFlag(c.iso);
+    if(!c.active){
+      return `<button class="passport-card locked" onclick="openPassportCountry('${c.name.replace(/'/g,"\\'")}',false,false)" style="opacity:.35;filter:grayscale(1)"><div style="font-size:28px">${flag}</div><div style="font-size:10px;font-weight:700;margin-top:2px">${c.name}</div><div style="font-size:9px;color:var(--text-muted)">🔒</div></button>`;
+    }
+    const done=passport[c.name]&&passport[c.name].length>0;
+    return `<button class="passport-card${done?" unlocked":""}" onclick="openPassportCountry('${c.name.replace(/'/g,"\\'")}',true,${done})" style="${done?"":"opacity:.45;filter:grayscale(.7)"}"><div style="font-size:28px">${flag}</div><div style="font-size:10px;font-weight:700;margin-top:2px">${c.name}</div><div style="font-size:9px;color:${done?"var(--gold)":"var(--text-muted)"}">${done?"✅ "+passport[c.name].length+" plato"+(passport[c.name].length>1?"s":""):"🔒 sin acertar"}</div></button>`;
+  }).join("");
+}
+function openPassportCountry(name,active,unlocked){
+  const el=document.getElementById("passport-detail");if(!el)return;
+  const iso=ACTIVE_ISO[name]||FUTURE_ISO[name];
+  const flag=isoFlag(iso);
+  if(!active){
+    el.innerHTML=`<div style="text-align:center;padding:1.5rem 0">
+      <div style="font-size:48px;margin-bottom:.5rem">${flag}</div>
+      <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:.5rem">${name}</div>
+      <div style="font-size:13px;color:var(--text-muted)">🔒 Próximamente — todavía no hay platos de este país en Comidadle.</div>
+    </div>`;
+  }else if(!unlocked){
+    el.innerHTML=`<div style="text-align:center;padding:1.5rem 0">
+      <div style="font-size:48px;margin-bottom:.5rem;filter:grayscale(1);opacity:.5">${flag}</div>
+      <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:.5rem">${name}</div>
+      <div style="font-size:13px;color:var(--text-muted)">🔒 Todavía no has acertado ningún plato de este país. ¡Sigue jugando para desbloquearlo!</div>
+    </div>`;
+  }else{
+    const dishes=ALL_DISHES.filter(d=>d.country===name);
+    const solved=passport[name]||[];
+    const cards=dishes.map(d=>{
+      if(solved.includes(d.name)){
+        return `<div class="dish-card" style="margin-bottom:.6rem;padding:.75rem"><span class="dish-emoji" style="font-size:24px">${d.emoji}</span><div class="dish-name" style="font-size:13px">${escapeHtml(d.name)}</div></div>`;
+      }
+      return `<div class="dish-card" style="margin-bottom:.6rem;padding:.75rem;opacity:.5"><span class="dish-emoji" style="font-size:24px">❓</span><div class="dish-name" style="font-size:13px;filter:blur(1px);user-select:none">?????????</div></div>`;
+    }).join("");
+    el.innerHTML=`<div style="text-align:center;margin-bottom:1rem">
+      <div style="font-size:40px">${flag}</div>
+      <div style="font-size:17px;font-weight:700;color:var(--text)">${name}</div>
+      <div style="font-size:12px;color:var(--gold);font-weight:700">${solved.length}/${dishes.length} platos descubiertos</div>
+    </div>${cards}`;
+  }
+  openModal("passport-country-modal");
+}
 // ═══ XP GIFTS (check on init) ═══
 async function checkXPGifts(){
   if(!myUser)return;
@@ -2542,6 +2640,7 @@ function importProgress(file){
   };
   reader.readAsText(file);
 }
+const sndEl=document.getElementById("sound-toggle");if(sndEl){sndEl.checked=cfg.soundOn;sndEl.onchange=()=>{cfg.soundOn=sndEl.checked;saveCfg();if(cfg.soundOn)playCorrect();};}
 const hapEl=document.getElementById("haptics-toggle");if(hapEl){hapEl.checked=cfg.hapticsOn;hapEl.onchange=()=>{cfg.hapticsOn=hapEl.checked;saveCfg();if(cfg.hapticsOn)vibrate(30);};}
 const cbEl=document.getElementById("colorblind-toggle");if(cbEl){cbEl.checked=cfg.colorblind;cbEl.onchange=()=>{cfg.colorblind=cbEl.checked;saveCfg();document.body.classList.toggle("colorblind",cfg.colorblind);};}
 const hrEl=document.getElementById("hide-ranking-toggle");if(hrEl){hrEl.checked=cfg.hideFromRanking;hrEl.onchange=()=>{cfg.hideFromRanking=hrEl.checked;saveCfg();syncRanking().catch(()=>{});syncWeekly().catch(()=>{});};}
@@ -2606,8 +2705,11 @@ onC("sm-shop",()=>{closeSideMenu();openShop();});
 onC("sm-infinite",()=>{closeSideMenu();openInfiniteModal();});
 onC("sm-reload",()=>{location.href=location.pathname+"?_r="+Date.now();});
 onC("sm-memory",()=>{closeSideMenu();openMemoryModal();});
+onC("sm-passport",()=>{closeSideMenu();openPassportModal();});
 onC("infinite-close",()=>closeModal("infinite-modal"));
 onC("memory-close",()=>closeModal("memory-modal"));
+onC("passport-close",()=>closeModal("passport-modal"));
+onC("passport-country-close",()=>closeModal("passport-country-modal"));
 document.getElementById("infinite-modal").addEventListener("click",e=>{if(e.target.id==="infinite-modal")closeModal("infinite-modal");});
 onC("shop-close",()=>closeModal("shop-modal"));
 onC("player-close",()=>closeModal("player-modal"));
@@ -2624,7 +2726,7 @@ document.getElementById("shop-modal").addEventListener("click",e=>{if(e.target.i
 document.getElementById("player-modal").addEventListener("click",e=>{if(e.target.id==="player-modal")closeModal("player-modal");});
 onC("duel-close",()=>closeModal("duel-modal"));
 onC("sm-duel",()=>{openDuelModal();closeSideMenu();});
-["how-modal","cfg-modal","share-modal","stats-modal","ranking-modal","weekly-modal","profile-modal","owner-modal","reviews-modal","ann-modal","suggestions-modal","about-modal","duel-modal","rules-modal","infinite-modal","memory-modal","player-modal","shop-modal"].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener("click",e=>{if(e.target.id===id)closeModal(id);});});
+["how-modal","cfg-modal","share-modal","stats-modal","ranking-modal","weekly-modal","profile-modal","owner-modal","reviews-modal","ann-modal","suggestions-modal","about-modal","duel-modal","rules-modal","infinite-modal","memory-modal","passport-modal","passport-country-modal","player-modal","shop-modal"].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener("click",e=>{if(e.target.id===id)closeModal(id);});});
 onC("menu-open-btn",openSideMenu);onC("side-menu-close",closeSideMenu);onC("side-overlay",closeSideMenu);
 onC("sm-achievements",()=>{openModal("achievements-modal");closeSideMenu();openAchievements();});onC("achievements-close",()=>closeModal("achievements-modal"));
 onC("sm-missions",()=>{openModal("missions-modal");closeSideMenu();openMissions();});onC("missions-close",()=>closeModal("missions-modal"));
@@ -3470,6 +3572,7 @@ async function handleDuelGuess(country,d,btn){
     playCorrect();hapticCorrect();
     duel.log.push(true);duel.done=true;duel.won=true;
     duel.attempts=duel.log.length;duel.timeMs=Date.now()-duel.startedAt;
+    recordPassport(d);
     setTimeout(()=>{launchConfetti();playWin();hapticWin();},150);
     await submitDuelRound();
   }else{
@@ -4268,6 +4371,7 @@ async function handleGroupGuess(country,d,btn){
     playCorrect();hapticCorrect();
     grp.log.push(true);grp.done=true;grp.won=true;
     grp.attempts=grp.log.length;grp.timeMs=Date.now()-grp.startedAt;
+    recordPassport(d);
     setTimeout(()=>{launchConfetti();playWin();hapticWin();},150);
     await submitGroupRound();
   }else{
