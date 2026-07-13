@@ -7,6 +7,7 @@
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-DB6VQBTDDM"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-DB6VQBTDDM');</script>
 <link rel="manifest" href="manifest.json">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -229,39 +230,47 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
 
 <!-- LOGIN OVERLAY -->
 <div id="login-overlay" style="position:fixed;inset:0;background:var(--bg);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem;overflow-y:auto">
-  <div style="width:100%;max-width:380px">
-    <div style="text-align:center;margin-bottom:1.75rem">
-      <div style="font-family:'Fraunces',serif;font-size:2.2rem;font-weight:900;color:var(--accent)">🌶️ Comidadle</div>
-      <div style="font-size:13px;color:var(--text-muted);margin-top:.25rem">El juego diario de gastronomía hispana</div>
+  <div style="width:100%;max-width:360px">
+    <div style="text-align:center;margin-bottom:2rem">
+      <div style="font-family:'Fraunces',serif;font-size:2.4rem;font-weight:900;color:var(--accent)">🌶️ Comidadle</div>
+      <div style="font-size:13px;color:var(--text-muted);margin-top:.3rem">El juego diario de gastronomía hispana</div>
     </div>
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem">
-      <div style="display:flex;gap:3px;background:var(--surface2);border-radius:var(--r-sm);padding:3px;margin-bottom:1.25rem">
-        <button onclick="switchLoginTab('login')" id="ltab-login" style="flex:1;padding:.5rem;border:none;border-radius:calc(var(--r-sm) - 2px);font-size:13px;font-weight:600;cursor:pointer;background:var(--surface);color:var(--text);transition:all .15s">Iniciar sesión</button>
-        <button onclick="switchLoginTab('register')" id="ltab-register" style="flex:1;padding:.5rem;border:none;border-radius:calc(var(--r-sm) - 2px);font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:var(--text-muted);transition:all .15s">Crear cuenta</button>
-      </div>
-      <div style="margin-bottom:.75rem">
-        <label style="font-size:12px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:.35rem">Nombre de usuario</label>
-        <input id="linput-user" placeholder="Tu nombre en el ranking" style="width:100%;padding:.7rem .875rem;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:14px;color:var(--text);box-sizing:border-box;outline:none" oninput="clearLoginError()">
-      </div>
-      <div style="margin-bottom:.875rem">
-        <label style="font-size:12px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:.35rem">Contraseña</label>
-        <input id="linput-pw" type="password" placeholder="Mínimo 4 caracteres" style="width:100%;padding:.7rem .875rem;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:14px;color:var(--text);box-sizing:border-box;outline:none" onkeydown="if(event.key==='Enter')submitLoginForm()" oninput="clearLoginError()">
-      </div>
-      <label id="lremember-row" style="display:flex;align-items:center;gap:.5rem;margin-bottom:1rem;cursor:pointer;font-size:13px;color:var(--text-muted)">
-        <input type="checkbox" id="lremember-cb" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent)">
-        Guardar inicio de sesión en este dispositivo
-      </label>
-      <div id="login-err" style="display:none;background:#fee2e2;border:1px solid #fca5a5;border-radius:var(--r-sm);padding:.6rem .875rem;font-size:12.5px;color:#dc2626;margin-bottom:.875rem"></div>
-      <button id="lsubmit-btn" onclick="submitLoginForm()" style="width:100%;padding:.8rem;background:var(--accent);color:#fff;border:none;border-radius:var(--r-sm);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">Entrar</button>
-      <div id="lregister-note" style="display:none;margin-top:.75rem;font-size:11.5px;color:var(--text-muted);text-align:center">¿Ya tienes cuenta en otro dispositivo? Regístrate con el mismo nombre y contraseña para mantener tu ranking.</div>
-    </div>
+    <button onclick="signInWithGoogle()" id="google-signin-btn" style="width:100%;display:flex;align-items:center;justify-content:center;gap:.75rem;padding:.9rem 1rem;background:#fff;color:#1f1f1f;border:1.5px solid #dadce0;border-radius:var(--r-sm);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 1px 3px rgba(0,0,0,.08)">
+      <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Continuar con Google
+    </button>
+    <div id="login-err" style="display:none;background:#fee2e2;border:1px solid #fca5a5;border-radius:var(--r-sm);padding:.65rem .875rem;font-size:13px;color:#dc2626;margin-top:.875rem;text-align:center"></div>
     <div style="display:flex;align-items:center;gap:.75rem;margin:1.25rem 0">
       <div style="flex:1;height:1px;background:var(--border)"></div>
       <span style="font-size:12px;color:var(--text-muted)">o</span>
       <div style="flex:1;height:1px;background:var(--border)"></div>
     </div>
     <button onclick="enterGuestMode()" style="width:100%;padding:.75rem;background:transparent;color:var(--text-muted);border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Modo invitado</button>
-    <div style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:.4rem">Sin cuenta · Sin XP · Juego básico</div>
+    <div style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:.4rem">Sin cuenta · Sin XP · Solo juego</div>
+  </div>
+</div>
+
+<!-- USERNAME SETUP (primer login con Google) -->
+<div id="username-setup-overlay" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:99998;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem">
+  <div style="width:100%;max-width:360px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.5rem">
+    <div style="text-align:center;margin-bottom:1.25rem">
+      <div style="font-size:2rem;margin-bottom:.4rem">👋</div>
+      <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:.25rem">¡Bienvenido/a!</div>
+      <div style="font-size:13px;color:var(--text-muted)">Elige un nombre para el ranking</div>
+    </div>
+    <input id="username-setup-input" placeholder="Tu nombre de jugador" maxlength="20" style="width:100%;padding:.7rem .875rem;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:14px;color:var(--text);box-sizing:border-box;outline:none;margin-bottom:.75rem" onkeydown="if(event.key==='Enter')saveGoogleUsername()">
+    <div id="username-setup-err" style="display:none;font-size:12px;color:#dc2626;margin-bottom:.75rem"></div>
+    <button onclick="saveGoogleUsername()" style="width:100%;padding:.8rem;background:var(--accent);color:#fff;border:none;border-radius:var(--r-sm);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">Guardar y jugar 🎮</button>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="recipe-modal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <span id="recipe-modal-title" style="font-size:15px;font-weight:700">Receta</span>
+      <button class="modal-close" onclick="closeModal('recipe-modal')">✕</button>
+    </div>
+    <div class="modal-body" style="max-height:72vh;overflow-y:auto" id="recipe-content"></div>
   </div>
 </div>
 
@@ -313,9 +322,9 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
     <div class="settings-section-label">💾 Datos</div>
     <button class="ranking-btn" id="export-progress-btn" style="width:100%">⬇️ Exportar mi progreso (.json)</button>
     <button class="ranking-btn" id="import-progress-btn" style="width:100%;margin-top:.5rem">⬆️ Importar progreso (.json)</button>
-    <button onclick="if(confirm('¿Cerrar sesión? Tendrás que volver a iniciar sesión la próxima vez.'))logOut()" style="width:100%;margin-top:.5rem;padding:.65rem;background:transparent;border:1.5px solid var(--border);border-radius:var(--r-sm);color:var(--text-muted);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit" id="logout-btn">🚪 Cerrar sesión</button>
     <input type="file" id="import-progress-file" accept="application/json" style="display:none">
     <div id="import-progress-msg" style="font-size:12px;text-align:center;margin-top:.5rem"></div>
+    <button onclick="if(confirm('¿Cerrar sesión? Tendrás que volver a iniciar sesión la próxima vez.'))logOut()" style="width:100%;margin-top:.75rem;padding:.65rem;background:transparent;border:1.5px solid var(--border);border-radius:var(--r-sm);color:var(--text-muted);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit" id="logout-btn">🚪 Cerrar sesión</button>
   </div>
 </div>
 
@@ -516,7 +525,7 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
     <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:1rem;margin-bottom:.875rem;font-size:13px;color:var(--text-muted);line-height:1.7">Comidadle nació en <strong style="color:var(--text)">2025</strong> como un juego diario de gastronomía hispana. Cada día aparecen <strong style="color:var(--text)">3 platos diferentes</strong> y tienes que adivinar de qué país es cada uno.</div>
     <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:1rem;margin-bottom:.875rem;font-size:13px;color:var(--text-muted);line-height:1.7">Creado por <strong style="color:var(--accent)">Anas</strong>, inspirado en Wordle pero con todo el sabor de Latinoamérica y España.</div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:.875rem">
-      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center"><div style="font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:var(--accent)">734</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px">Platos</div></div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center"><div style="font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:var(--accent)">1082</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px">Platos</div></div>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center"><div style="font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:var(--gold)">21</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px">Países hispanos</div></div>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center"><div style="font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:var(--green)">49</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px">Países no hispanos</div></div>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center"><div style="font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:var(--text)">3</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px">Platos/día</div></div>
@@ -1545,7 +1554,7 @@ const CHANGELOG=[
   {v:"2.5.0",date:"25 jun 2026",changes:["📢 Nuevo sistema de avisos del Owner: aparecen como notificaciones flotantes abajo (no tapan el header). Si hay varias, la más reciente se ve nítida abajo y las anteriores con un blur suave encima.","Los avisos marcados como 📌 Importante no se cierran solos.","Todos los avisos quedan accesibles después en la campana 🔔, vistos o no."]},
   {v:"2.6.0",date:"26 jun 2026",changes:["📱 Añade amigos por código QR: muéstralo o escanéalo con la cámara, también funciona como enlace compartible.","🔴 Indicador en el botón Extras cuando tienes solicitudes de amistad o invitaciones de duelo pendientes."]},
   {v:"2.7.0",date:"27 jun 2026",changes:["🎁 Regala XP a tus amigos con un mensaje opcional, hasta 100 XP al día en total entre todos.","🧠 Nuevo Modo Memoria: memoriza el plato antes de que desaparezca y adivina el país de un solo intento, +10 XP fijo si aciertas.","🎨 Modo daltónico, opción para ocultar tu posición en los rankings, y exportar/importar tu progreso como archivo .json.","⏰ Lista de amigos: cuántos días lleva cada amigo sin jugar y botón 📣 para recordarle (1 vez/día por amigo).","🔊 Sonido on/off independiente de la vibración.","🗺️ Nuevo Pasaporte Culinario: desbloquea países a medida que aciertas sus platos, con mapa de países por descubrir."]},
-  {v:"2.8.0",date:"4 jul 2026",changes:["🍽️ 1082 platos en la base de datos — más que suficientes para cubrir los 3 platos diarios durante un año completo sin repetición (365 días × 3 platos = 1095 slots)."]},
+  {v:"2.8.0",date:"11 jul 2026",changes:["🔐 Inicio de sesión con Google — cross-device, sin contraseñas, recuperación automática por Gmail.","🌍 Especial Domingo: 73 platos de 49 países no hispanos (Francia, Japón, India, Marruecos...) reemplaza los platos festivos hispanos del domingo.","🍽️ 1082 platos hispanos en la base de datos (13 platos pueden repetirse al año — no se añaden más por ahora).","🔒 Modo invitado mejorado: tienda, logros, misiones, ranking y amigos bloqueados correctamente con candado.","📖 Pasaporte Culinario: haz clic en cualquier plato desbloqueado para ver su receta auténtica generada con IA."]},
 ];
 
 // ═══ DATA ═══
@@ -1712,20 +1721,17 @@ async function sb(path,opts={}){
 
 // ═══ USER / RANKING ═══
 const UK="comidadle_username",UDK="comidadle_userid",BK="comidadle_banned";
-const PWK="comidadle_pw_hash",SESSK="comidadle_sess_saved";
-let myUser=localStorage.getItem(UK)||"",myId=localStorage.getItem(UDK)||"";
-let isBanned=localStorage.getItem(BK)==="1";
-if(isBanned){myUser="";myId="";}
-let isGuest=false,_loginTab="login";
-async function _hashPW(pw){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(pw));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,"0")).join("");}
-function switchLoginTab(tab){_loginTab=tab;const tl=document.getElementById("ltab-login"),tr=document.getElementById("ltab-register"),sb=document.getElementById("lsubmit-btn"),rr=document.getElementById("lremember-row"),rn=document.getElementById("lregister-note");if(!tl)return;tl.style.background=tab==="login"?"var(--surface)":"transparent";tl.style.color=tab==="login"?"var(--text)":"var(--text-muted)";tr.style.background=tab==="register"?"var(--surface)":"transparent";tr.style.color=tab==="register"?"var(--text)":"var(--text-muted)";if(sb)sb.textContent=tab==="login"?"Entrar":"Crear cuenta";if(rr)rr.style.display=tab==="login"?"flex":"none";if(rn)rn.style.display=tab==="register"?"block":"none";}
+const SESSK="comidadle_sess_saved";
+let isGuest=false,_sbSession=null,sbClient=null;
+function _initSBClient(){if(typeof supabase!=="undefined"&&!sbClient){try{sbClient=supabase.createClient(SB,SK);}catch(e){}}}
 function clearLoginError(){const e=document.getElementById("login-err");if(e)e.style.display="none";}
 function showLoginError(msg){const e=document.getElementById("login-err");if(e){e.textContent=msg;e.style.display="block";}}
-async function submitLoginForm(){const user=(document.getElementById("linput-user")?.value||"").trim();const pw=document.getElementById("linput-pw")?.value||"";if(!user){showLoginError("Introduce un nombre de usuario");return;}if(pw.length<4){showLoginError("La contraseña debe tener al menos 4 caracteres");return;}if(_loginTab==="login"){const su=localStorage.getItem(UK),sh=localStorage.getItem(PWK);if(!su||!sh){showLoginError("No hay cuenta guardada en este dispositivo. Usa 'Crear cuenta'.");return;}if(su.toLowerCase()!==user.toLowerCase()){showLoginError("Usuario incorrecto en este dispositivo.");return;}const h=await _hashPW(pw);if(h!==sh){showLoginError("Contraseña incorrecta.");return;}if(document.getElementById("lremember-cb")?.checked)localStorage.setItem(SESSK,"1");else localStorage.removeItem(SESSK);_closeLoginOverlay();}else{if(user.length<3||user.length>20){showLoginError("El nombre debe tener entre 3 y 20 caracteres.");return;}if(/[^a-zA-Z0-9_\-áéíóúüñÁÉÍÓÚÜÑ ]/.test(user)){showLoginError("Solo letras, números, guion y guion bajo.");return;}const h=await _hashPW(pw);localStorage.setItem(UK,user);if(!localStorage.getItem(UDK))localStorage.setItem(UDK,crypto.randomUUID());localStorage.setItem(PWK,h);localStorage.setItem(SESSK,"1");location.reload();}}
+async function signInWithGoogle(){_initSBClient();if(!sbClient){showLoginError("Error de conexión. Recarga la página.");return;}const btn=document.getElementById("google-signin-btn");if(btn){btn.textContent="Conectando...";btn.disabled=true;}const{error}=await sbClient.auth.signInWithOAuth({provider:"google",options:{redirectTo:window.location.origin+window.location.pathname}});if(error){showLoginError("Error: "+error.message);if(btn){btn.disabled=false;btn.textContent="Continuar con Google";}}}
 function enterGuestMode(){isGuest=true;_closeLoginOverlay();}
 function _closeLoginOverlay(){const ov=document.getElementById("login-overlay");if(ov)ov.style.display="none";}
-function logOut(){localStorage.removeItem(SESSK);location.reload();}
-function checkLoginOnLoad(){const sess=localStorage.getItem(SESSK),user=localStorage.getItem(UK),hash=localStorage.getItem(PWK);if(sess==="1"&&user&&hash){_closeLoginOverlay();}}
+async function logOut(){_initSBClient();if(sbClient)await sbClient.auth.signOut().catch(()=>{});localStorage.removeItem(UK);localStorage.removeItem(UDK);localStorage.removeItem(SESSK);location.reload();}
+async function saveGoogleUsername(){const input=document.getElementById("username-setup-input");const user=(input?.value||"").trim();const errEl=document.getElementById("username-setup-err");const setErr=m=>{if(errEl){errEl.textContent=m;errEl.style.display="block";}};if(!user||user.length<3||user.length>20){setErr("El nombre debe tener entre 3 y 20 caracteres.");return;}if(/[^a-zA-Z0-9_\-áéíóúüñÁÉÍÓÚÜÑ ]/.test(user)){setErr("Solo letras, números, guion y guion bajo.");return;}myUser=user;if(_sbSession){myId=_sbSession.user.id;localStorage.setItem(UDK,myId);}if(!myId)myId=crypto.randomUUID();localStorage.setItem(UK,myUser);localStorage.setItem(UDK,myId);await upsertRanking().catch(()=>{});const ov=document.getElementById("username-setup-overlay");if(ov)ov.style.display="none";}
+async function checkLoginOnLoad(){_initSBClient();if(!sbClient)return;const{data}=await sbClient.auth.getSession().catch(()=>({data:{session:null}}));const session=data?.session;if(session){_sbSession=session;SH.Authorization="Bearer "+session.access_token;const uid=session.user.id;const rows=await sb("/rest/v1/ranking?id=eq."+uid+"&select=username,id").catch(()=>null);if(rows&&rows.length&&rows[0].username){myUser=rows[0].username;myId=uid;localStorage.setItem(UK,myUser);localStorage.setItem(UDK,myId);_closeLoginOverlay();}else{_closeLoginOverlay();const ov=document.getElementById("username-setup-overlay");if(ov)ov.style.display="flex";}}}
 
 async function upsertRanking(){
   if(!myUser||isBanned)return;
@@ -1741,7 +1747,7 @@ async function upsertRanking(){
     }catch(e){}
   }
 }
-async function fetchRanking(){return await sb("/rest/v1/ranking?select=*&order=best_streak.desc&limit=50");}
+async function fetchRanking(){return await sb("/rest/v1/ranking?select=*&order=totalXP.desc.nullslast&limit=50");}
 function syncRanking(){if(!myUser||isBanned)return Promise.resolve();return upsertRanking().catch(()=>{});}
 
 async function deleteFromRanking(){
@@ -1957,7 +1963,7 @@ async function checkIfBanned(){
 }
 
 // ═══ OWNER PANEL ═══
-function openOwnerPanel(){openModal("owner-modal");renderOwnerPanel();}
+function openOwnerPanel(){if(isGuest){showToast("🔒 Solo para jugadores registrados");return;}openModal("owner-modal");renderOwnerPanel();}
 function ownerTab(show){
   ["oc-ann","oc-ban","oc-rank","oc-xp","oc-sug"].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=id===show?"block":"none";});
   const map={"oc-ann":"ot-ann","oc-ban":"ot-ban","oc-rank":"ot-rank","oc-xp":"ot-xp","oc-sug":"ot-sug"};
@@ -2592,7 +2598,7 @@ async function loadShop(){
   }
 }
 
-async function openShop(){
+async function openShop(){if(isGuest){openModal("shop-modal");setTimeout(()=>{const _g=document.getElementById("shop-items")||document.querySelector("#shop-modal .modal-body");if(_g)_g.innerHTML="<div style=\"text-align:center;padding:2rem 1rem\"><div style=\"font-size:2.5rem;margin-bottom:.75rem\">🔒</div><div style=\"font-weight:700;font-size:16px;margin-bottom:.5rem\">🔒 Tienda</div><div style=\"font-size:13px;color:var(--text-muted);margin-bottom:1.25rem\">Crea una cuenta para ganar XP y comprar en la tienda.</div><button onclick=\"logOut()\" style=\"padding:.65rem 1.5rem;background:var(--accent);color:#fff;border:none;border-radius:var(--r-sm);font-weight:700;cursor:pointer;font-size:14px\">Crear cuenta con Google</button></div>";},50);return;}
   openModal("shop-modal");
   await loadShop();
   updateShopXPBar();
@@ -3061,7 +3067,7 @@ function openPassportCountry(name,active,unlocked){
     const solved=passport[name]||[];
     const cards=dishes.map(d=>{
       if(solved.includes(d.name)){
-        return `<div class="dish-card" style="margin-bottom:.6rem;padding:.75rem"><span class="dish-emoji" style="font-size:24px">${d.emoji}</span><div class="dish-name" style="font-size:13px">${escapeHtml(d.name)}</div></div>`;
+        return `<div class="dish-card" style="margin-bottom:.6rem;padding:.75rem;cursor:pointer" onclick="openDishRecipe('${escapeHtml(d.name).replace(/'/g,"\\'")}','${escapeHtml(d.country).replace(/'/g,"\\'")}','${d.emoji}','${escapeHtml(d.flag||'')}')"><span class="dish-emoji" style="font-size:24px">${d.emoji}</span><div class="dish-name" style="font-size:13px">${escapeHtml(d.name)}</div><div style="font-size:11px;color:var(--accent);margin-top:3px;font-weight:600">🍳 Ver receta</div></div>`;
       }
       return `<div class="dish-card" style="margin-bottom:.6rem;padding:.75rem;opacity:.5"><span class="dish-emoji" style="font-size:24px">❓</span><div class="dish-name" style="font-size:13px;filter:blur(1px);user-select:none">?????????</div></div>`;
     }).join("");
@@ -3072,6 +3078,29 @@ function openPassportCountry(name,active,unlocked){
     </div>${cards}`;
   }
   openModal("passport-country-modal");
+}
+
+async function openDishRecipe(name,country,emoji,flag){
+  document.getElementById("recipe-modal-title").textContent=emoji+" "+name+" "+flag;
+  openModal("recipe-modal");
+  const el=document.getElementById("recipe-content");
+  if(el)el.innerHTML='<div style="text-align:center;padding:2rem;color:var(--text-muted)"><div style="font-size:1.5rem;animation:spin 1s linear infinite;display:inline-block">⏳</div><div style="margin-top:.5rem;font-size:13px">Generando receta con IA...</div></div>';
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-6",
+        max_tokens:1000,
+        messages:[{role:"user",content:`Eres un chef experto en gastronomía de ${country}. Escribe la receta auténtica de "${name}" ${emoji} para 4 personas con:\n\n**Ingredientes** (con cantidades, usa emojis para cada ingrediente):\n\n**Preparación paso a paso** (máximo 7 pasos numerados):\n\n**Dato cultural** (1-2 frases curiosas sobre el plato):\n\nResponde en español, de forma concisa y práctica.`}]
+      })
+    });
+    const data=await res.json();
+    const text=data.content?.[0]?.text||"No se pudo generar la receta.";
+    if(el)el.innerHTML='<div style="padding:.25rem .5rem;line-height:1.75;font-size:14px;color:var(--text);white-space:pre-wrap">'+escapeHtml(text)+'</div>';
+  }catch(e){
+    if(el)el.innerHTML='<div style="text-align:center;padding:2rem;color:#dc2626">❌ Error al generar la receta. Inténtalo de nuevo.</div>';
+  }
 }
 // ═══ XP GIFTS (check on init) ═══
 async function checkXPGifts(){
@@ -3617,7 +3646,7 @@ document.getElementById("shop-modal").addEventListener("click",e=>{if(e.target.i
 document.getElementById("player-modal").addEventListener("click",e=>{if(e.target.id==="player-modal")closeModal("player-modal");});
 onC("duel-close",()=>closeModal("duel-modal"));
 onC("sm-duel",()=>{openDuelModal();closeSideMenu();});
-["how-modal","cfg-modal","share-modal","stats-modal","ranking-modal","weekly-modal","profile-modal","owner-modal","reviews-modal","ann-modal","suggestions-modal","about-modal","duel-modal","rules-modal","infinite-modal","memory-modal","passport-modal","passport-country-modal","player-modal","shop-modal"].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener("click",e=>{if(e.target.id===id)closeModal(id);});});
+["how-modal","cfg-modal","share-modal","stats-modal","ranking-modal","weekly-modal","profile-modal","owner-modal","reviews-modal","ann-modal","suggestions-modal","about-modal","duel-modal","rules-modal","infinite-modal","memory-modal","passport-modal","passport-country-modal","player-modal","shop-modal","recipe-modal"].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener("click",e=>{if(e.target.id===id)closeModal(id);});});
 onC("menu-open-btn",openSideMenu);onC("side-menu-close",closeSideMenu);onC("side-overlay",closeSideMenu);
 onC("sm-achievements",()=>{openModal("achievements-modal");closeSideMenu();openAchievements();});onC("achievements-close",()=>closeModal("achievements-modal"));
 onC("sm-missions",()=>{openModal("missions-modal");closeSideMenu();openMissions();});onC("missions-close",()=>closeModal("missions-modal"));
@@ -5525,7 +5554,7 @@ async function syncAchievementsToServer(ids){
 async function fetchPublicAchievements(username){
   try{const rows=await sb("/rest/v1/user_achievements?username=eq."+encodeURIComponent(username)+"&select=achievement_id");return(rows||[]).map(r=>r.achievement_id);}catch(e){return[];}
 }
-async function openAchievements(){
+async function openAchievements(){if(isGuest){openModal("achievements-modal");setTimeout(()=>{const _g=document.getElementById("achievements-list")||document.querySelector("#achievements-modal .modal-body");if(_g)_g.innerHTML="<div style=\"text-align:center;padding:2rem 1rem\"><div style=\"font-size:2.5rem;margin-bottom:.75rem\">🔒</div><div style=\"font-weight:700;font-size:16px;margin-bottom:.5rem\">🔒 Logros</div><div style=\"font-size:13px;color:var(--text-muted);margin-bottom:1.25rem\">Crea una cuenta para desbloquear logros y medallas.</div><button onclick=\"logOut()\" style=\"padding:.65rem 1.5rem;background:var(--accent);color:#fff;border:none;border-radius:var(--r-sm);font-weight:700;cursor:pointer;font-size:14px\">Crear cuenta con Google</button></div>";},50);return;}
   const el=document.getElementById("achievements-content");if(!el)return;
   checkAchievements();
   const unlocked=loadAchievements();
@@ -5588,7 +5617,7 @@ function bumpMission(id,amount=1){
   }
   saveDailyMissions(data);
 }
-function openMissions(){
+function openMissions(){if(isGuest){openModal("missions-modal");setTimeout(()=>{const _g=document.getElementById("missions-list")||document.querySelector("#missions-modal .modal-body");if(_g)_g.innerHTML="<div style=\"text-align:center;padding:2rem 1rem\"><div style=\"font-size:2.5rem;margin-bottom:.75rem\">🔒</div><div style=\"font-weight:700;font-size:16px;margin-bottom:.5rem\">🔒 Misiones</div><div style=\"font-size:13px;color:var(--text-muted);margin-bottom:1.25rem\">Crea una cuenta para acceder a las misiones diarias.</div><button onclick=\"logOut()\" style=\"padding:.65rem 1.5rem;background:var(--accent);color:#fff;border:none;border-radius:var(--r-sm);font-weight:700;cursor:pointer;font-size:14px\">Crear cuenta con Google</button></div>";},50);return;}
   const el=document.getElementById("missions-content");if(!el)return;
   const data=getDailyMissions();
   el.innerHTML=`
@@ -5638,8 +5667,6 @@ const vEl=document.getElementById("about-version");if(vEl)vEl.textContent=VERSIO
 if(!localStorage.getItem("comidadle_visited")){openModal("how-modal");localStorage.setItem("comidadle_visited","1");}
 checkStreakExpiry();
 checkLoginOnLoad();
-// Mostrar nota de registro en el tab correspondiente
-const _lro=document.getElementById("lregister-note");if(_lro)_lro.style.display="none";
 setTimeout(pollAnnouncementsForToasts,2000);startAnnPoll();
 if(new URLSearchParams(location.search).get("duel"))setTimeout(openDuelModal,300);
 const _qpAddFriend=new URLSearchParams(location.search).get("addfriend");
