@@ -1721,6 +1721,9 @@ async function sb(path,opts={}){
 
 // ═══ USER / RANKING ═══
 const UK="comidadle_username",UDK="comidadle_userid",BK="comidadle_banned";
+let myUser=localStorage.getItem(UK)||"",myId=localStorage.getItem(UDK)||"";
+let isBanned=localStorage.getItem(BK)==="1";
+if(isBanned){myUser="";myId="";}
 const SESSK="comidadle_sess_saved";
 let isGuest=false,_sbSession=null,sbClient=null;
 function _initSBClient(){if(typeof supabase!=="undefined"&&!sbClient){try{sbClient=supabase.createClient(SB,SK);}catch(e){}}}
