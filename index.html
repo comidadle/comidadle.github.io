@@ -7,7 +7,7 @@
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-DB6VQBTDDM"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-DB6VQBTDDM');</script>
 <link rel="manifest" href="manifest.json">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -765,14 +765,15 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
 
 <script>
 (()=>{
-  const s=document.getElementById("splash"),t=document.getElementById("splash-title"),sub=document.getElementById("splash-sub");
-  if(t){requestAnimationFrame(()=>{t.style.opacity="1";t.style.transform="translateY(0)";});}
-  if(sub){setTimeout(()=>{sub.style.opacity="1";sub.style.transform="translateY(0)";},200);}
-  setTimeout(()=>{
-    checkLoginOnLoad();
-    s.style.animation="splashFadeOut .5s ease forwards";
-    setTimeout(()=>s.style.display="none",500);
-  },1600);
+  try{
+    const s=document.getElementById("splash"),t=document.getElementById("splash-title"),sub=document.getElementById("splash-sub");
+    if(t){requestAnimationFrame(()=>{t.style.opacity="1";t.style.transform="translateY(0)";});}
+    if(sub){setTimeout(()=>{sub.style.opacity="1";sub.style.transform="translateY(0)";},200);}
+    setTimeout(()=>{
+      try{checkLoginOnLoad();}catch(e){console.warn("checkLogin failed:",e);}
+      if(s){s.style.animation="splashFadeOut .5s ease forwards";setTimeout(()=>s.style.display="none",500);}
+    },1600);
+  }catch(e){console.warn("Splash error:",e);}
 })();
 </script>
 <script>
@@ -1768,21 +1769,26 @@ async function saveGoogleUsername(){
   const ov=document.getElementById("username-setup-overlay");if(ov)ov.style.display="none";
 }
 async function checkLoginOnLoad(){
-  _initSBClient();if(!sbClient)return;
-  const{data}=await sbClient.auth.getSession().catch(()=>({data:{session:null}}));
-  const session=data?.session;
-  if(!session)return;
-  _sbSession=session;SH.Authorization="Bearer "+session.access_token;
-  const uid=session.user.id;localStorage.setItem(UDK,uid);
-  const localUser=localStorage.getItem(UK);
-  if(localUser){myUser=localUser;myId=uid;_closeLoginOverlay();return;}
-  const rows=await sb("/rest/v1/ranking?id=eq."+uid+"&select=username").catch(()=>null);
-  if(rows&&rows.length&&rows[0].username){
-    myUser=rows[0].username;myId=uid;
-    localStorage.setItem(UK,myUser);_closeLoginOverlay();
-  }else{
-    _closeLoginOverlay();
-    const ov=document.getElementById("username-setup-overlay");if(ov)ov.style.display="flex";
+  try{
+    _initSBClient();
+    if(!sbClient)return;
+    const{data}=await sbClient.auth.getSession().catch(()=>({data:{session:null}}));
+    const session=data?.session;
+    if(!session)return;
+    _sbSession=session;SH.Authorization="Bearer "+session.access_token;
+    const uid=session.user.id;localStorage.setItem(UDK,uid);
+    const localUser=localStorage.getItem(UK);
+    if(localUser){myUser=localUser;myId=uid;_closeLoginOverlay();return;}
+    const rows=await sb("/rest/v1/ranking?id=eq."+uid+"&select=username").catch(()=>null);
+    if(rows&&rows.length&&rows[0].username){
+      myUser=rows[0].username;myId=uid;
+      localStorage.setItem(UK,myUser);_closeLoginOverlay();
+    }else{
+      _closeLoginOverlay();
+      const ov=document.getElementById("username-setup-overlay");if(ov)ov.style.display="flex";
+    }
+  }catch(err){
+    console.warn("checkLoginOnLoad error (non-fatal):",err);
   }
 }
 async function upsertRanking(){
@@ -1964,7 +1970,7 @@ function removeToast(el){
 
 // Logo tap to open admin login (5 taps)
 let _logoTaps=0,_logoTimer=null;
-document.querySelector(".logo").addEventListener("click",()=>{
+document.querySelector(".logo")?.addEventListener("click",()=>{
   _logoTaps++;clearTimeout(_logoTimer);
   _logoTimer=setTimeout(()=>_logoTaps=0,1500);
   if(_logoTaps>=5){_logoTaps=0;openModal("admin-login-modal");document.getElementById("admin-login-pass").focus();}
@@ -1974,14 +1980,13 @@ if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch((
 document.getElementById("date-pill").textContent=_now.getDate()+" "+MONTHS[_now.getMonth()]+" · Día "+dayOfYear;
 // Load equip from server on init
 if(myUser){sb("/rest/v1/user_equip?username=eq."+encodeURIComponent(myUser)+"&select=*").then(eq=>{if(eq&&eq[0]){myEquip={...myEquip,...eq[0]};saveEquipLocal();updateMiniAvatar();}}).catch(()=>{});}
-updateMiniAvatar();updateBadge();
+updateMiniAvatar();
 setTimeout(updateFriendsBadge,1500);setInterval(updateFriendsBadge,30000);
 if(myUser)syncAchievementsToServer(loadAchievements()).catch(()=>{});
 setTimeout(applyLang,100);
 const vEl=document.getElementById("about-version");if(vEl)vEl.textContent=VERSION;renderYesterday();renderTabs();renderAll();
 if(!localStorage.getItem("comidadle_visited")){openModal("how-modal");localStorage.setItem("comidadle_visited","1");}
 checkStreakExpiry();
-// checkLoginOnLoad() llamado por splash
 setTimeout(pollAnnouncementsForToasts,2000);startAnnPoll();
 if(new URLSearchParams(location.search).get("duel"))setTimeout(openDuelModal,300);
 const _qpAddFriend=new URLSearchParams(location.search).get("addfriend");
