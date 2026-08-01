@@ -1981,6 +1981,24 @@ document.getElementById("date-pill").textContent=_now.getDate()+" "+MONTHS[_now.
 // Load equip from server on init
 if(myUser){sb("/rest/v1/user_equip?username=eq."+encodeURIComponent(myUser)+"&select=*").then(eq=>{if(eq&&eq[0]){myEquip={...myEquip,...eq[0]};saveEquipLocal();updateMiniAvatar();}}).catch(()=>{});}
 updateMiniAvatar();
+function updateFriendsBadge(){
+  if(!myUser||isGuest)return;
+  sb("/rest/v1/friend_requests?status=eq.pending&to_user=eq."+encodeURIComponent(myUser)+"&select=id").then(rows=>{
+    const el=document.getElementById("friends-badge");
+    if(el)el.style.display=rows&&rows.length?"flex":"none";
+  }).catch(()=>{});
+}
+function updateNotifBadge(){
+  if(!myUser||isGuest)return;
+  sb("/rest/v1/notifications?username=eq."+encodeURIComponent(myUser)+"&read=eq.false&select=id").then(rows=>{
+    const el=document.getElementById("notif-badge");
+    if(el){el.style.display=rows&&rows.length?"flex":"none";el.textContent=rows&&rows.length?rows.length:"";}
+  }).catch(()=>{});
+}
+function updateMiniAvatar(){
+  const el=document.getElementById("mini-avatar");
+  if(el&&myUser)el.textContent=myUser[0].toUpperCase();
+}
 setTimeout(updateFriendsBadge,1500);setInterval(updateFriendsBadge,30000);
 if(myUser)syncAchievementsToServer(loadAchievements()).catch(()=>{});
 setTimeout(applyLang,100);
