@@ -3233,6 +3233,7 @@ const PASSPORT_KEY="comidadle_passport";
 let passport={};
 try{passport=JSON.parse(localStorage.getItem(PASSPORT_KEY)||"{}");}catch(e){passport={};}
 function recordPassport(dish){
+  if(isGuest||isBanned)return;
   if(!dish||!dish.country||!dish.name)return;
   if(!passport[dish.country])passport[dish.country]=[];
   if(!passport[dish.country].includes(dish.name)){
@@ -5758,6 +5759,7 @@ const ACH_LIST=[
 function loadAchievements(){try{return JSON.parse(localStorage.getItem(ACH_KEY)||"[]");}catch(e){return[];}}
 function saveAchievements(arr){localStorage.setItem(ACH_KEY,JSON.stringify(arr));}
 function checkAchievements(){
+  if(isGuest||isBanned)return;
   const unlocked=loadAchievements();
   let newly=[];
   ACH_LIST.forEach(a=>{
@@ -5835,6 +5837,7 @@ function getDailyMissions(){
 }
 function saveDailyMissions(data){localStorage.setItem(MISSION_KEY,JSON.stringify(data));}
 function bumpMission(id,amount=1){
+  if(isGuest||isBanned)return;
   const data=getDailyMissions();
   const m=data.missions.find(x=>x.id===id);
   if(!m||m.done)return;
