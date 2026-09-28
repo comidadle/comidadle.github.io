@@ -27,7 +27,7 @@ body.colorblind{--green:#2D7DD2;--green-bg:rgba(45,125,210,.14);--red:#F59E0B}
 .passport-card{display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.6rem .3rem;cursor:pointer;text-align:center;color:var(--text);font-family:inherit;transition:transform .15s ease}
 .passport-card:active{transform:scale(.95)}
 .passport-card.unlocked{border-color:var(--gold);background:rgba(255,182,39,.08)}
-body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;overflow-x:hidden}
 body::before{content:'';position:fixed;top:-80px;left:50%;transform:translateX(-50%);width:700px;height:500px;background:radial-gradient(ellipse at center,rgba(255,107,53,.07) 0%,transparent 65%);pointer-events:none;z-index:0}
 header{width:100%;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(16,9,0,.92);backdrop-filter:blur(10px);z-index:10}
 .header-inner{max-width:520px;margin:0 auto;padding:.875rem 1.25rem;display:flex;align-items:center;justify-content:space-between}
@@ -228,6 +228,12 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
 @keyframes toastSlideUp{from{opacity:0;transform:translateY(16px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes splashFadeOut{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.05)}}
 @media(max-width:380px){.country-btn{font-size:13px;padding:.5rem .6rem}.dish-emoji{font-size:46px}}
+/* iOS Safari hace auto-zoom al enfocar un input/select con font-size menor a 16px.
+   Este ajuste solo afecta a pantallas pequeñas (móvil) y no cambia el tamaño visual
+   en escritorio, evitando el zoom accidental al abrir el teclado en iPhone. */
+@media (max-width:600px){
+  input,select,textarea{font-size:16px!important}
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" defer></script>
@@ -257,7 +263,8 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
       <input id="reg-username" placeholder="Nombre de usuario" maxlength="20" style="width:100%;padding:.7rem .875rem;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:14px;color:var(--text);box-sizing:border-box;outline:none;margin-bottom:.6rem" autocomplete="username">
       <input id="reg-email" type="email" placeholder="Correo electrónico" style="width:100%;padding:.7rem .875rem;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:14px;color:var(--text);box-sizing:border-box;outline:none;margin-bottom:.6rem" autocomplete="email">
       <input id="reg-password" type="password" placeholder="Contraseña (mín. 6 caracteres)" style="width:100%;padding:.7rem .875rem;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:14px;color:var(--text);box-sizing:border-box;outline:none;margin-bottom:.6rem" autocomplete="new-password">
-      <input id="reg-password2" type="password" placeholder="Repite la contraseña" style="width:100%;padding:.7rem .875rem;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:14px;color:var(--text);box-sizing:border-box;outline:none;margin-bottom:.75rem" autocomplete="new-password" onkeydown="if(event.key==='Enter')registerWithEmail()">
+      <input id="reg-password2" type="password" placeholder="Repite la contraseña" style="width:100%;padding:.7rem .875rem;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:14px;color:var(--text);box-sizing:border-box;outline:none;margin-bottom:.6rem" autocomplete="new-password" onkeydown="if(event.key==='Enter')registerWithEmail()">
+      <select id="reg-country" class="username-input" style="width:100%;padding:.7rem .875rem;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:14px;color:var(--text);box-sizing:border-box;outline:none;margin-bottom:.75rem"></select>
       <div id="register-err" style="display:none;background:#fee2e2;border:1px solid #fca5a5;border-radius:var(--r-sm);padding:.65rem .875rem;font-size:13px;color:#dc2626;margin-bottom:.75rem;text-align:center"></div>
       <button onclick="registerWithEmail()" id="register-submit-btn" style="width:100%;padding:.8rem;background:var(--accent);color:#fff;border:none;border-radius:var(--r-sm);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">Crear cuenta</button>
     </div>
@@ -268,10 +275,10 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
       <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:1rem">Iniciar sesión</div>
       <button onclick="signInWithGoogle()" id="google-signin-btn" style="width:100%;display:flex;align-items:center;justify-content:center;gap:.75rem;padding:.9rem 1rem;background:#fff;color:#1f1f1f;border:1.5px solid #dadce0;border-radius:var(--r-sm);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 1px 3px rgba(0,0,0,.08)"><svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>Continuar con Google</button>
       <div style="display:flex;align-items:center;gap:.75rem;margin:1.1rem 0"><div style="flex:1;height:1px;background:var(--border)"></div><span style="font-size:12px;color:var(--text-muted)">o con tu correo</span><div style="flex:1;height:1px;background:var(--border)"></div></div>
-      <input id="login-email" type="email" placeholder="Correo electrónico" style="width:100%;padding:.7rem .875rem;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:14px;color:var(--text);box-sizing:border-box;outline:none;margin-bottom:.6rem" autocomplete="email">
+      <input id="login-email" type="text" placeholder="Usuario o correo electrónico" style="width:100%;padding:.7rem .875rem;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:14px;color:var(--text);box-sizing:border-box;outline:none;margin-bottom:.6rem" autocomplete="username">
       <input id="login-password" type="password" placeholder="Contraseña" style="width:100%;padding:.7rem .875rem;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:14px;color:var(--text);box-sizing:border-box;outline:none;margin-bottom:.75rem" autocomplete="current-password" onkeydown="if(event.key==='Enter')loginWithEmail()">
       <div id="login-err" style="display:none;background:#fee2e2;border:1px solid #fca5a5;border-radius:var(--r-sm);padding:.65rem .875rem;font-size:13px;color:#dc2626;margin-bottom:.75rem;text-align:center"></div>
-      <button onclick="loginWithEmail()" id="login-submit-btn" style="width:100%;padding:.8rem;background:var(--surface2);color:var(--text);border:1.5px solid var(--border-strong);border-radius:var(--r-sm);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">Entrar con correo</button>
+      <button onclick="loginWithEmail()" id="login-submit-btn" style="width:100%;padding:.8rem;background:var(--surface2);color:var(--text);border:1.5px solid var(--border-strong);border-radius:var(--r-sm);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">Entrar</button>
       <div id="login-resend-row" style="display:none;text-align:center;margin-top:.75rem"><button onclick="resendVerificationEmail()" id="login-resend-btn" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:12px;font-family:inherit;text-decoration:underline">Reenviar correo de verificación</button></div>
     </div>
 
@@ -303,7 +310,8 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
 <div id="username-setup-overlay" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:9999;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem">
   <div style="width:100%;max-width:360px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.5rem">
     <div style="text-align:center;margin-bottom:1.25rem"><div style="font-size:2rem;margin-bottom:.4rem">👋</div><div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:.25rem">¡Bienvenido/a!</div><div style="font-size:13px;color:var(--text-muted)">Elige un nombre para el ranking</div></div>
-    <input id="username-setup-input" placeholder="Tu nombre de jugador" maxlength="20" style="width:100%;padding:.7rem .875rem;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:14px;color:var(--text);box-sizing:border-box;outline:none;margin-bottom:.75rem" onkeydown="if(event.key==='Enter')saveGoogleUsername()">
+    <input id="username-setup-input" placeholder="Tu nombre de jugador" maxlength="20" style="width:100%;padding:.7rem .875rem;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:14px;color:var(--text);box-sizing:border-box;outline:none;margin-bottom:.6rem" onkeydown="if(event.key==='Enter')saveGoogleUsername()">
+    <select id="username-setup-country" class="username-input" style="width:100%;padding:.7rem .875rem;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:14px;color:var(--text);box-sizing:border-box;outline:none;margin-bottom:.75rem"></select>
     <div id="username-setup-err" style="display:none;font-size:12px;color:#dc2626;margin-bottom:.75rem"></div>
     <button onclick="saveGoogleUsername()" style="width:100%;padding:.8rem;background:var(--accent);color:#fff;border:none;border-radius:var(--r-sm);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">Guardar y jugar 🎮</button>
   </div>
@@ -352,6 +360,7 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
     <div class="setting-row"><div class="setting-info"><div class="setting-label">Pistas progresivas</div><div class="setting-desc">Las pistas aparecen de una en una con cada fallo.</div></div><label class="toggle"><input type="checkbox" id="prog-toggle" checked><div class="toggle-track"></div></label></div>
     <div class="setting-row"><div class="setting-info"><div class="setting-label">Ocultar descripción</div><div class="setting-desc">Solo ves el nombre y el emoji.</div></div><label class="toggle"><input type="checkbox" id="no-desc-toggle"><div class="toggle-track"></div></label></div>
     <div class="setting-row"><div class="setting-info"><div class="setting-label">Plato de ayer</div><div class="setting-desc">Muestra el resultado de ayer encima del plato de hoy.</div></div><label class="toggle"><input type="checkbox" id="show-yesterday-toggle" checked><div class="toggle-track"></div></label></div>
+    <div class="setting-row"><div class="setting-info"><div class="setting-label">Mostrar "Cómo jugar" al entrar</div><div class="setting-desc">Abre la guía de reglas automáticamente cada vez que entras al juego.</div></div><label class="toggle"><input type="checkbox" id="show-howto-toggle" checked><div class="toggle-track"></div></label></div>
     <div class="setting-row"><div class="setting-info"><div class="setting-label">Sonido</div><div class="setting-desc">Efectos de sonido al acertar o fallar, independiente de la vibración.</div></div><label class="toggle"><input type="checkbox" id="sound-toggle" checked><div class="toggle-track"></div></label></div>
     <div class="setting-row"><div class="setting-info"><div class="setting-label">Vibración</div><div class="setting-desc">Feedback háptico al acertar o fallar. <strong>No funciona en iPhone</strong> — es una limitación de iOS, no del juego.</div></div><label class="toggle"><input type="checkbox" id="haptics-toggle" checked><div class="toggle-track"></div></label></div>
     <div class="setting-row"><div class="setting-info"><div class="setting-label">Modo daltónico</div><div class="setting-desc">Cambia el verde/rojo de aciertos por colores más distinguibles.</div></div><label class="toggle"><input type="checkbox" id="colorblind-toggle"><div class="toggle-track"></div></label></div>
@@ -402,11 +411,10 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
   <div class="modal">
     <button class="modal-close" id="ranking-close">✕</button>
     <div class="modal-title"><span data-i18n="ranking_title">🏆 Ranking Global</span></div>
-    <div style="display:flex;gap:8px;margin-bottom:.5rem">
-      <input id="ranking-search" class="username-input" placeholder="🔍 Buscar jugador..." style="margin:0;flex:1" oninput="filterRanking(this.value)">
+    <div style="display:flex;gap:8px;margin-bottom:.75rem">
+      <select id="ranking-country-filter" class="username-input" style="margin:0;flex:1;box-sizing:border-box" onchange="filterRankingCountry(this.value)"></select>
       <button class="ranking-btn" id="ranking-refresh-btn">↻</button>
     </div>
-    <select id="ranking-country-filter" class="username-input" style="margin:0 0 .75rem;width:100%;box-sizing:border-box" onchange="filterRankingCountry(this.value)"></select>
     <div id="ranking-username-section"></div>
     <div id="ranking-list"><div class="ranking-empty">Cargando...</div></div>
   </div>
@@ -462,11 +470,10 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
     <button class="modal-close" id="weekly-close">✕</button>
     <div class="modal-title"><span data-i18n="weekly_title">📅 Ranking Semanal</span></div>
     <div style="font-size:11px;color:var(--text-muted);margin-bottom:.75rem" id="weekly-period"></div>
-    <div style="display:flex;gap:8px;margin-bottom:.5rem">
-      <input id="weekly-search" class="username-input" placeholder="🔍 Buscar jugador..." style="margin:0;flex:1" oninput="filterWeekly(this.value)">
+    <div style="display:flex;gap:8px;margin-bottom:.75rem">
+      <select id="weekly-country-filter" class="username-input" style="margin:0;flex:1;box-sizing:border-box" onchange="filterWeeklyCountry(this.value)"></select>
       <button class="ranking-btn" id="weekly-refresh-btn">↻</button>
     </div>
-    <select id="weekly-country-filter" class="username-input" style="margin:0 0 .75rem;width:100%;box-sizing:border-box" onchange="filterWeeklyCountry(this.value)"></select>
     <div id="weekly-username-section"></div>
     <div id="weekly-list"><div class="ranking-empty">Cargando...</div></div>
   </div>
@@ -571,7 +578,7 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
     </div>
     <div style="border-top:1px solid var(--border);padding-top:.875rem;display:flex;flex-direction:column;gap:8px">
       <div style="display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.65rem .875rem;color:var(--text-muted);font-size:13px;font-weight:600;opacity:0.5;cursor:not-allowed"><span style="font-size:20px">🎵</span> TikTok <span style="margin-left:4px;font-size:11px">🔒 Próximamente</span></div>
-      <a href="https://www.instagram.com/_aanas_0" target="_blank" style="display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.65rem .875rem;text-decoration:none;color:var(--text);font-size:13px;font-weight:600"><span style="font-size:20px">📸</span> @_aanas_0 en Instagram</a>
+      <a href="https://www.instagram.com/aanxs404" target="_blank" style="display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.65rem .875rem;text-decoration:none;color:var(--text);font-size:13px;font-weight:600"><span style="font-size:20px">📸</span> @aanxs404 en Instagram</a>
     </div>
   </div>
 </div>
@@ -635,6 +642,7 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
     <div class="hints" id="hints"></div>
     <div class="country-grid" id="grid"></div>
     <div id="result"></div>
+    <div id="trivia-card"></div>
     <div id="infinite-section"></div>
   </div>
 </main>
@@ -689,7 +697,7 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
   <div class="footer-inner">
     <div class="footer-credit">Hecho con 🌶️ por <strong>Anas</strong></div>
     <div class="footer-links">
-      <a href="https://instagram.com/_aanas_0" target="_blank" rel="noopener"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg>@_aanas_0</a>
+      <a href="https://instagram.com/aanxs404" target="_blank" rel="noopener"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg>@aanxs404</a>
     </div>
   </div>
 </footer>
@@ -724,6 +732,7 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
       <div><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700">Tu XP</div><div id="shop-xp-val" style="font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:var(--gold)">0</div></div>
       <div id="shop-level-badge" style="font-size:12px;font-weight:600;color:var(--accent)"></div>
     </div>
+    <div id="shop-weekly-section"></div>
     <div style="display:flex;gap:4px;margin-bottom:1rem;background:var(--surface2);border-radius:var(--r-sm);padding:4px;overflow-x:auto">
       <button onclick="shopTab('colores')" id="st-colores" class="shop-tab-btn active">🎨 Colores</button>
       <button onclick="shopTab('marcos')" id="st-marcos" class="shop-tab-btn">🖼️ Marcos</button>
@@ -1587,7 +1596,7 @@ const ALL_DISHES=[{name:"Tacos al Pastor",emoji:"🌮",country:"México",flag:"�
 const DEMONYMS={"México":["Mexicano","Mexicana","Mexicanos","Mexicanas"],"España":["Español","Española","Españoles","Españolas"],"Argentina":["Argentino","Argentinas","Argentinos"],"Perú":["Peruano","Peruana","Peruanos","Peruanas"],"Colombia":["Colombiano","Colombiana","Colombianos","Colombianas"],"Venezuela":["Venezolano","Venezolana","Venezolanos","Venezolanas"],"Chile":["Chileno","Chilena","Chilenos","Chilenas"],"Cuba":["Cubano","Cubana","Cubanos","Cubanas"],"El Salvador":["Salvadoreño","Salvadoreña","Salvadoreños","Salvadoreñas"],"Honduras":["Hondureño","Hondureña","Hondureños","Hondureñas"],"Costa Rica":["Costarricense","Tico","Tica"],"Nicaragua":["Nicaragüense","Nicaragüenses"],"Guatemala":["Guatemalteco","Guatemalteca","Guatemaltecos","Guatemaltecas"],"Ecuador":["Ecuatoriano","Ecuatoriana","Ecuatorianos","Ecuatorianas"],"Bolivia":["Boliviano","Boliviana","Bolivianos","Bolivianas"],"Uruguay":["Uruguayo","Uruguaya","Uruguayos","Uruguayas"],"Brasil":["Brasileño","Brasileña","Brasileños","Brasileñas"],"Panamá":["Panameño","Panameña","Panameños","Panameñas"],"Rep. Dominicana":["Dominicano","Dominicana","Dominicanos","Dominicanas"],"Puerto Rico":["Puertorriqueño","Puertorriqueña","Boricua","Boricuas"],"Paraguay":["Paraguayo","Paraguaya","Paraguayos","Paraguayas"],
 "Francia":["Francés","Francesa","Franceses","Francesas"],"Italia":["Italiano","Italiana","Italianos","Italianas"],"Japón":["Japonés","Japonesa","Japoneses","Japonesas"],"India":["Indio","India","Indios","Indias"],"China":["Chino","China","Chinos","Chinas"],"Marruecos":["Marroquí","Marroquíes"],"Grecia":["Griego","Griega","Griegos","Griegas"],"Turquía":["Turco","Turca","Turcos","Turcas"],"Corea del Sur":["Coreano","Coreana","Coreanos","Coreanas"],"Vietnam":["Vietnamita","Vietnamitas"],"Tailandia":["Tailandés","Tailandesa","Tailandeses"],"Alemania":["Alemán","Alemana","Alemanes","Alemanas"],"Portugal":["Portugués","Portuguesa","Portugueses","Portuguesas"],"Reino Unido":["Británico","Británica","Inglés","Inglesa","Ingleses"],"Estados Unidos":["Americano","Americana","Estadounidense","Estadounidenses"],"Líbano":["Libanés","Libanesa","Libaneses","Libanesas"],"Etiopía":["Etíope","Etíopes"],"Nigeria":["Nigeriano","Nigeriana","Nigerianos","Nigerianas"],"Jamaica":["Jamaicano","Jamaicana","Jamaiquino","Jamaiquina"],"Indonesia":["Indonesio","Indonesia","Indonesios","Indonesias"],"Israel":["Israelí","Israelíes"],"Rusia":["Ruso","Rusa","Rusos","Rusas"],"Polonia":["Polaco","Polaca","Polacos","Polacas"],"Sudáfrica":["Sudafricano","Sudafricana","Sudafricanos","Sudafricanas"],"Egipto":["Egipcio","Egipcia","Egipcios","Egipcias"],"Arabia Saudí":["Saudí","Saudita","Saudíes","Sauditas","Árabe"],"Filipinas":["Filipino","Filipina","Filipinos","Filipinas"],"Canadá":["Canadiense","Canadienses"],"Haití":["Haitiano","Haitiana","Haitianos","Haitianas"],"Túnez":["Tunecino","Tunecina","Tunecinos","Tunecinas"],"Senegal":["Senegalés","Senegalesa","Senegaleses"],"Malasia":["Malayo","Malaya","Malayos","Malayas"],"Ucrania":["Ucraniano","Ucraniana","Ucranianos","Ucranianas"],"Países Bajos":["Holandés","Holandesa","Holandeses","Neerlandés"],"Suecia":["Sueco","Sueca","Suecos","Suecas"],"Suiza":["Suizo","Suiza","Suizos","Suizas"],"Austria":["Austriaco","Austriaca","Austriacos","Austriacas"],"Bélgica":["Belga","Belgas"],"Irlanda":["Irlandés","Irlandesa","Irlandeses","Irlandesas"],"Trinidad y Tobago":["Trinitense","Trinitenses"],"Guyana":["Guyanés","Guyanesa","Guyaneses"],"Belice":["Beliceño","Beliceña","Beliceños","Beliceñas"],"Irán":["Iraní","Iraníes","Persa","Persas"],"Pakistán":["Pakistaní","Pakistaníes"],"Singapur":["Singapurense","Singapurenses"],"Kenia":["Keniano","Keniana","Kenianos","Kenianas"],"Ghana":["Ghanés","Ghanesa","Ghaneses"],"Birmania":["Birmano","Birmana","Birmanos","Birmanas","Birmano"],"Bangladesh":["Bangladeshí","Bangladeshíes"]};
 // ═══ VERSION ═══
-const VERSION="3.2.0";
+const VERSION="3.3.0";
 const CHANGELOG=[
   {v:"1.0.0",date:"20 dic 2025",changes:["🎉 Lanzamiento de Comidadle: 3 platos diarios, pistas progresivas y grid de países para adivinar el origen."]},
   {v:"1.1.0",date:"5 ene 2026",changes:["Modo difícil configurable: menos intentos, más países en la tabla, sin pistas.","Pistas progresivas activables/desactivables."]},
@@ -1611,7 +1620,9 @@ const CHANGELOG=[
   {v:"2.9.0",date:"27 jun 2026",changes:["🔊 Sonido on/off independiente de la vibración, en Configuración."]},
   {v:"3.0.0",date:"27 jun 2026",changes:["🗺️ Nuevo Pasaporte Culinario: desbloquea cada país a medida que aciertas sus platos. Incluye un mapa de países por descubrir (🔒 próximamente) para los que todavía no tienen platos en Comidadle."]},
   {v:"3.1.0",date:"10 jul 2026",changes:["📊 Estadísticas detalladas: intentos promedio, XP total, días jugados.","🏆 7 nuevos logros y 7 nuevas misiones diarias.","👤 Selector de país en el perfil de jugador.","🗺️ Banderas correctas para los 48 países no hispanos en el Pasaporte."]},
-  {v:"3.2.0",date:"31 jul 2026",changes:["🌍 Especial Domingo: 73 platos de 48 países no hispanos. Los domingos son internacionales.","🔐 Login con Google — cross-device, recuperación por Gmail.","🍽️ 1082 platos hispanos — 365 días × 3 platos sin apenas repetición.","🔒 Modo invitado con candados en todas las secciones.","📖 Pasaporte: haz clic en platos desbloqueados para ver recetas con IA.","🌍 Filtro de países en ranking global y semanal.","🔂 Sistema de calendario anual sin repeticiones.","🇵🇸 Israel aparece con overlay #FreeGaza, no clickeable.","📊 Nuevas estadísticas, logros y misiones."]},
+  {v:"3.2.0",date:"31 jul 2026",changes:["🌍 Especial Domingo: 73 platos de 48 países no hispanos. Los domingos son internacionales.","🔐 Login con Google — cross-device, recuperación por Gmail.","🍽️ 1082 platos hispanos — 365 días × 3 platos sin apenas repetición.","🔒 Modo invitado con candados en todas las secciones.","📖 Pasaporte: haz clic en platos desbloqueados para ver recetas con IA.","🌍 Filtro de países en ranking global y semanal.","🔂 Sistema de calendario anual sin repeticiones.","🇵🇸 Israel aparece con overlay #FreeGaza, no clickeable.","📊 Nuevas estadísticas, logros y misiones.","(13 ago 2026) 🔥 Reacciones de racha en el ranking: reacción de fuego una vez al día por persona, con notificación.","(13 ago 2026) 🛍️ Tienda semanal rotativa: 3 artículos con -25%.","(13 ago 2026) 🧠 Trivia bonus: versión inicial tras acertar un plato, +10 XP para registrados y sin XP para invitados.","(13 ago 2026) 📡 Modo offline: nuevo sw.js, caché del juego y aviso cuando no hay conexión.","(13 ago 2026) 🐛 Eliminado un filtro duplicado en los rankings.","(13 ago 2026) 🐛 Eliminados «Cerrar sesión» y «Eliminar» del Ranking Global.","(13 ago 2026) ✏️ «Cambiar nombre» desde el perfil por 100 XP, con validaciones.","(13 ago 2026) 🗑️ «Eliminar del ranking» desde el perfil."]},
+  {v:"3.2.1",date:"1 sep 2026",changes:["🐛 Plato de ayer: ahora se muestra siempre que esté activado, aunque no hayas jugado ayer.","🐛 Corregido el motivo real por el que algunos jugadores no aparecían en el ranking: al registrarse, su fila nunca llegaba a crearse en la base de datos.","🐛 El ranking y el semanal ya no pierden puestos por jugadores que se ocultan a sí mismos.","🌍 País obligatorio al registrarte; cámbialo cuando quieras, gratis, desde tu perfil.","🔒 Los nombres de usuario ya no distinguen mayúsculas/minúsculas al comprobarse, y \"Owner\" queda reservado.","🔑 Ahora también puedes iniciar sesión con tu nombre de usuario, además de con tu correo o con Google."]},
+  {v:"3.3.0",date:"17 sep 2026",changes:["🧠 Trivia rediseñada: pregunta primero si quieres jugarla (Sí/No), varias plantillas de pregunta (ya no solo \"¿cuál de estas es una pista?\"), y oculta las pistas y las opciones de país mientras dura para evitar trampas.","🛍️ La tienda semanal ahora rota los domingos, no los lunes.","🎮 Nueva opción en Configuración para activar/desactivar que \"Cómo jugar\" se muestre al entrar.","🐛 Corregido el Pasaporte: los países del Especial Domingo nunca se marcaban como desbloqueados por un campo de datos incorrecto, y además dependían de un historial limitado a 42 partidas; ahora usa el registro permanente del propio Pasaporte.","🏆 Los 7 logros y 7 misiones diarias anunciados anteriormente quedan finalmente implementados y conectados correctamente al progreso del juego (Pasaporte, XP, rachas, trivia).","🤖 Recetas con IA: ahora las solicitudes pasan por una Edge Function de Supabase, manteniendo la clave de Anthropic fuera del cliente.","📸 Actualizado el usuario de Instagram a @aanxs404."]},
 ];
 
 // ═══ DATA ═══
@@ -1724,7 +1735,7 @@ let currentDish=0,dish=DAILY[0];
 
 // ═══ CONFIG ═══
 const CFG_KEY="comidadle_cfg_v3";
-let cfg={fewAttempts:false,moreCountries:false,noHints:false,progressive:true,noDesc:false,showYesterday:true,hapticsOn:true,colorblind:false,hideFromRanking:false,soundOn:true};
+let cfg={fewAttempts:false,moreCountries:false,noHints:false,progressive:true,noDesc:false,showYesterday:true,hapticsOn:true,colorblind:false,hideFromRanking:false,soundOn:true,showHowToPlay:true};
 try{const s=JSON.parse(localStorage.getItem(CFG_KEY));if(s)cfg={...cfg,...s};}catch(e){}
 const saveCfg=()=>{try{localStorage.setItem(CFG_KEY,JSON.stringify(cfg));}catch(e){}};
 document.body.classList.toggle("colorblind",!!cfg.colorblind);
@@ -1829,8 +1840,27 @@ function setupGuestLockDelegation(){
 function enterGuestMode(){isGuest=true;const ov=document.getElementById("login-overlay");if(ov)ov.style.display="none";applyGuestLocks();try{renderAll();}catch(e){}}
 function _closeLoginOverlay(){const ov=document.getElementById("login-overlay");if(ov)ov.style.display="none";}
 async function logOut(){_initSBClient();if(sbClient)await sbClient.auth.signOut().catch(()=>{});localStorage.removeItem(UK);localStorage.removeItem(UDK);localStorage.removeItem(SESSK);location.reload();}
-async function saveGoogleUsername(){const input=document.getElementById("username-setup-input");const user=(input?.value||"").trim();const errEl=document.getElementById("username-setup-err");const setErr=m=>{if(errEl){errEl.textContent=m;errEl.style.display="block";}};if(!user||user.length<3||user.length>20){setErr("El nombre debe tener entre 3 y 20 caracteres.");return;}const btn=document.querySelector("#username-setup-overlay button");if(btn){btn.textContent="Verificando...";btn.disabled=true;}const existing=await sb("/rest/v1/ranking?username=eq."+encodeURIComponent(user)+"&select=id").catch(()=>null);if(existing&&existing.length){setErr("Ese nombre ya está en uso.");if(btn){btn.textContent="Guardar y jugar 🎮";btn.disabled=false;}return;}myUser=user;if(_sbSession)myId=_sbSession.user.id;if(!myId)myId=crypto.randomUUID();localStorage.setItem(UK,myUser);localStorage.setItem(UDK,myId);await upsertRanking().catch(()=>{});const ov=document.getElementById("username-setup-overlay");if(ov)ov.style.display="none";}
-async function checkLoginOnLoad(){try{_initSBClient();if(!sbClient)return;const{data}=await sbClient.auth.getSession().catch(()=>({data:{session:null}}));const session=data?.session;if(!session)return;_sbSession=session;SH.Authorization="Bearer "+session.access_token;const uid=session.user.id;localStorage.setItem(UDK,uid);const localUser=localStorage.getItem(UK);if(localUser){myUser=localUser;myId=uid;_closeLoginOverlay();return;}const rows=await sb("/rest/v1/ranking?id=eq."+uid+"&select=username").catch(()=>null);if(rows&&rows.length&&rows[0].username){myUser=rows[0].username;myId=uid;localStorage.setItem(UK,myUser);_closeLoginOverlay();}else{_closeLoginOverlay();const ov=document.getElementById("username-setup-overlay");if(ov)ov.style.display="flex";}}catch(err){console.warn("checkLoginOnLoad error:",err);}}
+async function saveGoogleUsername(){
+  const input=document.getElementById("username-setup-input");const user=(input?.value||"").trim();
+  const countrySel=document.getElementById("username-setup-country");const country=(countrySel?.value||"").trim();
+  const errEl=document.getElementById("username-setup-err");const setErr=m=>{if(errEl){errEl.textContent=m;errEl.style.display="block";}};
+  if(errEl)errEl.style.display="none";
+  if(!user||user.length<3||user.length>20){setErr("El nombre debe tener entre 3 y 20 caracteres.");return;}
+  if(!country){setErr("Elige tu país.");return;}
+  const btn=document.querySelector("#username-setup-overlay button");if(btn){btn.textContent="Verificando...";btn.disabled=true;}
+  const err=await checkUsernameAvailable(user);
+  if(err){setErr(err);if(btn){btn.textContent="Guardar y jugar 🎮";btn.disabled=false;}return;}
+  myUser=user;if(_sbSession)myId=_sbSession.user.id;if(!myId)myId=crypto.randomUUID();
+  localStorage.setItem(UK,myUser);localStorage.setItem(UDK,myId);
+  saveMyCountry(country);
+  await upsertRanking().catch(()=>{});
+  const ov=document.getElementById("username-setup-overlay");if(ov)ov.style.display="none";
+}
+async function checkLoginOnLoad(){try{_initSBClient();if(!sbClient)return;const{data}=await sbClient.auth.getSession().catch(()=>({data:{session:null}}));const session=data?.session;if(!session)return;_sbSession=session;SH.Authorization="Bearer "+session.access_token;const uid=session.user.id;localStorage.setItem(UDK,uid);const localUser=localStorage.getItem(UK);if(localUser){myUser=localUser;myId=uid;_closeLoginOverlay();syncRanking();return;}const rows=await sb("/rest/v1/ranking?id=eq."+uid+"&select=username").catch(()=>null);if(rows&&rows.length&&rows[0].username){myUser=rows[0].username;myId=uid;localStorage.setItem(UK,myUser);_closeLoginOverlay();}else{_closeLoginOverlay();openUsernameSetupOverlay();}}catch(err){console.warn("checkLoginOnLoad error:",err);}}
+function openUsernameSetupOverlay(){
+  const sel=document.getElementById("username-setup-country");if(sel&&!sel.options.length)sel.innerHTML=countryRequiredOptionsHtml("");
+  const ov=document.getElementById("username-setup-overlay");if(ov)ov.style.display="flex";
+}
 
 // ═══ EMAIL/PASSWORD AUTH (registration, login, email verification) ═══
 function showLoginState(state){
@@ -1839,6 +1869,7 @@ function showLoginState(state){
     if(el)el.style.display=s===state?"":"none";
   });
   ["register-err","login-err","verify-err"].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display="none";});
+  if(state==="register"){const rc=document.getElementById("reg-country");if(rc&&!rc.options.length)rc.innerHTML=countryRequiredOptionsHtml("");}
 }
 function _showAuthErr(elId,msg){const e=document.getElementById(elId);if(e){e.textContent=msg;e.style.display="block";}}
 function _friendlyAuthError(msg){
@@ -1850,7 +1881,7 @@ function _friendlyAuthError(msg){
   if(/invalid email/i.test(msg))return "Ese correo no parece válido.";
   return "Error: "+msg;
 }
-let _pendingRegUsername="",_pendingRegEmail="",_pendingRegPassword="";
+let _pendingRegUsername="",_pendingRegEmail="",_pendingRegPassword="",_pendingRegCountry="";
 async function _finalizeAuthenticatedAccount(uid,username){
   myUser=username;myId=uid;
   localStorage.setItem(UK,myUser);localStorage.setItem(UDK,myId);
@@ -1866,17 +1897,15 @@ async function registerWithEmail(){
   const email=(document.getElementById("reg-email").value||"").trim();
   const pass=document.getElementById("reg-password").value||"";
   const pass2=document.getElementById("reg-password2").value||"";
+  const country=(document.getElementById("reg-country")?.value||"").trim();
   if(username.length<3||username.length>20){_showAuthErr("register-err","El nombre de usuario debe tener entre 3 y 20 caracteres.");return;}
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){_showAuthErr("register-err","Escribe un correo electrónico válido.");return;}
   if(pass.length<6){_showAuthErr("register-err","La contraseña debe tener al menos 6 caracteres.");return;}
   if(pass!==pass2){_showAuthErr("register-err","Las contraseñas no coinciden.");return;}
+  if(!country){_showAuthErr("register-err","Elige tu país.");return;}
   const btn=document.getElementById("register-submit-btn");btn.textContent="Comprobando...";btn.disabled=true;
-  try{
-    const existing=await sb("/rest/v1/ranking?username=eq."+encodeURIComponent(username)+"&select=id").catch(()=>null);
-    if(existing&&existing.length){_showAuthErr("register-err","Ese nombre de usuario ya está en uso.");btn.textContent="Crear cuenta";btn.disabled=false;return;}
-    const bc=await sb("/rest/v1/banned_users?username=eq."+encodeURIComponent(username)+"&select=username").catch(()=>null);
-    if(bc&&bc.length){_showAuthErr("register-err","Ese nombre de usuario no está disponible.");btn.textContent="Crear cuenta";btn.disabled=false;return;}
-  }catch(e){}
+  const availErr=await checkUsernameAvailable(username);
+  if(availErr){_showAuthErr("register-err",availErr);btn.textContent="Crear cuenta";btn.disabled=false;return;}
   btn.textContent="Creando cuenta...";
   const{data,error}=await sbClient.auth.signUp({email,password:pass,options:{data:{username}}});
   if(error){_showAuthErr("register-err",_friendlyAuthError(error.message));btn.textContent="Crear cuenta";btn.disabled=false;return;}
@@ -1884,8 +1913,9 @@ async function registerWithEmail(){
   if(data&&data.session){
     _sbSession=data.session;SH.Authorization="Bearer "+data.session.access_token;
     await _finalizeAuthenticatedAccount(data.user.id,username);
+    saveMyCountry(country);
   }else{
-    _pendingRegUsername=username;_pendingRegEmail=email;_pendingRegPassword=pass;
+    _pendingRegUsername=username;_pendingRegEmail=email;_pendingRegPassword=pass;_pendingRegCountry=country;
     const t=document.getElementById("verify-email-target");if(t)t.textContent=email;
     showLoginState("verify");
   }
@@ -1910,71 +1940,170 @@ async function checkEmailVerified(){
   }
   _sbSession=data.session;SH.Authorization="Bearer "+data.session.access_token;
   await _finalizeAuthenticatedAccount(data.user.id,_pendingRegUsername);
-  _pendingRegEmail="";_pendingRegPassword="";_pendingRegUsername="";
+  if(_pendingRegCountry)saveMyCountry(_pendingRegCountry);
+  _pendingRegEmail="";_pendingRegPassword="";_pendingRegUsername="";_pendingRegCountry="";
   btn.textContent="Ya verifiqué, continuar";btn.disabled=false;
 }
 async function loginWithEmail(){
   _initSBClient();if(!sbClient){_showAuthErr("login-err","Error de conexión.");return;}
-  const email=(document.getElementById("login-email").value||"").trim();
+  const idRaw=(document.getElementById("login-email").value||"").trim();
   const pass=document.getElementById("login-password").value||"";
   const resendRow=document.getElementById("login-resend-row");if(resendRow)resendRow.style.display="none";
-  if(!email||!pass){_showAuthErr("login-err","Rellena el correo y la contraseña.");return;}
+  if(!idRaw||!pass){_showAuthErr("login-err","Rellena tu usuario o correo y la contraseña.");return;}
   const btn=document.getElementById("login-submit-btn");btn.textContent="Entrando...";btn.disabled=true;
+  let email=idRaw;
+  const isEmail=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(idRaw);
+  if(!isEmail){
+    // Login por nombre de usuario: resolvemos el email vía una función segura en Supabase
+    // (email_for_username) que nunca expone el email en el cliente salvo para intentar el
+    // propio login, y que no requiere guardar contraseñas ni emails en tablas propias.
+    try{
+      const{data:resolvedEmail,error:rpcErr}=await sbClient.rpc("email_for_username",{uname:idRaw});
+      if(rpcErr||!resolvedEmail){
+        _showAuthErr("login-err","Usuario o contraseña incorrectos.");
+        btn.textContent="Entrar";btn.disabled=false;return;
+      }
+      email=resolvedEmail;
+    }catch(e){
+      _showAuthErr("login-err","Error de conexión.");
+      btn.textContent="Entrar";btn.disabled=false;return;
+    }
+  }
   const{data,error}=await sbClient.auth.signInWithPassword({email,password:pass});
   if(error){
-    _showAuthErr("login-err",_friendlyAuthError(error.message));
-    if(/not confirmed/i.test(error.message||"")){_pendingRegEmail=email;if(resendRow)resendRow.style.display="block";}
-    btn.textContent="Entrar con correo";btn.disabled=false;return;
+    _showAuthErr("login-err",isEmail?_friendlyAuthError(error.message):"Usuario o contraseña incorrectos.");
+    if(isEmail&&/not confirmed/i.test(error.message||"")){_pendingRegEmail=email;if(resendRow)resendRow.style.display="block";}
+    btn.textContent="Entrar";btn.disabled=false;return;
   }
   _sbSession=data.session;SH.Authorization="Bearer "+data.session.access_token;
   const uid=data.user.id;
-  btn.textContent="Entrar con correo";btn.disabled=false;
+  btn.textContent="Entrar";btn.disabled=false;
   const rows=await sb("/rest/v1/ranking?id=eq."+uid+"&select=username").catch(()=>null);
   if(rows&&rows.length&&rows[0].username){
     await _finalizeAuthenticatedAccount(uid,rows[0].username);
   }else{
     _closeLoginOverlay();
-    const ov=document.getElementById("username-setup-overlay");if(ov)ov.style.display="flex";
+    openUsernameSetupOverlay();
   }
 }
 function showAuthPromptTwist(){openModal("auth-prompt-modal");}
 
 
+// ═══ USERNAME AVAILABILITY (case-insensitive, "Owner" reservado) ═══
+const RESERVED_USERNAMES=["owner"];
+async function checkUsernameAvailable(name,excludeId){
+  // Devuelve null si está disponible, o un mensaje de error si no lo está.
+  // Todas las comprobaciones son case-insensitive (ilike) a propósito: "Owner", "owner" y
+  // "OWNER" deben tratarse como el mismo nombre tanto para registro como para renombrar.
+  // excludeId permite que un usuario cambie solo las mayúsculas/minúsculas de su propio
+  // nombre sin que su propia fila cuente como "ya en uso".
+  if(RESERVED_USERNAMES.includes(name.trim().toLowerCase()))return "Ese nombre de usuario no está disponible.";
+  try{
+    let q="/rest/v1/ranking?username=ilike."+encodeURIComponent(name)+"&select=id";
+    if(excludeId)q+="&id=neq."+encodeURIComponent(excludeId);
+    const existing=await sb(q);
+    if(existing&&existing.length)return "Ese nombre de usuario ya está en uso.";
+  }catch(e){return "No se pudo comprobar el nombre. Inténtalo de nuevo.";}
+  try{
+    const bc=await sb("/rest/v1/banned_users?username=ilike."+encodeURIComponent(name)+"&select=username");
+    if(bc&&bc.length)return "Ese nombre de usuario no está disponible.";
+  }catch(e){}
+  return null;
+}
 async function upsertRanking(){
   if(!myUser||isBanned)return;
   const yd=new Date(_now);yd.setDate(yd.getDate()-1);
   const active=(streak.lastDate===todayStr||streak.lastDate===yd.toISOString().slice(0,10))?streak.streak:0;
-  const d={streak:active,best_streak:streak.best,wins:streak.wins,played:streak.played,hidden:!!cfg.hideFromRanking,updated_at:new Date().toISOString()};
+  const d={streak:active,best_streak:streak.best,wins:streak.wins,played:streak.played,hidden:!!cfg.hideFromRanking,country:myCountry||null,updated_at:new Date().toISOString()};
+  // IMPORTANTE: cuando el usuario ya está autenticado (email o Google), myId ya es el
+  // auth.uid() ANTES de que exista ninguna fila en "ranking" para él. El código anterior
+  // asumía que si myId existía, la fila ya existía y hacía solo PATCH — si esa fila no
+  // existía todavía (p. ej. justo tras elegir nombre de usuario), el PATCH no afectaba a
+  // ninguna fila, no lanzaba error, y el usuario nunca llegaba a insertarse en el ranking.
+  // Por eso comprobamos cuántas filas afectó el PATCH y, si fueron 0 (o no había myId
+  // todavía), hacemos un INSERT preservando el id de autenticación para futuras escrituras.
+  let updated=false;
   if(myId){
-    try{await sb("/rest/v1/ranking?id=eq."+myId,{method:"PATCH",body:JSON.stringify(d)});}catch(e){}
-  }else{
     try{
-      const r=await sb("/rest/v1/ranking?select=id",{method:"POST",headers:{...SH,"Prefer":"return=representation"},body:JSON.stringify({...d,username:myUser})});
+      const r=await sb("/rest/v1/ranking?id=eq."+myId,{method:"PATCH",headers:{...SH,"Prefer":"return=representation"},body:JSON.stringify(d)});
+      updated=!!(r&&r.length);
+    }catch(e){}
+  }
+  if(!updated){
+    try{
+      const body={...d,username:myUser};
+      if(myId)body.id=myId; // conserva el uid de auth como id de la fila de ranking
+      const r=await sb("/rest/v1/ranking?select=id",{method:"POST",headers:{...SH,"Prefer":"return=representation"},body:JSON.stringify(body)});
       if(r&&r[0]){myId=r[0].id;localStorage.setItem(UDK,myId);}
     }catch(e){}
   }
 }
-async function fetchRanking(){return await sb("/rest/v1/ranking?select=*&order=best_streak.desc&limit=50");}
+async function fetchRanking(){
+  // Los jugadores con "ocultar mi posición" activado (hidden=true) no deben consumir el
+  // hueco limitado del top-50 salvo el propio usuario: si no se filtran en el servidor,
+  // pueden desplazar a jugadores reales fuera de la ventana devuelta y parecer "ausentes"
+  // del ranking aunque tengan mejor racha.
+  const orFilter=myId?"or=(hidden.is.false,id.eq."+encodeURIComponent(myId)+")":"hidden=is.false";
+  return await sb("/rest/v1/ranking?select=*&"+orFilter+"&order=best_streak.desc&limit=50");
+}
 
-let _anthropicKey=null;
-async function _getAnthropicKey(){if(_anthropicKey)return _anthropicKey;const r=await sb("/rest/v1/app_secrets?name=eq.anthropic_key&select=value").catch(()=>null);if(r&&r.length)_anthropicKey=r[0].value;return _anthropicKey;}
+// (La generación de recetas ahora pasa por la Edge Function dish-recipe; ya no se
+// obtiene ni se expone la clave de Anthropic en el cliente — ver openDishRecipe.)
 async function openDishRecipe(name,country,emoji,flag){
   closeModal("passport-country-modal");closeModal("passport-modal");
   const titleEl=document.getElementById("recipe-modal-title");if(titleEl)titleEl.textContent=emoji+" "+name+" "+(flag||"");
   openModal("recipe-modal");
   const el=document.getElementById("recipe-content");
   if(el)el.innerHTML="<div style='text-align:center;padding:2rem;color:var(--text-muted)'>⏳ Generando receta...</div>";
-  const apiKey=await _getAnthropicKey();
-  if(!apiKey){if(el)el.innerHTML="<div style='text-align:center;padding:2rem;color:var(--red)'>❌ Configura anthropic_key en Supabase app_secrets</div>";return;}
+  // La receta se pide a una Edge Function de Supabase (dish-recipe), que es quien llama a
+  // la API de Anthropic con la clave guardada en secretos del servidor. La versión anterior
+  // llamaba a api.anthropic.com directamente desde el navegador con la clave expuesta en
+  // app_secrets: eso nunca podía funcionar (la API de Anthropic bloquea peticiones CORS
+  // desde el navegador) y además filtraba la clave a cualquiera que abriera las herramientas
+  // de desarrollador. Ver el bloque de despliegue de la función al final de esta respuesta.
   try{
-    const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":apiKey,"anthropic-version":"2023-06-01"},body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:1000,messages:[{role:"user",content:"Eres chef experto en "+country+". Receta de "+name+" "+emoji+" para 4 personas:\n\n**Ingredientes** (cantidades + precio aprox €, emojis):\n\n**Preparación** (máximo 7 pasos):\n\n**Dato cultural** (1-2 frases). En español, conciso."}]})});
+    const res=await fetch(SB+"/functions/v1/dish-recipe",{method:"POST",headers:SH,body:JSON.stringify({name,country,emoji})});
+    if(!res.ok)throw new Error(await res.text().catch(()=>String(res.status)));
     const data=await res.json();
-    const text=data.content?.[0]?.text||"Sin respuesta.";
+    const text=(data&&data.text)||"Sin respuesta.";
     if(el)el.innerHTML="<div style='padding:.5rem;line-height:1.8;font-size:14px;color:var(--text);white-space:pre-wrap'>"+escapeHtml(text)+"</div>";
-  }catch(e){if(el)el.innerHTML="<div style='text-align:center;padding:2rem;color:var(--red)'>❌ No se pudo generar la receta.<br><span style='font-size:12px;color:var(--text-muted);display:block;margin-top:.5rem'>Esta función necesita un pequeño servidor intermedio (p. ej. una Supabase Edge Function) para llamar a la IA de forma segura; llamarla directamente desde el navegador no funciona.</span></div>";}
+  }catch(e){if(el)el.innerHTML="<div style='text-align:center;padding:2rem;color:var(--red)'>❌ No se pudo generar la receta ahora mismo. Inténtalo de nuevo en unos segundos.</div>";}
 }
 function syncRanking(){if(!myUser||isBanned)return Promise.resolve();return upsertRanking().catch(()=>{});}
 
+const RENAME_COST=100;
+async function changeUsername(){
+  if(!myUser)return;
+  const inp=document.getElementById("prof-rename-input");
+  const errEl=document.getElementById("prof-rename-err");
+  const setErr=(m)=>{if(errEl){errEl.textContent=m;errEl.style.display="block";}};
+  if(errEl)errEl.style.display="none";
+  const newName=(inp?.value||"").trim();
+  if(newName.length<3||newName.length>20){setErr("El nombre debe tener entre 3 y 20 caracteres.");return;}
+  if(newName===myUser){setErr("Ese ya es tu nombre actual.");return;}
+  if(totalXP<RENAME_COST){setErr("Necesitas "+RENAME_COST+" XP para cambiar de nombre (tienes "+totalXP+").");return;}
+  const btn=document.getElementById("prof-rename-confirm");
+  if(btn){btn.textContent="Comprobando...";btn.disabled=true;}
+  const availErr=await checkUsernameAvailable(newName,myId);
+  if(availErr){setErr(availErr);if(btn){btn.textContent="Confirmar (100 XP)";btn.disabled=false;}return;}
+  if(btn)btn.textContent="Cambiando...";
+  const oldName=myUser;
+  try{
+    await sb("/rest/v1/ranking?id=eq."+myId,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({username:newName})});
+  }catch(e){
+    setErr("No se pudo cambiar el nombre. Inténtalo de nuevo.");
+    if(btn){btn.textContent="Confirmar (100 XP)";btn.disabled=false;}
+    return;
+  }
+  try{await sb("/rest/v1/user_equip?username=eq."+encodeURIComponent(oldName),{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({username:newName})});}catch(e){}
+  try{await sb("/rest/v1/user_inventory?username=eq."+encodeURIComponent(oldName),{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({username:newName})});}catch(e){}
+  totalXP-=RENAME_COST;localStorage.setItem(XPK,String(totalXP));
+  myUser=newName;localStorage.setItem(UK,myUser);
+  await upsertRanking().catch(()=>{});
+  updateMiniAvatar();
+  const panel=document.getElementById("prof-rename-panel");if(panel)panel.style.display="none";
+  renderProfile();
+}
 async function deleteFromRanking(){
   if(!myUser)return;
   if(!confirm("¿Seguro que quieres eliminarte del ranking?"))return;
@@ -2026,7 +2155,12 @@ async function syncWeekly(){
     }
   }catch(e){console.warn("syncWeekly error:",e);}
 }
-async function fetchWeekly(){return await sb("/rest/v1/weekly_ranking?week=eq."+weekKey+"&select=*&order=points.desc&limit=50");}
+async function fetchWeekly(){
+  // weekly_ranking usa un id propio por fila (no el auth.uid), así que para incluirnos a
+  // nosotros mismos aunque estemos ocultos filtramos por username, no por id.
+  const orFilter=myUser?"or=(hidden.is.false,username.eq."+encodeURIComponent(myUser)+")":"hidden=is.false";
+  return await sb("/rest/v1/weekly_ranking?week=eq."+weekKey+"&"+orFilter+"&select=*&order=points.desc&limit=50");
+}
 
 function addWeeklyPoints(won,attempts){
   if(isGuest||isBanned)return 0;
@@ -2061,7 +2195,35 @@ function renderProfile(){
   if(!myUser){el.innerHTML=`<div style="text-align:center;padding:1.5rem 0"><div style="font-size:52px;margin-bottom:.75rem">👤</div><div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:.5rem">Sin perfil activo</div><div style="font-size:13px;color:var(--text-muted);margin-bottom:1.25rem;line-height:1.6">Inicia sesión o regístrate para activar tu perfil.</div><button class="play-btn" id="go-login-btn">🔑 Registrarme o iniciar sesión</button></div>`;document.getElementById("go-login-btn").addEventListener("click",()=>{closeModal("profile-modal");showLoginState("home");const ov=document.getElementById("login-overlay");if(ov)ov.style.display="flex";});return;}
   const lv=getLevel(totalXP),prog=lv.next?Math.round((totalXP/lv.next)*100):100;
   const hist=getHistory().filter(h=>new Date(h.date)>new Date(Date.now()-7*86400000));
-  el.innerHTML=`<div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem;padding:1rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r)">${buildAvatar(myUser,myEquip,52,22)}<div style="flex:1"><div style="font-family:'Fraunces',serif;font-size:18px;font-weight:900;color:var(--text)">${myUser}</div><div style="font-size:12px;color:var(--accent);font-weight:600;margin-top:2px">${lv.name} · Nivel ${lv.l}</div>${myEquip.title?`<div style="font-size:11px;color:var(--gold);font-weight:600;margin-top:2px">${myEquip.title}</div>`:""} ${myEquip.badge?`<div style="display:inline-block;background:var(--surface);border:1px solid var(--border);border-radius:99px;padding:2px 8px;font-size:10px;font-weight:600;color:var(--text);margin-top:3px">${myEquip.badge}</div>`:""}</div><div style="text-align:right"><div style="font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:var(--gold)">${totalXP}</div><div style="font-size:10px;color:var(--text-muted);text-transform:uppercase">XP Total</div></div></div>${lv.next?`<div style="margin-bottom:1.25rem"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:.4rem"><span>Nivel ${lv.l}</span><span>${totalXP}/${lv.next} XP</span></div><div style="background:var(--surface2);border-radius:99px;height:8px;overflow:hidden"><div style="width:${prog}%;height:100%;background:linear-gradient(90deg,var(--accent),var(--gold));border-radius:99px"></div></div></div>`:`<div style="text-align:center;font-size:13px;color:var(--gold);font-weight:700;margin-bottom:1.25rem">🏆 ¡Nivel máximo!</div>`}<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1.25rem"><div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center"><div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--accent)">🔥${streak.streak}</div><div style="font-size:10px;color:var(--text-muted);margin-top:2px">Racha</div></div><div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center"><div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--gold)">${streak.best}</div><div style="font-size:10px;color:var(--text-muted);margin-top:2px">Mejor racha</div></div><div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center"><div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--green)">${streak.played>0?Math.round(streak.wins/streak.played*100):0}%</div><div style="font-size:10px;color:var(--text-muted);margin-top:2px">Victorias</div></div></div><div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">Esta semana</div><div style="background:var(--surface2);border:1px solid var(--green);border-radius:var(--r-sm);padding:1rem;text-align:center;margin-bottom:.75rem"><div style="font-family:'Fraunces',serif;font-size:28px;font-weight:900;color:var(--green)">${weekly.points} XP</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px">Puntos ganados esta semana</div></div>${hist.length===0?"":'<div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">Historial reciente</div>'+hist.slice(0,6).map(h=>`<div style="display:flex;align-items:center;gap:10px;padding:.6rem .75rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:.4rem"><span style="font-size:20px">${h.flag||"🍽️"}</span><div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--text)">${h.dish}</div><div style="font-size:11px;color:var(--text-muted)">${new Date(h.date).getDate()+" "+MONTHS[new Date(h.date).getMonth()]}</div></div><div style="font-size:13px;font-weight:700;color:${h.won?"var(--green)":"var(--red)"}">${h.won?"✅ +"+Math.max(1,7-h.attempts)+"xp":"❌"}</div></div>`).join("")}`;
+  el.innerHTML=`<div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem;padding:1rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r)">${buildAvatar(myUser,myEquip,52,22)}<div style="flex:1"><div style="font-family:'Fraunces',serif;font-size:18px;font-weight:900;color:var(--text)">${myUser}</div><div style="font-size:12px;color:var(--accent);font-weight:600;margin-top:2px">${lv.name} · Nivel ${lv.l}</div>${myEquip.title?`<div style="font-size:11px;color:var(--gold);font-weight:600;margin-top:2px">${myEquip.title}</div>`:""} ${myEquip.badge?`<div style="display:inline-block;background:var(--surface);border:1px solid var(--border);border-radius:99px;padding:2px 8px;font-size:10px;font-weight:600;color:var(--text);margin-top:3px">${myEquip.badge}</div>`:""}</div><div style="text-align:right"><div style="font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:var(--gold)">${totalXP}</div><div style="font-size:10px;color:var(--text-muted);text-transform:uppercase">XP Total</div></div></div>${lv.next?`<div style="margin-bottom:1.25rem"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:.4rem"><span>Nivel ${lv.l}</span><span>${totalXP}/${lv.next} XP</span></div><div style="background:var(--surface2);border-radius:99px;height:8px;overflow:hidden"><div style="width:${prog}%;height:100%;background:linear-gradient(90deg,var(--accent),var(--gold));border-radius:99px"></div></div></div>`:`<div style="text-align:center;font-size:13px;color:var(--gold);font-weight:700;margin-bottom:1.25rem">🏆 ¡Nivel máximo!</div>`}<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1.25rem"><div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center"><div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--accent)">🔥${streak.streak}</div><div style="font-size:10px;color:var(--text-muted);margin-top:2px">Racha</div></div><div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center"><div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--gold)">${streak.best}</div><div style="font-size:10px;color:var(--text-muted);margin-top:2px">Mejor racha</div></div><div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center"><div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--green)">${streak.played>0?Math.round(streak.wins/streak.played*100):0}%</div><div style="font-size:10px;color:var(--text-muted);margin-top:2px">Victorias</div></div></div><div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">Esta semana</div><div style="background:var(--surface2);border:1px solid var(--green);border-radius:var(--r-sm);padding:1rem;text-align:center;margin-bottom:.75rem"><div style="font-family:'Fraunces',serif;font-size:28px;font-weight:900;color:var(--green)">${weekly.points} XP</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px">Puntos ganados esta semana</div></div>${hist.length===0?"":'<div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">Historial reciente</div>'+hist.slice(0,6).map(h=>`<div style="display:flex;align-items:center;gap:10px;padding:.6rem .75rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:.4rem"><span style="font-size:20px">${h.flag||"🍽️"}</span><div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--text)">${h.dish}</div><div style="font-size:11px;color:var(--text-muted)">${new Date(h.date).getDate()+" "+MONTHS[new Date(h.date).getMonth()]}</div></div><div style="font-size:13px;font-weight:700;color:${h.won?"var(--green)":"var(--red)"}">${h.won?"✅ +"+Math.max(1,7-h.attempts)+"xp":"❌"}</div></div>`).join("")}
+  <div style="border-top:1px solid var(--border);margin-top:1.25rem;padding-top:1rem">
+    <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">País</div>
+    <select id="prof-country-select" class="username-input" style="margin:0 0 .25rem;width:100%;box-sizing:border-box">${countryPickerOptionsHtml(myCountry)}</select>
+    <div style="font-size:11px;color:var(--text-muted);margin-bottom:1rem">Puedes cambiarlo cuando quieras, gratis.</div>
+  </div>
+  <div style="border-top:1px solid var(--border);padding-top:1rem;display:flex;flex-direction:column;gap:8px">
+    <button class="ranking-btn" id="prof-rename-btn" style="width:100%">✏️ Cambiar nombre (100 XP)</button>
+    <button class="ranking-btn" id="prof-delete-btn" style="width:100%;color:var(--red);border-color:var(--red)">🗑️ Eliminar del ranking</button>
+  </div>
+  <div id="prof-rename-panel" style="display:none;margin-top:.75rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.875rem">
+    <input id="prof-rename-input" class="username-input" placeholder="Nuevo nombre de usuario" maxlength="20" style="margin:0 0 .5rem;width:100%;box-sizing:border-box">
+    <div id="prof-rename-err" style="display:none;font-size:12px;color:var(--red);margin-bottom:.5rem"></div>
+    <div style="display:flex;gap:8px">
+      <button class="ranking-btn" id="prof-rename-cancel" style="flex:1">Cancelar</button>
+      <button class="ranking-btn primary" id="prof-rename-confirm" style="flex:1">Confirmar (100 XP)</button>
+    </div>
+  </div>`;
+  document.getElementById("prof-rename-btn").onclick=()=>{
+    const panel=document.getElementById("prof-rename-panel");
+    panel.style.display=panel.style.display==="none"?"block":"none";
+    const inp=document.getElementById("prof-rename-input");if(inp)inp.value="";
+    const err=document.getElementById("prof-rename-err");if(err)err.style.display="none";
+  };
+  document.getElementById("prof-rename-cancel").onclick=()=>{document.getElementById("prof-rename-panel").style.display="none";};
+  document.getElementById("prof-rename-confirm").onclick=changeUsername;
+  document.getElementById("prof-delete-btn").onclick=deleteFromRanking;
+  const pcs=document.getElementById("prof-country-select");
+  if(pcs)pcs.onchange=(e)=>{saveMyCountry(e.target.value);populateCountryFilterSelects();};
 }
 
 // ═══ ANNOUNCEMENTS ═══
@@ -2483,25 +2645,26 @@ function countryPickerOptionsHtml(selected){
   const sorted=[...ALL_COUNTRIES].sort((a,b)=>a.localeCompare(b,"es"));
   return '<option value="">Sin especificar</option>'+sorted.map(c=>`<option value="${c}" ${c===selected?"selected":""}>${getFlag(c)} ${c}</option>`).join("");
 }
+// País obligatorio al registrarse: sin opción "sin especificar", con placeholder deshabilitado.
+function countryRequiredOptionsHtml(selected){
+  const sorted=[...ALL_COUNTRIES].sort((a,b)=>a.localeCompare(b,"es"));
+  return '<option value="" disabled '+(selected?"":"selected")+'>Elige tu país…</option>'+sorted.map(c=>`<option value="${c}" ${c===selected?"selected":""}>${getFlag(c)} ${c}</option>`).join("");
+}
 
-let _rankingSearchQ="",_rankingCountryF="";
+let _rankingCountryF="";
 function applyRankingFilters(){
   let filtered=_rankingRows;
-  if(_rankingSearchQ.trim())filtered=filtered.filter(r=>r.username.toLowerCase().includes(_rankingSearchQ.toLowerCase()));
   if(_rankingCountryF)filtered=filtered.filter(r=>r.country===_rankingCountryF);
   renderRankingList(filtered,false);
 }
-function filterRanking(q){_rankingSearchQ=q;applyRankingFilters();}
 function filterRankingCountry(c){_rankingCountryF=c;applyRankingFilters();}
 
-let _weeklySearchQ="",_weeklyCountryF="";
+let _weeklyCountryF="";
 function applyWeeklyFilters(){
   let filtered=_weeklyRows;
-  if(_weeklySearchQ.trim())filtered=filtered.filter(r=>r.username.toLowerCase().includes(_weeklySearchQ.toLowerCase()));
   if(_weeklyCountryF)filtered=filtered.filter(r=>r.country===_weeklyCountryF);
   renderWeeklyList(filtered,false);
 }
-function filterWeekly(q){_weeklySearchQ=q;applyWeeklyFilters();}
 function filterWeeklyCountry(c){_weeklyCountryF=c;applyWeeklyFilters();}
 
 async function renderRankingList(rows,cache=true){
@@ -2538,10 +2701,8 @@ async function renderRankingList(rows,cache=true){
 function renderUsernameSection(){
   const el=document.getElementById("ranking-username-section");if(!el)return;
   if(myUser){
-    el.innerHTML=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:.5rem;padding:.6rem .875rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm)"><span style="font-size:13px;color:var(--text-muted)">Jugando como</span><span style="font-size:13px;font-weight:700;color:var(--accent);flex:1">${myUser}</span><button class="ranking-btn" id="rk-logout" style="font-size:11px;padding:.3rem .6rem">Cerrar sesión</button><button class="ranking-btn" id="del-rank" style="font-size:11px;padding:.3rem .6rem;color:var(--red);border-color:var(--red)">🗑️</button></div>
+    el.innerHTML=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:.5rem;padding:.6rem .875rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm)"><span style="font-size:13px;color:var(--text-muted)">Jugando como</span><span style="font-size:13px;font-weight:700;color:var(--accent);flex:1">${myUser}</span></div>
     <select id="my-country-select" class="username-input" style="margin:0 0 .75rem;width:100%;box-sizing:border-box">${countryPickerOptionsHtml(myCountry)}</select>`;
-    document.getElementById("rk-logout").onclick=()=>{if(confirm("¿Cerrar sesión?"))logOut();};
-    document.getElementById("del-rank").onclick=deleteFromRanking;
     document.getElementById("my-country-select").onchange=(e)=>{saveMyCountry(e.target.value);populateCountryFilterSelects();};
   }else{
     el.innerHTML=`<div style="text-align:center;padding:1rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:.75rem"><div style="font-size:13px;color:var(--text-muted);margin-bottom:.6rem">Inicia sesión para aparecer en el ranking</div><button class="ranking-btn primary" id="rk-login-btn">🔑 Registrarme o iniciar sesión</button></div>`;
@@ -2554,8 +2715,7 @@ function populateCountryFilterSelects(){
 }
 async function openRanking(){
   openModal("ranking-modal");renderUsernameSection();
-  _rankingSearchQ="";_rankingCountryF="";
-  const si=document.getElementById("ranking-search");if(si)si.value="";
+  _rankingCountryF="";
   populateCountryFilterSelects();
   document.getElementById("ranking-list").innerHTML='<div class="ranking-empty">Cargando...</div>';
   try{renderRankingList(await fetchRanking());}catch(e){document.getElementById("ranking-list").innerHTML='<div class="ranking-empty">Error 😔</div>';}
@@ -2591,8 +2751,7 @@ async function renderWeeklyList(rows,cache=true){
 }
 async function openWeekly(){
   openModal("weekly-modal");
-  _weeklySearchQ="";_weeklyCountryF="";
-  const wsi=document.getElementById("weekly-search");if(wsi)wsi.value="";
+  _weeklyCountryF="";
   populateCountryFilterSelects();
   const mon=new Date(weekKey),sun=new Date(mon);sun.setDate(sun.getDate()+6);
   const fmt=d=>d.getDate()+" "+MONTHS[d.getMonth()];
@@ -2619,7 +2778,7 @@ function renderTabs(){
 function switchDish(i){
   if(i===currentDish)return;
   currentDish=i;dish=DAILY[i];const s=loadState(i);log=s.log;wrong=s.wrong;done=s.done;
-  document.getElementById("result").innerHTML="";document.getElementById("infinite-section").innerHTML="";
+  document.getElementById("result").innerHTML="";document.getElementById("infinite-section").innerHTML="";document.getElementById("trivia-card").innerHTML="";
   renderTabs();renderAll();
 }
 
@@ -2666,7 +2825,7 @@ function handleGuess(c,btn){
     setTimeout(()=>{launchConfetti();playWin();hapticWin();},300);
     showResultBox(true,earnedXP);
     renderAll();
-    bumpMission("play_1");bumpMission("win_1");bumpMission("win_2");if(log.length<=2)bumpMission("win_fast");bumpMission("keep_streak");checkAchievements();
+    bumpMission("play_1");bumpMission("win_1");bumpMission("win_2");bumpMission("win_3");if(log.length<=2)bumpMission("win_fast");bumpMission("keep_streak");checkAchievements();
   }
   else{playWrong();hapticWrong();log.push(false);wrong.add(c);btn.disabled=true;btn.classList.add("shake");setTimeout(()=>btn.classList.remove("shake"),400);if(log.length>=MAX){
       done=true;saveState();
@@ -2692,6 +2851,112 @@ function startCountdown(){
   tick();setInterval(tick,1000);
 }
 let shareText="";
+// ═══ TRIVIA BONUS (post-acierto) ═══
+function getTriviaStateKey(dishIdx){return "comidadle_trivia_"+todayStr+"_"+dishIdx;}
+function getTriviaResult(dishIdx){try{return JSON.parse(localStorage.getItem(getTriviaStateKey(dishIdx)));}catch(e){return null;}}
+function saveTriviaResult(dishIdx,data){try{localStorage.setItem(getTriviaStateKey(dishIdx),JSON.stringify(data));}catch(e){}}
+function _seedFromStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+// Varias plantillas de pregunta, elegidas de forma determinista por día+plato (no siempre
+// "¿cuál de estas es una pista real?"), con fallback si a un plato le faltan datos para un tipo.
+function buildTriviaQuestion(d,dishIdx){
+  if(!d)return null;
+  const seed=_seedFromStr(todayStr+"|"+dishIdx);
+  const tryHint=()=>{
+    if(!d.hints||!d.hints.length)return null;
+    const correctHint=d.hints[seed%d.hints.length];
+    const pool=ALL_DISHES.filter(x=>x.name!==d.name&&x.hints&&x.hints.length);
+    if(pool.length<3)return null;
+    const decoyDishes=shuffleWithSeed(pool,seed).slice(0,3);
+    const decoys=decoyDishes.map((dd,i)=>dd.hints[(seed+i)%dd.hints.length]);
+    const options=shuffleWithSeed([correctHint,...decoys],seed+1);
+    return{type:"hint",prompt:"¿Cuál de estas es una pista real sobre "+d.name+"?",correctAnswer:correctHint,options};
+  };
+  const tryCountry=()=>{
+    if(!d.dist||d.dist.length<3)return null;
+    const decoys=shuffleWithSeed(d.dist,seed).slice(0,3);
+    const options=shuffleWithSeed([d.country,...decoys],seed+2);
+    return{type:"country",prompt:"¿De qué país es originario "+d.name+"?",correctAnswer:d.country,options};
+  };
+  const tryDish=()=>{
+    const sameCountry=ALL_DISHES.filter(x=>x.country===d.country&&x.name!==d.name);
+    if(!sameCountry.length)return null;
+    const correct=shuffleWithSeed(sameCountry,seed)[0];
+    const otherCountryDishes=ALL_DISHES.filter(x=>x.country!==d.country);
+    if(otherCountryDishes.length<3)return null;
+    const decoys=shuffleWithSeed(otherCountryDishes,seed+3).slice(0,3);
+    const options=shuffleWithSeed([correct.name,...decoys.map(x=>x.name)],seed+4);
+    return{type:"dish",prompt:"¿Cuál de estos platos es también típico de "+d.country+"?",correctAnswer:correct.name,options};
+  };
+  const builders=[tryHint,tryCountry,tryDish];
+  const startIdx=seed%3;
+  for(let i=0;i<3;i++){const q=builders[(startIdx+i)%3]();if(q)return q;}
+  return null;
+}
+function renderTriviaCard(){
+  const el=document.getElementById("trivia-card");if(!el)return;
+  const dishIdx=currentDish,d=dish;
+  const prior=getTriviaResult(dishIdx);
+  if(prior){
+    if(prior.declined){el.innerHTML="";return;}
+    el.innerHTML=`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:1rem;text-align:center;margin-top:.75rem"><div style="font-size:13px;color:var(--text-muted)">🧠 ${prior.correct?"Acertaste la trivia de hoy ✅":"Fallaste la trivia de hoy ❌"}</div></div>`;
+    return;
+  }
+  // Antes de mostrar la pregunta, se pregunta si el jugador quiere hacer la trivia.
+  el.innerHTML=`<div style="background:var(--surface2);border:1px solid var(--border-strong);border-radius:var(--r);padding:1rem;margin-top:.75rem;text-align:center">
+    <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:.3rem">🧠 Trivia bonus</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:.75rem">¿Quieres jugar una pregunta extra sobre gastronomía? ${isGuest?'<span>🔒 sin XP en modo invitado</span>':'<span style="color:var(--gold);font-weight:700">+10 XP si aciertas</span>'}</div>
+    <div style="display:flex;gap:8px;justify-content:center">
+      <button id="trivia-decline-btn" class="ranking-btn" style="flex:1">No</button>
+      <button id="trivia-accept-btn" class="ranking-btn primary" style="flex:1">Sí</button>
+    </div>
+  </div>`;
+  document.getElementById("trivia-decline-btn").onclick=()=>{saveTriviaResult(dishIdx,{declined:true});renderTriviaCard();};
+  document.getElementById("trivia-accept-btn").onclick=()=>startTriviaQuestion(dishIdx,d);
+}
+function startTriviaQuestion(dishIdx,d){
+  const el=document.getElementById("trivia-card");if(!el)return;
+  const q=buildTriviaQuestion(d,dishIdx);
+  if(!q){el.innerHTML="";return;}
+  // Se ocultan temporalmente las pistas y las opciones de países del juego mientras dura
+  // la trivia (mismo mecanismo ya usado para las pistas), para que no sirvan de chuleta a
+  // alguna de las preguntas de trivia (se restauran ambas al responder).
+  const hintsEl=document.getElementById("hints");
+  const savedHintsHtml=hintsEl?hintsEl.innerHTML:"";
+  if(hintsEl)hintsEl.innerHTML="";
+  const gridEl=document.getElementById("grid");
+  const savedGridHtml=gridEl?gridEl.innerHTML:"";
+  if(gridEl)gridEl.innerHTML="";
+  el.innerHTML=`<div style="background:var(--surface2);border:1px solid var(--border-strong);border-radius:var(--r);padding:1rem;margin-top:.75rem">
+    <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:.3rem">🧠 Trivia bonus</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:.75rem">${q.prompt} ${isGuest?'<span>🔒 sin XP en modo invitado</span>':'<span style="color:var(--gold);font-weight:700">+10 XP si aciertas</span>'}</div>
+    <div id="trivia-options" style="display:flex;flex-direction:column;gap:6px"></div>
+  </div>`;
+  const optsEl=document.getElementById("trivia-options");
+  q.options.forEach(opt=>{
+    const btn=document.createElement("button");
+    btn.className="country-btn";
+    btn.style.textAlign="left";btn.style.height="auto";btn.style.padding=".6rem .75rem";
+    btn.dataset.correct=opt===q.correctAnswer?"1":"0";
+    btn.innerHTML=`<span style="font-size:12px;line-height:1.4">${opt}</span>`;
+    btn.onclick=()=>{
+      const correct=btn.dataset.correct==="1";
+      saveTriviaResult(dishIdx,{correct});
+      optsEl.querySelectorAll("button").forEach(b=>{b.disabled=true;if(b.dataset.correct==="1")b.classList.add("correct-answer");});
+      bumpMission("try_trivia");
+      if(hintsEl)hintsEl.innerHTML=savedHintsHtml;
+      if(gridEl)gridEl.innerHTML=savedGridHtml;
+      if(correct){
+        grantXP(10);playCorrect();setTimeout(()=>launchConfetti(),100);
+        bumpMission("win_trivia");
+        if(!isGuest&&!isBanned){const n=(parseInt(localStorage.getItem("comidadle_trivia_correct_total")||"0"))+1;localStorage.setItem("comidadle_trivia_correct_total",String(n));checkAchievements();}
+      }
+      else{btn.style.borderColor="var(--red)";playWrong();}
+      updateMiniAvatar();
+      setTimeout(()=>renderTriviaCard(),500);
+    };
+    optsEl.appendChild(btn);
+  });
+}
 function showResultBox(won, xpEarned){
   const resultEl=document.getElementById("result");
   if(resultEl.querySelector(".result-box"))return;
@@ -2724,6 +2989,7 @@ function showResultBox(won, xpEarned){
   document.getElementById("share-btn-"+currentDish).onclick=openShareModal;
   const ndb=document.getElementById("next-dish-btn");if(ndb)ndb.onclick=()=>switchDish(currentDish+1);
   startCountdown();
+  if(won)renderTriviaCard();
   // Sistema de notificaciones de racha desactivado por ahora
 }
 
@@ -2780,7 +3046,7 @@ async function shareResultImage(){
     const file=new File([blob],"comidadle.png",{type:"image/png"});
     if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
       await navigator.share({files:[file],title:"Comidadle 🌶️",text:shareText});
-      bumpMission("share_1");
+      bumpMission("share_1");bumpMission("share_2");
       if(cb)cb.textContent="📸 Compartir como imagen";
       return;
     }
@@ -2788,7 +3054,7 @@ async function shareResultImage(){
     const url=URL.createObjectURL(blob);
     const a=document.createElement("a");a.href=url;a.download="comidadle.png";document.body.appendChild(a);a.click();a.remove();
     setTimeout(()=>URL.revokeObjectURL(url),2000);
-    bumpMission("share_1");
+    bumpMission("share_1");bumpMission("share_2");
     if(cb)cb.textContent="¡Descargada! 📸";
   }catch(e){if(e&&e.name==="AbortError"){/*cancelado por el usuario, no es error*/}else if(cb)cb.textContent="Error generando imagen 😔";}
   setTimeout(()=>{if(cb)cb.textContent="📸 Compartir como imagen";},2200);
@@ -2811,7 +3077,8 @@ function renderYesterday(){
   const yYearly=[...yY1,...yY2.slice(0,1095-yY1.length)];
   const yD=[yYearly[(yDOY*3)%1095],yYearly[(yDOY*3+1)%1095],yYearly[(yDOY*3+2)%1095]];
   const yS=yD.map((_,i)=>{let s=null;try{s=JSON.parse(localStorage.getItem("comidadle_"+yStr+"_"+i));}catch(e){}return s;});
-  if(!yS.some(s=>s&&s.done)){el.innerHTML="";return;}
+  // Se muestra siempre el plato de ayer (jugado o no): las casillas no jugadas se marcan
+  // con ⬜, pero la tarjeta ya no se oculta por completo cuando el usuario no jugó ayer.
   const res=yS.map(s=>!s||!s.done?"⬜":s.log[s.log.length-1]===true?"✅":"❌");
   el.innerHTML=`<div class="yesterday-card"><div class="yesterday-emoji">${yD[0].emoji}</div><div class="yesterday-info"><div class="yesterday-label">Ayer</div><div class="yesterday-name">${res.join(" ")} — 3 platos</div><div class="yesterday-country">${yD.map(d=>d.flag).join(" ")}</div></div></div>`;
 }
@@ -2846,6 +3113,56 @@ let shopItems=[],myInventory=[];
 let currentShopTab="colores";
 const catMap={colores:"color",marcos:"frame",badges:"badge",titulos:"title",emojis:"emoji"};
 
+// ═══ WEEKLY SHOP OFFERS ═══
+const WEEKLY_SHOP_COUNT=3,WEEKLY_SHOP_DISCOUNT=0.25;
+// Rota los domingos (no los lunes) para coincidir con el reset semanal de la tienda.
+// Usa _now, la misma referencia de tiempo local que el resto de Comidadle (todayStr,
+// plato de ayer), para mantener la zona horaria consistente en toda la app.
+function getShopWeekKey(){
+  const d=new Date(_now),day=d.getDay();
+  const sun=new Date(d.getFullYear(),d.getMonth(),d.getDate()-day);
+  return sun.toISOString().slice(0,10);
+}
+function getWeeklyFeaturedItems(){
+  if(!shopItems.length)return[];
+  const seed=_seedFromStr("shop|"+getShopWeekKey());
+  const shuffled=shuffleWithSeed(shopItems,seed);
+  return shuffled.slice(0,Math.min(WEEKLY_SHOP_COUNT,shuffled.length));
+}
+function getDiscountedPrice(item){return Math.max(1,Math.round(item.price*(1-WEEKLY_SHOP_DISCOUNT)));}
+function isWeeklyFeatured(itemId){return getWeeklyFeaturedItems().some(i=>i.id===itemId);}
+function weeklyShopResetLabel(){
+  const now=new Date(_now),day=now.getDay();
+  const daysUntilSunday=day===0?7:(7-day);
+  const next=new Date(now);next.setDate(now.getDate()+daysUntilSunday);next.setHours(0,0,0,0);
+  const diff=next-now,d=Math.floor(diff/86400000),h=Math.floor((diff%86400000)/3600000);
+  return d>0?d+"d "+h+"h":h+"h";
+}
+function renderWeeklyShopSection(){
+  const el=document.getElementById("shop-weekly-section");if(!el)return;
+  const featured=getWeeklyFeaturedItems();
+  if(!featured.length){el.innerHTML="";return;}
+  const ownedIds=new Set((myInventory||[]).map(i=>i.item_id));
+  el.innerHTML=`<div style="background:linear-gradient(135deg,rgba(255,107,53,.12),rgba(255,182,39,.12));border:1px solid var(--gold);border-radius:var(--r-sm);padding:.875rem;margin-bottom:1rem">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem">
+      <div style="font-size:13px;font-weight:800;color:var(--gold)">🔥 Ofertas de la semana</div>
+      <div style="font-size:10px;color:var(--text-muted)">termina en ${weeklyShopResetLabel()}</div>
+    </div>
+    ${featured.map(item=>{
+      const owned=ownedIds.has(item.id);
+      const discPrice=getDiscountedPrice(item);
+      const preview=renderAvatarPreview(item,owned,false);
+      return `<div class="shop-item-card" style="border-color:var(--gold);margin-bottom:.5rem">
+        ${preview}
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:700;color:var(--text)">${item.name}</div>
+          <div style="margin-top:2px">${owned?'<span style="font-size:12px;font-weight:700;color:var(--green)">✅ Conseguido</span>':`<span style="font-size:11px;color:var(--text-muted);text-decoration:line-through">${item.price} XP</span> <span style="font-size:13px;font-weight:800;color:var(--gold)">${discPrice} XP</span> <span style="font-size:10px;color:var(--green);font-weight:700">-25%</span>`}</div>
+        </div>
+        ${owned?"":`<button onclick="buyItem('${item.id}')" ${totalXP<discPrice?"disabled":""} style="background:${totalXP>=discPrice?"var(--gold)":"var(--surface2)"};border:none;color:${totalXP>=discPrice?"#100900":"var(--text-muted)"};border-radius:6px;padding:6px 12px;cursor:${totalXP>=discPrice?"pointer":"not-allowed"};font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;flex-shrink:0">Comprar</button>`}
+      </div>`;
+    }).join("")}
+  </div>`;
+}
 async function loadShop(){
   try{shopItems=await sb("/rest/v1/shop_items?select=*&order=price.asc");}catch(e){shopItems=[];}
   if(myUser){
@@ -2867,6 +3184,7 @@ async function openShop(){
   openModal("shop-modal");
   await loadShop();
   updateShopXPBar();
+  renderWeeklyShopSection();
   renderShop();
 }
 
@@ -2934,17 +3252,18 @@ function renderShop(){
 async function buyItem(itemId){
   const item=shopItems.find(i=>i.id===itemId);
   if(!item)return;
-  if(totalXP<item.price){alert("No tienes suficiente XP 😔");return;}
-  if(!myUser){alert("Pon un nombre en el Ranking Global primero");return;}
-  if(!confirm("¿Comprar '"+item.name+"' por "+item.price+" XP?"))return;
+  const price=isWeeklyFeatured(itemId)?getDiscountedPrice(item):item.price;
+  if(totalXP<price){alert("No tienes suficiente XP 😔");return;}
+  if(!myUser){alert("Inicia sesión primero");return;}
+  if(!confirm("¿Comprar '"+item.name+"' por "+price+" XP?"))return;
 
   // Deduct XP
-  totalXP-=item.price;
+  totalXP-=price;
   localStorage.setItem(XPK,String(totalXP));
 
   // Deduct from weekly too (spending XP affects weekly ranking)
   if(weekly.points>0){
-    weekly.points=Math.max(0,weekly.points-item.price);
+    weekly.points=Math.max(0,weekly.points-price);
     saveWeekly();
     syncWeekly().catch(()=>{});
   }
@@ -2953,10 +3272,11 @@ async function buyItem(itemId){
   try{
     await sb("/rest/v1/user_inventory",{method:"POST",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({username:myUser,item_id:itemId})});
     myInventory.push({item_id:itemId});
-    sendNotification(myUser,"purchase","🛒 Compraste "+item.name,"Gastaste "+item.price+" XP en '"+item.name+"'. ¡Ponlo desde la tienda!").catch(()=>{});
+    sendNotification(myUser,"purchase","🛒 Compraste "+item.name,"Gastaste "+price+" XP en '"+item.name+"'. ¡Ponlo desde la tienda!").catch(()=>{});
   }catch(e){}
 
   updateShopXPBar();
+  renderWeeklyShopSection();
   renderShop();
   updateMiniAvatar();
 }
@@ -3146,6 +3466,34 @@ function startMemoryRound(){
 
 // ═══ FRIEND XP GIFTS ═══
 const FRIEND_GIFT_DAILY_LIMIT=100;
+// ═══ STREAK REACTIONS (🔥) ═══
+async function hasReactedToStreakToday(toUsername){
+  if(!myUser)return false;
+  const since=new Date();since.setHours(0,0,0,0);
+  try{
+    const rows=await sb("/rest/v1/streak_reactions?from_username=eq."+encodeURIComponent(myUser)+"&to_username=eq."+encodeURIComponent(toUsername)+"&created_at=gte."+since.toISOString()+"&select=id");
+    return !!(rows&&rows.length);
+  }catch(e){return false;}
+}
+async function fetchStreakReactionCount(username){
+  try{
+    const rows=await sb("/rest/v1/streak_reactions?to_username=eq."+encodeURIComponent(username)+"&select=id");
+    return rows?rows.length:0;
+  }catch(e){return 0;}
+}
+async function sendStreakReaction(toUsername,btn){
+  if(!myUser||toUsername===myUser)return;
+  if(btn){btn.disabled=true;btn.textContent="Enviando...";}
+  try{
+    const already=await hasReactedToStreakToday(toUsername);
+    if(already){if(btn){btn.textContent="🔥 Ya le diste fuego hoy";}return;}
+    await sb("/rest/v1/streak_reactions",{method:"POST",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({from_username:myUser,to_username:toUsername})});
+    sendNotification(toUsername,"system","🔥 "+myUser+" le puso fuego a tu racha","¡Sigue así, no la dejes apagar!").catch(()=>{});
+    if(btn){btn.textContent="🔥 Ya le diste fuego hoy";}
+  }catch(e){
+    if(btn){btn.disabled=false;btn.textContent="🔥 Dale fuego a su racha";}
+  }
+}
 async function getFriendGiftedToday(){
   if(!myUser)return 0;
   const since=new Date();since.setHours(0,0,0,0);
@@ -3177,11 +3525,24 @@ async function checkFriendXPGifts(){
     const gifts=await sb("/rest/v1/friend_xp_gifts?to_username=eq."+encodeURIComponent(myUser)+"&claimed=eq.false&select=*");
     if(!gifts||gifts.length===0)return;
     let total=0,last=null;
+    const claimedGifts=[],seenIds=new Set();
     for(const g of gifts){
-      total+=g.amount;last=g;
-      await sb("/rest/v1/friend_xp_gifts?id=eq."+g.id,{method:"PATCH",body:JSON.stringify({claimed:true})}).catch(()=>{});
+      // Un mismo regalo no se procesa dos veces en la misma ejecución.
+      if(!g||g.id==null||seenIds.has(g.id))continue;
+      seenIds.add(g.id);
+      // El XP solo se suma si Supabase confirma que ESTE regalo pasó de claimed=false a
+      // claimed=true: el filtro claimed=eq.false hace que una segunda pestaña/dispositivo
+      // que ya lo reclamó obtenga 0 filas, y return=representation permite comprobarlo.
+      let rows=null;
+      try{
+        rows=await sb("/rest/v1/friend_xp_gifts?id=eq."+encodeURIComponent(g.id)+"&claimed=eq.false",{method:"PATCH",headers:{...SH,"Prefer":"return=representation"},body:JSON.stringify({claimed:true})});
+      }catch(e){rows=null;} // error HTTP (RLS, trigger, red...) → regalo NO reclamado
+      if(!Array.isArray(rows)||rows.length!==1)continue;
+      const amt=Number(rows[0].amount);
+      if(!Number.isFinite(amt)||amt<=0)continue;
+      total+=amt;last=rows[0];claimedGifts.push(rows[0]);
     }
-    if(total<=0)return;
+    if(total<=0||claimedGifts.length===0)return;
     totalXP+=total;
     localStorage.setItem(XPK,String(totalXP));
     weekly.points+=total;
@@ -3189,8 +3550,8 @@ async function checkFriendXPGifts(){
     syncWeekly().catch(()=>{});
     const t=document.createElement("div");
     t.style.cssText="position:fixed;top:30%;left:50%;transform:translateX(-50%);background:var(--gold);color:#100900;font-family:'Fraunces',serif;font-size:20px;font-weight:900;padding:.75rem 1.75rem;border-radius:99px;z-index:9999;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,.3);animation:toastUp 2s ease forwards;text-align:center;max-width:90vw";
-    const fromTxt=gifts.length===1?"de "+escapeHtml(last.from_username):"de "+gifts.length+" amigos";
-    t.innerHTML="🎁 +"+total+" XP<br><span style='font-size:13px;font-family:Plus Jakarta Sans,sans-serif'>"+fromTxt+(gifts.length===1&&last.message?" — "+escapeHtml(last.message):"")+"</span>";
+    const fromTxt=claimedGifts.length===1?"de "+escapeHtml(last.from_username):"de "+claimedGifts.length+" amigos";
+    t.innerHTML="🎁 +"+total+" XP<br><span style='font-size:13px;font-family:Plus Jakarta Sans,sans-serif'>"+fromTxt+(claimedGifts.length===1&&last.message?" — "+escapeHtml(last.message):"")+"</span>";
     document.body.appendChild(t);
     setTimeout(()=>t.remove(),2500);
     updateMiniAvatar();
@@ -3235,10 +3596,12 @@ try{passport=JSON.parse(localStorage.getItem(PASSPORT_KEY)||"{}");}catch(e){pass
 function recordPassport(dish){
   if(isGuest||isBanned)return;
   if(!dish||!dish.country||!dish.name)return;
+  const isNewCountry=!passport[dish.country];
   if(!passport[dish.country])passport[dish.country]=[];
   if(!passport[dish.country].includes(dish.name)){
     passport[dish.country].push(dish.name);
     try{localStorage.setItem(PASSPORT_KEY,JSON.stringify(passport));}catch(e){}
+    if(isNewCountry){bumpMission("new_country");checkAchievements();}
   }
 }
 function isoFlag(code){return String.fromCodePoint(...code.toUpperCase().split("").map(c=>127397+c.charCodeAt(0)));}
@@ -3250,18 +3613,23 @@ const PASSPORT_COUNTRIES=[
 ];
 function passportStats(){
   const hispUnlocked=Object.keys(ACTIVE_ISO).filter(c=>passport[c]&&passport[c].length>0).length;
-  const hist=JSON.parse(localStorage.getItem(HK)||"{}");
-  const solvedNames=new Set(Object.values(hist).flat().filter(r=>r&&r.won).map(r=>r.name||""));
   const intlDishes=typeof SUNDAY_INTERNATIONAL_DISHES!=="undefined"?SUNDAY_INTERNATIONAL_DISHES:[];
-  const intlUnlocked=new Set(intlDishes.filter(d=>d.country!=="Israel"&&solvedNames.has(d.name)).map(d=>d.country)).size;
+  const intlCountries=new Set(intlDishes.filter(d=>d.country!=="Israel").map(d=>d.country));
+  // El objeto "passport" ya se actualiza para cualquier plato acertado, hispano o del
+  // Especial Domingo (ver recordPassport), y es permanente — a diferencia del historial
+  // (comidadle_history), que solo guarda los últimos 42 resultados y además usaba un campo
+  // "name" que no existe en esos registros (el campo real es "dish"), por lo que los países
+  // internacionales nunca contaban como desbloqueados.
+  const intlUnlocked=[...intlCountries].filter(c=>passport[c]&&passport[c].length>0).length;
   const unlocked=hispUnlocked+intlUnlocked;
-  const total=Object.keys(ACTIVE_ISO).length+new Set(intlDishes.filter(d=>d.country!=="Israel").map(d=>d.country)).size;
+  const total=Object.keys(ACTIVE_ISO).length+intlCountries.size;
   return{unlocked,total};
 }
 function openPassportModal(){
   if(isGuest)return;
   openModal("passport-modal");
   renderPassportGrid();
+  bumpMission("open_passport");
 }
 function renderPassportGrid(){
   const el=document.getElementById("passport-grid");if(!el)return;
@@ -3276,9 +3644,7 @@ function renderPassportGrid(){
       }
       const _iD=(typeof SUNDAY_INTERNATIONAL_DISHES!=="undefined"?SUNDAY_INTERNATIONAL_DISHES:[]).filter(d=>d.country===c.name);
       if(_iD.length>0){
-        const _h=JSON.parse(localStorage.getItem(HK)||"{}");
-        const _sn=new Set(Object.values(_h).flat().filter(r=>r&&r.won).map(r=>r.name||""));
-        const _ok=_iD.some(d=>_sn.has(d.name));
+        const _ok=passport[c.name]&&passport[c.name].length>0;
         return `<button class="passport-card${_ok?" unlocked":""}" onclick="openPassportCountry('${c.name.replace(/'/g,"\\'")}',false,false)" style="${_ok?"":"filter:grayscale(1);opacity:.4"}"><div style="font-size:28px">${flag}</div><div style="font-size:10px;font-weight:700;margin-top:2px">${c.name}</div><div style="font-size:9px;color:var(--text-muted)">${_ok?"✅":"🌍"}</div></button>`;
       }
       return `<button class="passport-card locked" onclick="openPassportCountry('${c.name.replace(/'/g,"\\'")}',false,false)" style="opacity:.35;filter:grayscale(1)"><div style="font-size:28px">${flag}</div><div style="font-size:10px;font-weight:700;margin-top:2px">${c.name}</div><div style="font-size:9px;color:var(--text-muted)">🔒</div></button>`;
@@ -3297,9 +3663,7 @@ function openPassportCountry(name,active,unlocked){
       return;
     }
     const _intlD=(typeof SUNDAY_INTERNATIONAL_DISHES!=="undefined"?SUNDAY_INTERNATIONAL_DISHES:[]).filter(d=>d.country===name);
-    const _hist2=JSON.parse(localStorage.getItem(HK)||"{}");
-    const _solved2=new Set(Object.values(_hist2).flat().filter(r=>r&&r.won).map(r=>r.name||""));
-    const _solvedD=_intlD.filter(d=>_solved2.has(d.name));
+    const _solvedD=_intlD.filter(d=>(passport[name]||[]).includes(d.name));
     if(_solvedD.length>0){
       el.innerHTML=`<div style="text-align:center;margin-bottom:1rem"><div style="font-size:48px">${flag}</div><div style="font-size:18px;font-weight:700;color:var(--text);margin-top:.25rem">${name}</div><div style="font-size:12px;color:var(--text-muted);margin-top:.25rem">🌍 Especial Domingo desbloqueado</div></div>`+_solvedD.map(d=>`<div class="dish-card" style="margin-bottom:.6rem;padding:.75rem;cursor:pointer" onclick="openDishRecipe('${d.name.replace(/'/g,"\\'")}','${d.country}','${d.emoji}','${d.flag||""}')"><span style="font-size:24px">${d.emoji}</span><div style="font-size:13px;font-weight:600">${d.name}</div><div style="font-size:11px;color:var(--accent)">🍳 Ver receta</div></div>`).join("");
     }else{
@@ -3336,9 +3700,23 @@ async function checkXPGifts(){
     const gifts=await sb("/rest/v1/xp_gifts?username=eq."+encodeURIComponent(myUser)+"&claimed=eq.false&select=*");
     if(!gifts||gifts.length===0)return;
     let totalGifted=0;
+    const seenIds=new Set();
     for(const g of gifts){
-      totalGifted+=g.amount;
-      await sb("/rest/v1/xp_gifts?id=eq."+g.id,{method:"PATCH",body:JSON.stringify({claimed:true})}).catch(()=>{});
+      // Un mismo regalo no se procesa dos veces en la misma ejecución.
+      if(!g||g.id==null||seenIds.has(g.id))continue;
+      seenIds.add(g.id);
+      // El XP solo cambia si Supabase confirma que ESTE regalo pasó de claimed=false a
+      // claimed=true (error HTTP o 0 filas → no reclamado, no se aplica).
+      let rows=null;
+      try{
+        rows=await sb("/rest/v1/xp_gifts?id=eq."+encodeURIComponent(g.id)+"&claimed=eq.false",{method:"PATCH",headers:{...SH,"Prefer":"return=representation"},body:JSON.stringify({claimed:true})});
+      }catch(e){rows=null;}
+      if(!Array.isArray(rows)||rows.length!==1)continue;
+      const amt=Number(rows[0].amount);
+      // Se ignoran cantidades no numéricas o 0 (evita NaN). Las negativas SÍ se aplican:
+      // son las sanciones del Owner (remove_xp), que este mismo flujo ya mostraba como "Sanción del Owner".
+      if(!Number.isFinite(amt)||amt===0)continue;
+      totalGifted+=amt;
     }
     if(totalGifted===0)return;
     const isPositive=totalGifted>0;
@@ -3445,16 +3823,17 @@ async function openPlayerProfile(username){
   const el=document.getElementById("player-content");
   el.innerHTML='<div class="ranking-empty">Cargando...</div>';
   try{
-    const [rankData,equipData]=await Promise.all([
+    const isMe=username===myUser;
+    const [rankData,equipData,fireCount,alreadyReacted]=await Promise.all([
       sb("/rest/v1/ranking?username=eq."+encodeURIComponent(username)+"&select=*"),
-      sb("/rest/v1/user_equip?username=eq."+encodeURIComponent(username)+"&select=*").catch(()=>[])
+      sb("/rest/v1/user_equip?username=eq."+encodeURIComponent(username)+"&select=*").catch(()=>[]),
+      fetchStreakReactionCount(username),
+      isMe?Promise.resolve(false):hasReactedToStreakToday(username)
     ]);
     const r=rankData&&rankData[0];
     const eq={};
     if(equipData&&equipData[0]){Object.entries(equipData[0]).forEach(([k,v])=>{if(v!==null&&k!=="username")eq[k]=v;});}
     const pct=r&&r.played>0?Math.round(r.wins/r.played*100):0;
-    const isMe=username===myUser;
-    const lv=r?null:null; // no XP for others
     el.innerHTML=`
       <div style="text-align:center;margin-bottom:1.25rem">
         <div style="display:flex;justify-content:center;margin-bottom:.75rem">${buildAvatar(username,eq,64,26)}</div>
@@ -3469,6 +3848,7 @@ async function openPlayerProfile(username){
         <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center">
           <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--accent)">🔥${r.streak}</div>
           <div style="font-size:10px;color:var(--text-muted);margin-top:2px">Racha</div>
+          ${fireCount>0?`<div style="font-size:10px;color:var(--gold);margin-top:2px">🔥×${fireCount}</div>`:""}
         </div>
         <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center">
           <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--gold)">${r.best_streak}</div>
@@ -3479,6 +3859,7 @@ async function openPlayerProfile(username){
           <div style="font-size:10px;color:var(--text-muted);margin-top:2px">Victorias</div>
         </div>
       </div>
+      ${!isMe&&myUser?`<button id="fire-reaction-btn" class="ranking-btn" style="width:100%;margin-bottom:.75rem;${alreadyReacted?"opacity:.6":""}" ${alreadyReacted?"disabled":""}>${alreadyReacted?"🔥 Ya le diste fuego hoy":"🔥 Dale fuego a su racha"}</button>`:""}
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;display:flex;justify-content:space-around;text-align:center">
         <div><div style="font-size:16px;font-weight:700;color:var(--text)">${r.wins}</div><div style="font-size:10px;color:var(--text-muted)">Victorias</div></div>
         <div><div style="font-size:16px;font-weight:700;color:var(--text)">${r.played}</div><div style="font-size:10px;color:var(--text-muted)">Partidas</div></div>
@@ -3486,6 +3867,7 @@ async function openPlayerProfile(username){
       </div>`:'<div class="ranking-empty">Sin datos de ranking global</div>'}`;
     const cb=document.getElementById("profile-challenge-btn");if(cb)cb.onclick=()=>openChallengeModal(username);
     const fb=document.getElementById("profile-add-friend-btn");if(fb)fb.onclick=async()=>{fb.textContent="Enviando...";fb.disabled=true;await sendFriendRequest(username);fb.textContent="✓ Solicitud enviada";};
+    const frb=document.getElementById("fire-reaction-btn");if(frb)frb.onclick=()=>sendStreakReaction(username,frb);
   }catch(e){el.innerHTML='<div class="ranking-empty">Error cargando perfil 😔</div>';}
 }
 
@@ -3798,6 +4180,7 @@ if(impBtn&&impFile){
   impFile.onchange=()=>{if(impFile.files&&impFile.files[0])importProgress(impFile.files[0]);impFile.value="";};
 }
 const syEl=document.getElementById("show-yesterday-toggle");if(syEl){syEl.checked=cfg.showYesterday;syEl.onchange=()=>{cfg.showYesterday=syEl.checked;saveCfg();renderYesterday();};}
+const shEl=document.getElementById("show-howto-toggle");if(shEl){shEl.checked=cfg.showHowToPlay!==false;shEl.onchange=()=>{cfg.showHowToPlay=shEl.checked;saveCfg();};}
 
 // ═══ EVENT LISTENERS ═══
 const on=(id,ev,fn)=>{const el=document.getElementById(id);if(el)el.addEventListener(ev,fn);};
@@ -3874,7 +4257,7 @@ document.getElementById("player-modal").addEventListener("click",e=>{if(e.target
 function closeDuelModal(){clearDuelPoll();clearGroupPoll();closeModal("duel-modal");}
 onC("duel-close",()=>closeDuelModal());
 onC("sm-duel",()=>{openDuelModal();closeSideMenu();});
-["how-modal","cfg-modal","share-modal","stats-modal","ranking-modal","weekly-modal","profile-modal","owner-modal","reviews-modal","ann-modal","suggestions-modal","about-modal","rules-modal","infinite-modal","memory-modal","passport-modal","passport-country-modal","player-modal","shop-modal"].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener("click",e=>{if(e.target.id===id)closeModal(id);});});
+["how-modal","cfg-modal","share-modal","stats-modal","ranking-modal","weekly-modal","profile-modal","owner-modal","reviews-modal","ann-modal","suggestions-modal","about-modal","rules-modal","memory-modal","passport-modal","passport-country-modal"].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener("click",e=>{if(e.target.id===id)closeModal(id);});});
 document.getElementById("duel-modal").addEventListener("click",e=>{if(e.target.id==="duel-modal")closeDuelModal();});
 onC("menu-open-btn",openSideMenu);onC("side-menu-close",closeSideMenu);onC("side-overlay",closeSideMenu);
 onC("sm-achievements",()=>{openModal("achievements-modal");closeSideMenu();openAchievements();});onC("achievements-close",()=>closeModal("achievements-modal"));
@@ -3885,69 +4268,16 @@ onC("sm-weekly",()=>{closeSideMenu();openWeekly();});
 onC("sm-reviews",()=>{closeSideMenu();openReviews();});
 onC("sm-suggestions",()=>{closeSideMenu();openSuggestionsModal();});
 onC("sm-about",()=>{closeSideMenu();openModal("about-modal");});
-onC("copy-btn",()=>{document.getElementById("share-textarea").select();const cb=document.getElementById("copy-btn");bumpMission("share_1");if(navigator.clipboard)navigator.clipboard.writeText(shareText).then(()=>{cb.textContent="¡Copiado! ✓";cb.classList.add("copied");}).catch(()=>{try{document.execCommand("copy");}catch(e){}cb.textContent="¡Copiado! ✓";cb.classList.add("copied");});else{try{document.execCommand("copy");}catch(e){}cb.textContent="¡Copiado! ✓";cb.classList.add("copied");}});
+onC("copy-btn",()=>{document.getElementById("share-textarea").select();const cb=document.getElementById("copy-btn");bumpMission("share_1");bumpMission("share_2");if(navigator.clipboard)navigator.clipboard.writeText(shareText).then(()=>{cb.textContent="¡Copiado! ✓";cb.classList.add("copied");}).catch(()=>{try{document.execCommand("copy");}catch(e){}cb.textContent="¡Copiado! ✓";cb.classList.add("copied");});else{try{document.execCommand("copy");}catch(e){}cb.textContent="¡Copiado! ✓";cb.classList.add("copied");}});
 
 
-// ═══ WEEKLY SUMMARY ═══
-function getLastWeekRange(){
-  const now=new Date();
-  const day=now.getDay()||7; // Mon=1..Sun=7
-  const lastMon=new Date(now);lastMon.setDate(now.getDate()-day-6);lastMon.setHours(0,0,0,0);
-  const lastSun=new Date(lastMon);lastSun.setDate(lastMon.getDate()+6);lastSun.setHours(23,59,59,999);
-  return{from:lastMon,to:lastSun};
-}
-function openWeeklySummary(){
-  openModal("weekly-summary-modal");closeSideMenu();
-  const el=document.getElementById("weekly-summary-content");if(!el)return;
-  const{from,to}=getLastWeekRange();
-  const hist=getHistory().filter(h=>{const d=new Date(h.date);return d>=from&&d<=to;});
-  const lw=JSON.parse(localStorage.getItem("comidadle_lastweek")||"{}");
-  const xp=lw.xp||0;
-  const won=hist.filter(h=>h.won).length;
-  const lost=hist.filter(h=>!h.won).length;
-  const total=hist.length;
-  const pct=total>0?Math.round(won/total*100):0;
-  const best=hist.filter(h=>h.won).reduce((b,h)=>h.attempts<b?h.attempts:b,99);
-  const MNAMES=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
-  const fmt=d=>d.getDate()+" "+MNAMES[d.getMonth()];
-  el.innerHTML=`
-    <div style="font-size:12px;color:var(--text-muted);text-align:center;margin-bottom:1rem">${fmt(from)} — ${fmt(to)}</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem">
-      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.875rem;text-align:center">
-        <div style="font-family:'Fraunces',serif;font-size:26px;font-weight:900;color:var(--gold)">${xp}</div>
-        <div style="font-size:10px;color:var(--text-muted);margin-top:2px;text-transform:uppercase">XP ganado</div>
-      </div>
-      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.875rem;text-align:center">
-        <div style="font-family:'Fraunces',serif;font-size:26px;font-weight:900;color:var(--green)">${pct}%</div>
-        <div style="font-size:10px;color:var(--text-muted);margin-top:2px;text-transform:uppercase">Aciertos</div>
-      </div>
-      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.875rem;text-align:center">
-        <div style="font-family:'Fraunces',serif;font-size:26px;font-weight:900;color:var(--green)">✅ ${won}</div>
-        <div style="font-size:10px;color:var(--text-muted);margin-top:2px;text-transform:uppercase">Acertados</div>
-      </div>
-      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.875rem;text-align:center">
-        <div style="font-family:'Fraunces',serif;font-size:26px;font-weight:900;color:var(--red,#ef4444)">❌ ${lost}</div>
-        <div style="font-size:10px;color:var(--text-muted);margin-top:2px;text-transform:uppercase">Fallados</div>
-      </div>
-    </div>
-    ${won>0&&best<99?`<div style="background:var(--surface2);border:1px solid var(--gold);border-radius:var(--r-sm);padding:.75rem;text-align:center;margin-bottom:1rem"><span style="font-size:13px;color:var(--gold);font-weight:700">⭐ Mejor resultado: ${best} intento${best===1?"":"s"}</span></div>`:""}
-    ${total===0?`<div class="ranking-empty">Sin partidas registradas esta semana</div>`:
-    `<div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">Platos de la semana</div>`+
-    hist.slice(0,7).map(h=>`<div style="display:flex;align-items:center;gap:10px;padding:.55rem .75rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:.35rem">
-      <span style="font-size:20px">${h.flag||"🍽️"}</span>
-      <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--text)">${h.dish}</div></div>
-      <div style="font-size:13px;font-weight:700;color:${h.won?"var(--green)":"var(--red,#ef4444)"}">${h.won?"✅ +"+Math.max(1,7-h.attempts)+" xp":"❌ -20 xp"}</div>
-    </div>`).join("")}`;
-}
+// ═══ WEEKLY SUMMARY (eliminado) ═══
 
-function checkMondaySummary(){
-  const day=new Date().getDay();
-  if(day!==1)return; // solo lunes
-  const todayStr=new Date().toISOString().slice(0,10);
-  if(localStorage.getItem("comidadle_summary_shown")===todayStr)return;
-  localStorage.setItem("comidadle_summary_shown",todayStr);
-  setTimeout(()=>openWeeklySummary(),1800);
-}
+// (Se eliminó un sistema de "resumen semanal de los lunes" que quedó huérfano: llamaba a
+// openModal("weekly-summary-modal") y a getElementById("weekly-summary-content"), pero ese
+// modal nunca existió en el HTML de esta versión y la función que lo disparaba,
+// checkMondaySummary(), tampoco se invocaba desde ningún sitio — era código muerto sin
+// ningún efecto visible ni riesgo de romper nada al quitarlo.)
 
 // ═══ FRIENDS & DUEL INVITES ═══
 async function sendFriendRequest(username){
@@ -5755,6 +6085,13 @@ const ACH_LIST=[
   {id:"team_first_win",icon:"🤝",cat:"Duelos",name:"Trabajo en equipo",desc:"Gana tu primer 2v2, 3v3 o 4v4",check:()=>(parseInt(localStorage.getItem("comidadle_duel_wins_team")||"0"))>=1},
   {id:"ffa_first",icon:"🥇",cat:"Duelos",name:"Triunfador",desc:"Queda 1º en Todos contra todos",check:()=>(parseInt(localStorage.getItem("comidadle_ffa_firsts")||"0"))>=1},
   {id:"ffa_5_firsts",icon:"🥇",cat:"Duelos",name:"Dominante",desc:"Queda 1º en FFA 5 veces",check:()=>(parseInt(localStorage.getItem("comidadle_ffa_firsts")||"0"))>=5},
+  {id:"passport_5",icon:"🗺️",cat:"Pasaporte",name:"Explorador",desc:"Desbloquea 5 países en el Pasaporte",check:()=>Object.values(passport).filter(arr=>arr&&arr.length>0).length>=5},
+  {id:"passport_15",icon:"🗺️",cat:"Pasaporte",name:"Trotamundos",desc:"Desbloquea 15 países en el Pasaporte",check:()=>Object.values(passport).filter(arr=>arr&&arr.length>0).length>=15},
+  {id:"passport_all_hisp",icon:"🌎",cat:"Pasaporte",name:"Pasaporte completo",desc:"Desbloquea los "+Object.keys(ACTIVE_ISO).length+" países hispanos",check:()=>Object.keys(ACTIVE_ISO).every(c=>passport[c]&&passport[c].length>0)},
+  {id:"play_500",icon:"🍽️",cat:"Progreso",name:"Incondicional",desc:"Juega 500 platos",check:()=>streak.played>=500},
+  {id:"streak_365",icon:"🔥",cat:"Rachas",name:"Todo el año",desc:"Racha de 365 días",check:()=>streak.best>=365},
+  {id:"xp_10000",icon:"⭐",cat:"Progreso",name:"Fortuna culinaria",desc:"Alcanza 10000 XP totales",check:()=>totalXP>=10000},
+  {id:"trivia_20",icon:"🧠",cat:"Trivia",name:"Sabelotodo",desc:"Acierta 20 preguntas de trivia",check:()=>(parseInt(localStorage.getItem("comidadle_trivia_correct_total")||"0"))>=20},
 ];
 function loadAchievements(){try{return JSON.parse(localStorage.getItem(ACH_KEY)||"[]");}catch(e){return[];}}
 function saveAchievements(arr){localStorage.setItem(ACH_KEY,JSON.stringify(arr));}
@@ -5794,6 +6131,7 @@ async function openAchievements(){
   if(isGuest)return;
   const el=document.getElementById("achievements-content");if(!el)return;
   checkAchievements();
+  bumpMission("open_achievements");
   const unlocked=loadAchievements();
   const cats=[...new Set(ACH_LIST.map(a=>a.cat))];
   el.innerHTML=`
@@ -5824,6 +6162,13 @@ const MISSION_POOL=[
   {id:"play_infinite_2",desc:"Juega 2 platos en Modo Infinito",target:2,xp:15},
   {id:"share_1",desc:"Comparte tu resultado",target:1,xp:10},
   {id:"keep_streak",desc:"Mantén tu racha hoy",target:1,xp:10},
+  {id:"win_3",desc:"Acierta los 3 platos de hoy",target:3,xp:35},
+  {id:"try_trivia",desc:"Responde una pregunta de trivia",target:1,xp:15},
+  {id:"win_trivia",desc:"Acierta una trivia hoy",target:1,xp:20},
+  {id:"new_country",desc:"Desbloquea un país nuevo en el Pasaporte",target:1,xp:20},
+  {id:"open_passport",desc:"Consulta tu Pasaporte",target:1,xp:10},
+  {id:"open_achievements",desc:"Revisa tus logros",target:1,xp:10},
+  {id:"share_2",desc:"Comparte tu resultado 2 veces",target:2,xp:15},
 ];
 function getDailyMissions(){
   let data=null;
@@ -5895,6 +6240,25 @@ document.querySelector(".logo").addEventListener("click",()=>{
 });
 
 if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+function renderOfflineBanner(){
+  const existing=document.getElementById("offline-banner");
+  if(navigator.onLine){if(existing)existing.remove();return;}
+  if(existing)return;
+  const b=document.createElement("div");
+  b.id="offline-banner";
+  b.style.cssText="position:fixed;top:0;left:0;right:0;z-index:9997;background:var(--surface2);border-bottom:1px solid var(--border-strong);color:var(--text-muted);font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;text-align:center;padding:.45rem;padding-top:calc(.45rem + env(safe-area-inset-top,0px))";
+  b.textContent="📡 Sin conexión — puedes jugar, pero el ranking, la tienda y el inicio de sesión necesitan internet";
+  document.body.prepend(b);
+}
+window.addEventListener("online",()=>{
+  renderOfflineBanner();
+  // Al recuperar conexión, reintenta sincronizar lo que se haya jugado offline
+  // (XP/racha/país ya guardados en localStorage) reutilizando los mismos
+  // syncRanking()/syncWeekly() que ya se usan en el resto del juego.
+  if(myUser&&!isGuest&&!isBanned){syncRanking().catch(()=>{});syncWeekly();}
+});
+window.addEventListener("offline",renderOfflineBanner);
+renderOfflineBanner();
 document.getElementById("date-pill").textContent=_now.getDate()+" "+MONTHS[_now.getMonth()]+" · Día "+dayOfYear;
 // Load equip from server on init
 if(myUser){sb("/rest/v1/user_equip?username=eq."+encodeURIComponent(myUser)+"&select=*").then(eq=>{if(eq&&eq[0]){myEquip={...myEquip,...eq[0]};saveEquipLocal();updateMiniAvatar();}}).catch(()=>{});}
@@ -5903,7 +6267,9 @@ setTimeout(updateFriendsBadge,1500);setInterval(updateFriendsBadge,30000);
 if(myUser)syncAchievementsToServer(loadAchievements()).catch(()=>{});
 setTimeout(applyLang,100);
 const vEl=document.getElementById("about-version");if(vEl)vEl.textContent=VERSION;renderYesterday();renderTabs();renderAll();
-if(!localStorage.getItem("comidadle_visited")){openModal("how-modal");localStorage.setItem("comidadle_visited","1");}
+// Muestra "Cómo jugar" al entrar según la preferencia del usuario (por defecto activada),
+// no solo la primera vez — antes solo se mostraba una vez en la vida del navegador.
+if(cfg.showHowToPlay!==false)openModal("how-modal");
 checkStreakExpiry();
 setTimeout(pollAnnouncementsForToasts,2000);startAnnPoll();
 if(new URLSearchParams(location.search).get("duel"))setTimeout(openDuelModal,300);
