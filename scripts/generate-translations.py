@@ -115,7 +115,9 @@ def save():
         if result is not None:draft["ui"][key]=result
     for key,value in source["dishes"].items():
         result=render(value)
-        if result is not None:draft["dishes"][key]=result
+        if result is not None:
+            if draft.get("dishes",{}).get(key,{}).get("displayName"):result["displayName"]=draft["dishes"][key]["displayName"]
+            draft["dishes"][key]=result
     draft["generationComplete"]=len(draft["ui"])==len(source["ui"]) and len(draft["dishes"])==len(source["dishes"])
     for target,data,indent in [(file,draft,2),(cache_file,cache,None)]:
         temporary=target.with_suffix(target.suffix+".tmp")

@@ -73,6 +73,25 @@
         for(const pattern of patterns){const match=pattern.regex.exec(clean);if(match){const vars=Object.fromEntries(pattern.names.map((name,index)=>[name,/^-?\d+(?:\.\d+)?$/.test(match[index+1])?Number(match[index+1]):match[index+1]]));return engine.text(pattern.key,vars);}}
         return value;
       },
+      decorateDishNames(){
+        for(const element of document.querySelectorAll('.dish-name')){
+          element.querySelector('.dish-name-translation')?.remove();
+          const native=element.textContent.trim(),entry=dishLookup.get(native);
+          if(!entry||entry.field!=='name'||engine.locale==='es')continue;
+          const translated=engine.dish(entry.id).displayName;
+          const same=text=>text.normalize('NFKC').toLocaleLowerCase(engine.locale).replace(/[\s\p{P}]+/gu,'');
+          if(!translated||same(translated)===same(native))continue;
+          const label=document.createElement('span');label.className='dish-name-translation';label.lang=engine.locale;
+          label.style.cssText='display:block;font:600 13px/1.5 system-ui;color:var(--text-muted);margin-top:5px;overflow-wrap:anywhere';
+          label.textContent=translated;
+          if(element.querySelector('span[style*="blur"]')){
+            const [kind,index]=entry.id.split(':'),dish=kind==='regular'?ALL_DISHES[Number(index)]:SUNDAY_INTERNATIONAL_DISHES[Number(index)];
+            const countryPattern=buildBlurRegex(dish.country),pattern=new RegExp('(?:'+countryPattern.source+')[\\p{L}]*','giu');
+            label.innerHTML=escapeHtml(translated).replace(pattern,match=>'<span style="filter:blur(5px);user-select:none">'+match+'</span>');
+          }
+          element.append(label);
+        }
+      },
       country(value){
         const code=source.flags?.[value];if(!code)return value;
         try{return new Intl.DisplayNames([engine.locale],{type:'region'}).of(code)||value;}catch(_){return value;}
@@ -140,6 +159,7 @@
       'pt-PT':['Versão de teste: a tua conta real não será alterada.','Experimentar sem conta (demonstração)'],
     };
     const script=document.createElement('script');script.src='app.js';script.onload=()=>{
+      localization.decorateDishNames();
       localization.applyStatic();loading.remove();
       if(isPreview){
         const text=previewText[engine.locale],notice=document.createElement('div');notice.id='preview-notice';notice.textContent=text[0];notice.style.cssText='width:100%;text-align:center;padding:8px 12px;background:#251a0d;border-bottom:1px solid #ffb627;color:#ffcf69;font:12px/1.4 system-ui';document.body.prepend(notice);

@@ -1,6 +1,6 @@
 # Idiomas: versión jugable para revisión
 
-Hay catálogos completos para español, inglés, francés, alemán, portugués de Brasil y portugués de Portugal. Cada catálogo contiene 1.231 claves de interfaz, 1.154 descripciones y 5.770 pistas. Los nombres tradicionales se mantienen como nombres propios. **Completo significa que existen todos los textos; no significa que cada traducción haya superado una revisión editorial.** Ningún idioma nuevo está aprobado para producción.
+Hay catálogos completos para español, inglés, francés, alemán, portugués de Brasil y portugués de Portugal. Cada catálogo contiene 1.231 claves de interfaz, 1.154 descripciones y 5.770 pistas. Los nombres originales se mantienen y los títulos descriptivos traducidos aparecen debajo, sin duplicar nombres tradicionales que se mantienen iguales. El campo displayName está separado del nombre canónico name y no cambia respuestas, semillas ni progreso. **Completo significa que existen todos los textos; no significa que cada traducción haya superado una revisión editorial.** Ningún idioma nuevo está aprobado para producción.
 
 ## Uso
 
@@ -42,7 +42,7 @@ La generación se reanuda gracias a su caché. Después se aplican siempre los c
 
 ## Comprobaciones y publicación
 
-Las 22 pruebas unitarias cubren datos canónicos, semillas, almacenamiento, claves referenciadas, cobertura estática, cambios de idioma, plurales, escape, bloqueo de borradores, recetas y regresiones anteriores. Las pruebas de Chrome recorren los seis idiomas en pantalla móvil: partida diaria, infinito, memoria, conservación del progreso y XP al cambiar idioma, pantallas secundarias, duelos simulados y ausencia de escrituras reales. La prueba sin conexión comprueba restauración de la demo, progreso, catálogos y conservación de la caché pública.
+Las 23 pruebas unitarias cubren datos canónicos, semillas, almacenamiento, claves referenciadas, cobertura estática, cambios de idioma, plurales, escape, bloqueo de borradores, recetas y regresiones anteriores. Las pruebas de Chrome recorren los seis idiomas en pantalla móvil: partida diaria, infinito, memoria, conservación del progreso y XP al cambiar idioma, pantallas secundarias, duelos simulados y ausencia de escrituras reales. La prueba sin conexión comprueba restauración de la demo, progreso, catálogos y conservación de la caché pública.
 
 `i18n:check-preview` exige textos, pistas, variables, marcado y versión completos. `i18n:check` añade las aprobaciones de publicación y debe seguir fallando mientras `applicationCoverageReviewed` y la revisión editorial completa sigan pendientes. Las pruebas técnicas no sustituyen la revisión lingüística.
 

@@ -72,6 +72,7 @@
       const field = key => typeof translated?.[key] === 'string' && translated[key].trim() ? translated[key] : original[key];
       return {
         name: field('name'),
+        displayName: typeof translated?.displayName === 'string' && translated.displayName.trim() ? translated.displayName : original.name,
         desc: field('desc'),
         hints: original.hints.map((hint, index) => translated?.hints?.[index]?.trim() ? translated.hints[index] : hint),
       };

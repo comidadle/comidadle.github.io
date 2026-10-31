@@ -36,6 +36,8 @@ function human(value){
 const skip=new Set(['ALL_DISHES','SUNDAY_INTERNATIONAL_DISHES','FLAGS','DEMONYMS','T','SB','SK','SH']);
 const start=source.lastIndexOf('<script>')+8,end=source.indexOf('</script>',start);
 let code=source.slice(start,end);
+code=code.replaceAll('<div style="text-align:center;font-size:17px;font-weight:700;color:var(--text);margin-bottom:.75rem">${d.name}</div>','<div class="dish-name" style="text-align:center;font-size:17px;font-weight:700;color:var(--text);margin-bottom:.75rem">${d.name}</div>');
+code=code.replaceAll('<div style="font-size:13px;font-weight:600">${d.name}</div>','<div class="dish-name" style="font-size:13px;font-weight:600">${d.name}</div>');
 code=code.replace(/\b(dish|d)\.name\.replace\(buildBlurRegex\(/g,'L10N.display($1.name).replace(buildBlurRegex(');
 code=code.replace('const t=[c,...(DEMONYMS[c]||[])];','const t=L10N.countryTerms(c,[c,...(DEMONYMS[c]||[])]);');
 code=code.replace('let currentLang=localStorage.getItem(LANG_KEY)||"es";','let currentLang=L10N.locale;');
@@ -185,7 +187,10 @@ function walk(node,edits,root=true){
     edits.push({start:node.start,end:node.end,text:value});return;
   }
   if(node.type==='AssignmentExpression'&&node.left.type==='MemberExpression'&&['innerHTML','textContent','innerText','title','placeholder'].includes(node.left.property?.name)){
-    const value=compile(node.right,true);if(value!==sourceText(node.right))edits.push({start:node.right.start,end:node.right.end,text:value});
+    const value=compile(node.right,true);
+    if(parents.get(node)?.type==='ExpressionStatement'&&((node.left.property.name==='innerHTML'&&sourceText(node.right).includes('dish-name'))||node.left.object.name==='nameEl')){
+      edits.push({start:node.start,end:node.end,text:`(${sourceText(node.left)}=${value},L10N.decorateDishNames())`});
+    }else if(value!==sourceText(node.right))edits.push({start:node.right.start,end:node.right.end,text:value});
     // No visitar la derecha dos veces.
     for(const child of children(node.left))walk(child,edits);return;
   }

@@ -4,7 +4,7 @@ function offlineMessage(request){const requested=(request.headers.get("Accept-La
 // Bump CACHE_VERSION whenever you release a new version of index.html so
 // clients pick up the fresh copy instead of serving a stale cached one.
 const CACHE_VERSION = "v3.3.0";
-const CACHE_NAME = "comidadle-preview-" + CACHE_VERSION + "-preview-5f10ea9aaccf";
+const CACHE_NAME = "comidadle-preview-" + CACHE_VERSION + "-preview-8bca11700987";
 
 // The app shell: index.html is a single self-contained file with ALL game
 // data embedded inline (dish list, hints, everything). Today's dish is
