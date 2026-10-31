@@ -1,8 +1,8 @@
 // Comidadle service worker — offline play support
-// Bump CACHE_VERSION whenever you release a new version of comidadle.html so
+// Bump CACHE_VERSION whenever you release a new version of index.html so
 // clients pick up the fresh copy instead of serving a stale cached one.
 const CACHE_VERSION = "v3.3.0";
-const CACHE_NAME = "comidadle-" + CACHE_VERSION;
+const CACHE_NAME = "comidadle-" + CACHE_VERSION + "-shell-1";
 
 // The app shell: index.html is a single self-contained file with ALL game
 // data embedded inline (dish list, hints, everything). Today's dish is
@@ -11,7 +11,7 @@ const CACHE_NAME = "comidadle-" + CACHE_VERSION;
 // fully offline — no separate data file to worry about.
 const APP_SHELL = [
   "./",
-  "./comidadle.html",
+  "./index.html",
   "./manifest.json",
 ];
 
