@@ -38,3 +38,7 @@ Se conserva la versión del juego 3.3.0 y su changelog.
 - Comprobar la instalación PWA y los flujos de sesión en navegador real.
 
 Los cambios de código están subidos a la rama `main` de `comidadle/comidadle.github.io`. No se han aplicado cambios remotos a Supabase.
+
+## Idiomas en preparación
+
+La rama de idiomas contiene un motor independiente, catálogos en borrador y una vista de revisión en `http://localhost:8080/i18n/review.html`. Todavía no traduce todo el juego ni está conectado a `index.html`. La traducción se publicará después de revisarla. El alcance, el estado real y las comprobaciones están documentados en [docs/IDIOMAS.md](docs/IDIOMAS.md).

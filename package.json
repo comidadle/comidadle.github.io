@@ -1,0 +1,17 @@
+{
+  "name": "comidadle",
+  "private": true,
+  "version": "3.3.0",
+  "scripts": {
+    "test": "node --test tests/*.cjs",
+    "i18n:audit": "node scripts/audit-i18n.cjs --write && node scripts/extract-i18n.mjs",
+    "i18n:prepare": "node scripts/prepare-locales.cjs",
+    "i18n:check": "node scripts/check-locales.cjs",
+    "i18n:test-browser": "node scripts/test-i18n-browser.cjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "acorn": "^8.19.0",
+    "parse5": "^8.0.1"
+  }
+}
