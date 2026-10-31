@@ -1794,7 +1794,18 @@ let isBanned=localStorage.getItem(BK)==="1";
 if(isBanned){myUser=localStorage.getItem(UK)||"";myId=localStorage.getItem(UDK)||"";}
 let isGuest=false,_sbSession=null,sbClient=null;
 const SESSK="comidadle_sess_saved";
-function _initSBClient(){if(typeof supabase!=="undefined"&&!sbClient){try{sbClient=supabase.createClient(SB,SK);}catch(e){}}}
+function _initSBClient(){
+  if(typeof supabase!=="undefined"&&!sbClient){
+    try{
+      sbClient=supabase.createClient(SB,SK);
+      // Mantener las peticiones REST al día cuando Auth renueva o cierra la sesión.
+      sbClient.auth.onAuthStateChange((_event,session)=>{
+        _sbSession=session;
+        SH.Authorization="Bearer "+(session?.access_token||SK);
+      });
+    }catch(e){}
+  }
+}
 function clearLoginError(){const e=document.getElementById("login-err");if(e)e.style.display="none";}
 function showLoginError(msg){const e=document.getElementById("login-err");if(e){e.textContent=msg;e.style.display="block";}}
 async function signInWithGoogle(){_initSBClient();if(!sbClient){showLoginError("Error de conexión.");return;}const btn=document.getElementById("google-signin-btn");if(btn){btn.textContent="Conectando...";btn.disabled=true;}const{error}=await sbClient.auth.signInWithOAuth({provider:"google",options:{redirectTo:window.location.origin+window.location.pathname}});if(error){showLoginError("Error: "+error.message);if(btn){btn.disabled=false;btn.innerHTML='<svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Continuar con Google';}}}
@@ -2137,13 +2148,22 @@ async function deleteFromRanking(){
 
 // ═══ WEEKLY ═══
 const WK="comidadle_weekly";
-function getWeekKey(){const d=new Date(),day=d.getDay(),diff=d.getDate()-day+(day===0?-6:1),m=new Date(d.setDate(diff));return m.toISOString().slice(0,10);}
-const weekKey=getWeekKey();
+function getWeekKey(){const d=new Date(),day=d.getDay();d.setDate(d.getDate()-day+(day===0?-6:1));return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+let weekKey=getWeekKey();
 let weekly={points:0,week:weekKey};
 try{const w=JSON.parse(localStorage.getItem(WK)||"{}");if(w.week&&w.week!==weekKey){localStorage.setItem("comidadle_lastweek",JSON.stringify({week:w.week,xp:w.points||0}));}if(w.week===weekKey)weekly=w;}catch(e){}
 const saveWeekly=()=>{localStorage.setItem(WK,JSON.stringify(weekly));};
+function ensureCurrentWeek(){
+  const current=getWeekKey();
+  if(current===weekKey)return;
+  localStorage.setItem("comidadle_lastweek",JSON.stringify({week:weekly.week,xp:weekly.points||0}));
+  weekKey=current;
+  weekly={points:0,week:current};
+  saveWeekly();
+}
 
 async function syncWeekly(){
+  ensureCurrentWeek();
   if(!myUser||isBanned)return;
   try{
     const ex=await sb("/rest/v1/weekly_ranking?username=eq."+encodeURIComponent(myUser)+"&week=eq."+weekKey+"&select=id,points");
@@ -2156,6 +2176,7 @@ async function syncWeekly(){
   }catch(e){console.warn("syncWeekly error:",e);}
 }
 async function fetchWeekly(){
+  ensureCurrentWeek();
   // weekly_ranking usa un id propio por fila (no el auth.uid), así que para incluirnos a
   // nosotros mismos aunque estemos ocultos filtramos por username, no por id.
   const orFilter=myUser?"or=(hidden.is.false,username.eq."+encodeURIComponent(myUser)+")":"hidden=is.false";
@@ -2164,6 +2185,7 @@ async function fetchWeekly(){
 
 function addWeeklyPoints(won,attempts){
   if(isGuest||isBanned)return 0;
+  ensureCurrentWeek();
   const earned=won?Math.max(1,7-attempts):0;
   if(earned>0){weekly.points+=earned;saveWeekly();syncWeekly();}
   return earned;
@@ -2173,7 +2195,7 @@ function addWeeklyPoints(won,attempts){
 const XPK="comidadle_xp",HK="comidadle_history";
 let totalXP=parseInt(localStorage.getItem(XPK)||"0")||0;
 function addXP(p){if(!p||p<=0||isGuest||isBanned)return;totalXP+=p;localStorage.setItem(XPK,String(totalXP));}
-function grantXP(p){if(!p||p<=0||isGuest||isBanned)return;addXP(p);weekly.points+=p;saveWeekly();syncWeekly();}
+function grantXP(p){if(!p||p<=0||isGuest||isBanned)return;ensureCurrentWeek();addXP(p);weekly.points+=p;saveWeekly();syncWeekly();}
 function getLevel(x){
   if(x<50)return{l:1,name:"Novato 🌱",next:50};
   if(x<150)return{l:2,name:"Aprendiz 🍽️",next:150};
@@ -2191,6 +2213,7 @@ function openProfile(){
   renderProfile();
 }
 function renderProfile(){
+  ensureCurrentWeek();
   const el=document.getElementById("profile-content");if(!el)return;
   if(!myUser){el.innerHTML=`<div style="text-align:center;padding:1.5rem 0"><div style="font-size:52px;margin-bottom:.75rem">👤</div><div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:.5rem">Sin perfil activo</div><div style="font-size:13px;color:var(--text-muted);margin-bottom:1.25rem;line-height:1.6">Inicia sesión o regístrate para activar tu perfil.</div><button class="play-btn" id="go-login-btn">🔑 Registrarme o iniciar sesión</button></div>`;document.getElementById("go-login-btn").addEventListener("click",()=>{closeModal("profile-modal");showLoginState("home");const ov=document.getElementById("login-overlay");if(ov)ov.style.display="flex";});return;}
   const lv=getLevel(totalXP),prog=lv.next?Math.round((totalXP/lv.next)*100):100;
@@ -2435,7 +2458,7 @@ async function renderOwnerPanel(){
     removeBtn.textContent="Quitando...";removeBtn.disabled=true;
     // Store negative gift
     try{
-      await adminAction("remove_xp",{username:name,amount,reason:reason||"Sanción del Owner",week:weekKey});
+      await adminAction("remove_xp",{username:name,amount,reason:reason||"Sanción del Owner",week:getWeekKey()});
       await sendNotification(name,"system","⚠️ -"+amount+" XP retirado","El Owner te ha retirado "+amount+" XP"+(reason?" — "+reason:"")+".").catch(()=>{});
       msg.style.color="var(--red)";msg.textContent="✅ -"+amount+" XP retirado a "+name;
       document.getElementById("gift-name-inp").value="";document.getElementById("gift-amount-inp").value="";
@@ -2630,6 +2653,7 @@ function saveMyCountry(c){
   syncCountryToServer().catch(()=>{});
 }
 async function syncCountryToServer(){
+  ensureCurrentWeek();
   if(!myUser)return;
   // Kept isolated from the main streak/wins upsert on purpose: if the "country" column
   // doesn't exist on the ranking/weekly_ranking tables yet, these fail silently without
@@ -2750,6 +2774,7 @@ async function renderWeeklyList(rows,cache=true){
   }).join("");
 }
 async function openWeekly(){
+  ensureCurrentWeek();
   openModal("weekly-modal");
   _weeklyCountryF="";
   populateCountryFilterSelects();
@@ -3262,6 +3287,7 @@ async function buyItem(itemId){
   localStorage.setItem(XPK,String(totalXP));
 
   // Deduct from weekly too (spending XP affects weekly ranking)
+  ensureCurrentWeek();
   if(weekly.points>0){
     weekly.points=Math.max(0,weekly.points-price);
     saveWeekly();
@@ -3545,6 +3571,7 @@ async function checkFriendXPGifts(){
     if(total<=0||claimedGifts.length===0)return;
     totalXP+=total;
     localStorage.setItem(XPK,String(totalXP));
+    ensureCurrentWeek();
     weekly.points+=total;
     saveWeekly();
     syncWeekly().catch(()=>{});
@@ -3723,6 +3750,7 @@ async function checkXPGifts(){
     // Apply XP change
     totalXP=Math.max(0,totalXP+totalGifted);
     localStorage.setItem(XPK,String(totalXP));
+    ensureCurrentWeek();
     weekly.points=Math.max(0,weekly.points+totalGifted);
     saveWeekly();
     syncWeekly().catch(()=>{});
