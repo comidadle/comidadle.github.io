@@ -33,11 +33,13 @@ const types = { '.html': 'text/html; charset=utf-8', '.js': 'application/javascr
     ]) {
       await page.locator('#search').fill('');
       await page.locator('#locale').selectOption(locale);
+      await page.waitForFunction(() => document.getElementById('status').textContent !== 'Cargando idioma…');
       await page.waitForFunction(expected => [...document.querySelectorAll('#rows td')].some(td => td.textContent === expected), title);
       if (locale !== 'es') {
         const status = await page.locator('#status').innerText();
-        assert.ok(status.includes(`49/${Object.keys(sourceCatalog.ui).length} candidatos de interfaz`));
-        assert.ok(status.includes(`0/${Object.keys(sourceCatalog.dishes).length} platos. No publicable`));
+        assert.ok(status.includes(`${Object.keys(sourceCatalog.ui).length}/${Object.keys(sourceCatalog.ui).length} textos`));
+        assert.ok(status.includes(`${Object.keys(sourceCatalog.dishes).length}/${Object.keys(sourceCatalog.dishes).length} platos`));
+        assert.ok(status.includes('Catálogo completo.'));
       }
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth));
       console.log(`${locale}: vista móvil comprobada, título correcto y estado visible.`);

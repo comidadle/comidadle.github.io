@@ -11,7 +11,7 @@
 <body>
 <main>
 <h1>Revisión de idiomas</h1>
-<p>Vista de trabajo separada del juego. Los idiomas están incompletos y no se han activado en la web pública.</p>
+<p>Vista de revisión separada del juego. Los catálogos en borrador no se han activado en la web pública. Los nombres tradicionales de los platos se conservan.</p>
 <div class="status" id="status" role="status" aria-live="polite">Cargando catálogos…</div>
 <div class="controls">
 <div><label for="locale">Idioma que revisar</label><select id="locale" disabled></select></div>
@@ -43,7 +43,8 @@
       const translated=Object.keys(source.ui).filter(key=>Object.hasOwn(target.ui,key)).length;
       const dishCount=Object.keys(target.dishes).length;
       status.className='status';
-      status.textContent=i18n.locale==='es'?'Español: catálogo de origen. La conexión completa con las pantallas sigue pendiente.':`${ComidadleI18n.LOCALES[i18n.locale]} · Borrador: ${translated}/${Object.keys(source.ui).length} candidatos de interfaz y ${dishCount}/${Object.keys(source.dishes).length} platos. No publicable.`;
+      const complete=translated===Object.keys(source.ui).length&&dishCount===Object.keys(source.dishes).length;
+      status.textContent=i18n.locale==='es'?'Español: catálogo de origen.':`${ComidadleI18n.LOCALES[i18n.locale]} · ${target.status==='reviewed'?'Revisado':'Borrador'}: ${translated}/${Object.keys(source.ui).length} textos y ${dishCount}/${Object.keys(source.dishes).length} platos. ${complete?'Catálogo completo.':'Traducción incompleta.'} ${target.status==='reviewed'?'':'Revisión pendiente; no publicable.'}`;
       const query=search.value.toLocaleLowerCase('es');
       const items=Object.entries(source.ui).map(([key,value])=>({key,source:format(value),translated:Object.hasOwn(target.ui,key)?format(target.ui[key]):null}));
       for(const [id,dish] of Object.entries(source.dishes)){

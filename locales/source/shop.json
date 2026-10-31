@@ -1,0 +1,156 @@
+[
+  {
+    "id": "color_red",
+    "name": "Rojo Fuego",
+    "description": "Color de avatar rojo",
+    "category": "color",
+    "value": "#EF4444"
+  },
+  {
+    "id": "color_blue",
+    "name": "Azul Océano",
+    "description": "Color de avatar azul",
+    "category": "color",
+    "value": "#3B82F6"
+  },
+  {
+    "id": "color_purple",
+    "name": "Púrpura Real",
+    "description": "Color de avatar púrpura",
+    "category": "color",
+    "value": "#8B5CF6"
+  },
+  {
+    "id": "color_pink",
+    "name": "Rosa Neon",
+    "description": "Color de avatar rosa",
+    "category": "color",
+    "value": "#EC4899"
+  },
+  {
+    "id": "color_gold",
+    "name": "Dorado",
+    "description": "Color de avatar dorado",
+    "category": "color",
+    "value": "#F59E0B"
+  },
+  {
+    "id": "color_green",
+    "name": "Verde Esmeralda",
+    "description": "Color de avatar verde",
+    "category": "color",
+    "value": "#10B981"
+  },
+  {
+    "id": "frame_gold",
+    "name": "Marco Dorado",
+    "description": "Marco dorado alrededor del avatar",
+    "category": "frame",
+    "value": "gold"
+  },
+  {
+    "id": "frame_silver",
+    "name": "Marco Plateado",
+    "description": "Marco plateado alrededor del avatar",
+    "category": "frame",
+    "value": "silver"
+  },
+  {
+    "id": "frame_neon",
+    "name": "Marco Neón",
+    "description": "Marco verde neón alrededor del avatar",
+    "category": "frame",
+    "value": "neon"
+  },
+  {
+    "id": "frame_fire",
+    "name": "Marco Fuego",
+    "description": "Marco rojo fuego alrededor del avatar",
+    "category": "frame",
+    "value": "fire"
+  },
+  {
+    "id": "badge_spicy",
+    "name": "🌶️ Picante",
+    "description": "Badge especial para los más atrevidos",
+    "category": "badge",
+    "value": "🌶️ Picante"
+  },
+  {
+    "id": "badge_foodie",
+    "name": "🍕 Foodie",
+    "description": "Para los amantes de la comida",
+    "category": "badge",
+    "value": "🍕 Foodie"
+  },
+  {
+    "id": "badge_legend",
+    "name": "🏆 Leyenda",
+    "description": "Para los más veteranos",
+    "category": "badge",
+    "value": "🏆 Leyenda"
+  },
+  {
+    "id": "badge_elite",
+    "name": "👑 Élite",
+    "description": "El badge más exclusivo",
+    "category": "badge",
+    "value": "👑 Élite"
+  },
+  {
+    "id": "badge_chef",
+    "name": "👨‍🍳 Chef",
+    "description": "Para los expertos en gastronomía",
+    "category": "badge",
+    "value": "👨‍🍳 Chef"
+  },
+  {
+    "id": "title_spicy",
+    "name": "Título: El Picante",
+    "description": "Título que aparece en el ranking",
+    "category": "title",
+    "value": "El Picante 🌶️"
+  },
+  {
+    "id": "title_master",
+    "name": "Título: Maestro Foodie",
+    "description": "Título de maestro",
+    "category": "title",
+    "value": "Maestro Foodie 🍽️"
+  },
+  {
+    "id": "title_elite",
+    "name": "Título: Élite Hispano",
+    "description": "Título élite",
+    "category": "title",
+    "value": "Élite Hispano 👑"
+  },
+  {
+    "id": "emoji_star",
+    "name": "⭐ Avatar Estrella",
+    "description": "Emoji estrella en tu avatar",
+    "category": "emoji",
+    "value": "⭐"
+  },
+  {
+    "id": "emoji_fire",
+    "name": "🔥 Avatar Fuego",
+    "description": "Emoji fuego en tu avatar",
+    "category": "emoji",
+    "value": "🔥"
+  },
+  {
+    "id": "emoji_crown",
+    "name": "👑 Avatar Corona",
+    "description": "Emoji corona en tu avatar",
+    "category": "emoji",
+    "value": "👑"
+  },
+  {
+    "id": "emoji_pepper",
+    "name": "🌶️ Avatar Chile",
+    "description": "Emoji chile en tu avatar",
+    "category": "emoji",
+    "value": "🌶️"
+  }
+]

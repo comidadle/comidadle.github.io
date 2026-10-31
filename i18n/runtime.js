@@ -51,14 +51,19 @@
       try { this.storage?.setItem('comidadle_lang', locale); } catch (_) {}
       return true;
     }
+    pattern(key, vars = {}) {
+      const value = message(Object.hasOwn(this.catalog.ui||{},key)?this.catalog.ui[key]:undefined, this.locale, vars);
+      const source = message(Object.hasOwn(this.source.ui||{},key)?this.source.ui[key]:undefined, 'es', vars);
+      return typeof value === 'string' && value.trim() ? value : source ?? key;
+    }
     text(key, vars = {}) {
-      const value = message(this.catalog.ui?.[key], this.locale, vars);
-      const source = message(this.source.ui?.[key], 'es', vars);
-      return interpolate(typeof value === 'string' && value.trim() ? value : source ?? key, vars);
+      const pattern = this.pattern(key, vars);
+      const formatted=Object.fromEntries(Object.entries(vars).map(([name,value])=>[name,typeof value==='number'?this.number(value,{maximumFractionDigits:12}):value]));
+      return interpolate(pattern, formatted);
     }
     // Solo se permite el marcado sencillo de los textos originales de la guía.
     richText(key, vars = {}) {
-      return escapeHtml(this.text(key)).replace(/&lt;(\/?)(strong|em|br)\s*\/?&gt;/gi, '<$1$2>').replace(/\{([\w]+)\}/g, (match, name) => Object.hasOwn(vars, name) ? escapeHtml(vars[name]) : match);
+      return escapeHtml(this.pattern(key,vars)).replace(/&lt;(\/?)(strong|em|br)\s*\/?&gt;/gi, '<$1$2>').replace(/\{([\w]+)\}/g, (match, name) => Object.hasOwn(vars, name) ? escapeHtml(typeof vars[name]==='number'?this.number(vars[name],{maximumFractionDigits:12}):vars[name]) : match);
     }
     dish(id) {
       const original = this.source.dishes[id];

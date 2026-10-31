@@ -1,0 +1,23 @@
+{
+  "properTerms": [
+    "achiote", "chipotle", "tomatillo", "miltomate", "huitlacoche", "epazote", "huacatay",
+    "ají panca", "ají amarillo", "ají mirasol", "ají limo", "ají charapita", "guajillo", "rocoto", "merkén",
+    "naranjilla", "lulo", "feijoa", "guayusa", "chayote", "hallacas", "hallaca", "humitas", "humita",
+    "nacatamales", "nacatamal", "llapingachos", "mote pillo", "bolón de verde", "seco de pollo", "seco de carne", "seco de chivo",
+    "locro", "mondongo", "sancocho", "ajiaco", "ceviche", "tiradito", "causa limeña", "pachamanca", "cuy chactado",
+    "pupusas", "pupusa", "gallo pinto", "vigorón", "pinolillo", "tiste", "chicha morada", "chicha", "pozole", "pozol",
+    "mole poblano", "mole", "pipián", "birria", "barbacoa", "tinga", "cochinita pibil", "sopaipillas", "sopaipilla",
+    "chipa", "mbejú", "mbeyú", "jopará", "surubí", "pacú", "alfajor", "alfajores", "hallullas", "hallulla",
+    "sopa paraguaya", "tortilla de rescoldo", "cañihua", "chuño", "charqui", "olluco", "ocopa", "tunta", "quimbombó",
+    "gandules", "mofongo", "mangú", "pernil", "tamales", "tamal", "tlayuda", "tlayudas", "chochoyotes", "chochoyote",
+    "cazabe", "casabe", "farofa", "tapioca", "arepas", "arepa", "cachapas", "cachapa", "jojoto", "choclo", "cancha",
+    "kimchi", "gochujang", "bulgogi", "bibimbap", "galanga", "rendang", "bumbu", "lemongrass", "kaffir", "shawarma", "sofrito"
+  ],
+  "terms": {
+    "pepitas de calabaza": {"en":"pumpkin seeds","fr":"graines de courge","de":"Kürbiskerne","pt-BR":"sementes de abóbora","pt-PT":"sementes de abóbora"},
+    "pepita de calabaza": {"en":"pumpkin seeds","fr":"graines de courge","de":"Kürbiskerne","pt-BR":"sementes de abóbora","pt-PT":"sementes de abóbora"},
+    "trompo giratorio vertical": {"en":"vertical rotating spit","fr":"broche verticale tournante","de":"senkrecht rotierender Fleischspieß","pt-BR":"espeto vertical giratório","pt-PT":"espeto vertical rotativo"},
+    "trompo vertical": {"en":"vertical spit","fr":"broche verticale","de":"senkrechter Fleischspieß","pt-BR":"espeto vertical","pt-PT":"espeto vertical"},
+    "taquitos de jamón": {"en":"diced ham","fr":"dés de jambon","de":"Schinkenwürfel","pt-BR":"cubinhos de presunto","pt-PT":"cubos de presunto"}
+  }
+}

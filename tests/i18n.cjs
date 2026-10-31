@@ -86,3 +86,15 @@ test('una traducción vacía usa la fuente durante la revisión y bloquea la pub
   assert.equal(i18n.dish('taco').hints[0], 'Pista uno');
   assert.ok(validateCatalog(source, draft).some(issue => issue.reason.includes('vacía')));
 });
+test('los nombres de propiedades heredadas no se interpretan como mensajes',()=>{
+  const i18n=new I18n(source);
+  assert.equal(i18n.text('constructor'),'constructor');
+  assert.equal(i18n.text('__proto__'),'__proto__');
+});
+test('los separadores locales de millares no convierten un plural en singular',async()=>{
+  const german={...english,locale:'de',ui:{...english.ui,count:{one:'{n} Versuch',other:'{n} Versuche'}}};
+  const i18n=new I18n(source,{fetchCatalog:async()=>german});
+  await i18n.setLocale('de');
+  assert.equal(i18n.text('count',{n:1000}),'1.000 Versuche');
+  assert.equal(i18n.text('count',{n:1}),'1 Versuch');
+});
