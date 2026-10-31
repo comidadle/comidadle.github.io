@@ -2,7 +2,11 @@
 
 Juego de adivinar el país de origen de un plato. La rama `codex/i18n-review` incluye una versión jugable para revisar español, inglés, francés, alemán, portugués de Brasil y portugués de Portugal antes de publicarlos.
 
-## Probar los idiomas
+## Probar desde móvil y PC
+
+Abrir [la demo privada](https://comidadle-idiomas-demo.burlyonyx1.chatgpt.site/preview/index.html). Si pide acceso, entrar con la cuenta de ChatGPT propietaria. Este enlace funciona sin encender el servidor del ordenador.
+
+## Ejecutar en el ordenador
 
 ```powershell
 npm ci
