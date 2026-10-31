@@ -1,0 +1,105 @@
+const {chromium}=require('@playwright/test');
+const http=require('node:http'),fs=require('node:fs/promises'),path=require('node:path'),assert=require('node:assert/strict');
+const root=path.resolve(__dirname,'..');
+const sdk='window.supabase={createClient(){return {auth:{onAuthStateChange(){return {data:{subscription:{unsubscribe(){}}}}},getSession:async()=>({data:{session:null}}),signOut:async()=>({error:null})}}}};';
+(async()=>{
+  const server=http.createServer(async(req,res)=>{try{const file=path.resolve(root,'.'+new URL(req.url,'http://localhost').pathname);if(!file.startsWith(root+path.sep)){res.writeHead(403).end();return;}const data=await fs.readFile(file);res.writeHead(200,{'Content-Type':file.endsWith('.js')?'application/javascript':file.endsWith('.json')?'application/json':'text/html; charset=utf-8'});res.end(data);}catch(_){res.writeHead(404).end();}});
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  let browser;
+  try{
+    browser=await chromium.launch({channel:'chrome',headless:true});
+    const context=await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'block'});
+    const locale=process.argv[2]||'es';
+    await context.addInitScript(locale=>{if(!localStorage.getItem('comidadle_preview_lang'))localStorage.setItem('comidadle_preview_lang',locale);},locale);
+    const backendWrites=[];
+    await context.route('https://**/*',route=>{
+      const url=route.request().url();
+      if(url.includes('supabase.min.js'))return route.fulfill({contentType:'application/javascript',body:sdk});
+      if(url.includes('.supabase.co/')){
+        if(!['GET','HEAD','OPTIONS'].includes(route.request().method()))backendWrites.push(url);
+        let data=[];
+        if(url.includes('/shop_items'))data=require('../locales/source/shop.json').map(item=>({...item,price:100,emoji:'⭐'}));
+        if(url.includes('/reviews?')&&route.request().method()==='GET')data=[{id:'fixture-review',username:'Guardar',stars:5,comment:'Comentario original sin traducir',created_at:'2026-10-01T12:00:00Z'}];
+        if(url.includes('/functions/v1/dish-recipe'))data={text:'Recipe fixture'};
+        return route.fulfill({contentType:'application/json',body:JSON.stringify(data)});
+      }
+      return route.abort();
+    });
+    const page=await context.newPage();const errors=[];page.on('pageerror',error=>errors.push(error.message));
+    await page.goto('http://127.0.0.1:'+server.address().port+'/preview/index.html');
+    await page.waitForFunction(()=>window.ComidadleLocalization&&typeof renderAll==='function');
+    await page.waitForTimeout(300);
+    console.log('Errores iniciales:',JSON.stringify(errors));
+    console.log('Título:',await page.title());
+    console.log('Idioma:',await page.locator('html').getAttribute('lang'));
+    assert.equal(await page.locator('html').getAttribute('lang'),locale);
+    console.log('Selector:',await page.locator('#language-select option').count());
+    console.log('Botones:',await page.locator('button').allTextContents().then(texts=>texts.filter(x=>/invitado|Guest|guest|jugar|play/i.test(x)).slice(0,12)));
+    assert.equal(await page.locator('#language-select option').count(),6);
+    assert.deepEqual(errors,[]);
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+    const result=await page.evaluate(()=>({count:ALL_DISHES.length,country:ALL_DISHES[0].country,name:ALL_DISHES[0].name,previewName:ComidadleLocalization.display(ALL_DISHES[0].name)}));
+    console.log(result);assert.equal(result.count,1082);assert.equal(result.country,'México');assert.equal(result.name,'Tacos al Pastor');
+    await page.evaluate(()=>{enterGuestMode();closeModal('how-modal');cfg.soundOn=false;cfg.hapticsOn=false;});
+    const daily=await page.evaluate(()=>({name:dish.name,country:dish.country,options:getOpts()}));
+    const labels=await page.locator('#grid .country-btn').allTextContents();
+    assert.equal(labels.length,daily.options.length);
+    const correctIndex=daily.options.indexOf(daily.country);assert.ok(correctIndex>=0);
+    await page.locator('#grid .country-btn').nth(correctIndex).click();
+    assert.equal(await page.evaluate(()=>done),true);
+    assert.equal(await page.evaluate(()=>log.at(-1)),true);
+    console.log('Partida diaria: respuesta canónica aceptada.');
+    await page.reload();
+    await page.waitForFunction(()=>typeof renderAll==='function');
+    assert.equal(await page.evaluate(()=>done),true);
+    const alternative=locale==='en'?'fr':'en';
+    await page.evaluate(()=>{totalXP=1234;localStorage.setItem(XPK,'1234');});
+    await page.locator('#login-language').selectOption(alternative);
+    await page.waitForFunction(locale=>window.ComidadleLocalization?.locale===locale&&typeof renderAll==='function',alternative);
+    assert.equal(await page.evaluate(()=>done),true);assert.equal(await page.evaluate(()=>totalXP),1234);
+    await page.locator('#login-language').selectOption(locale);
+    await page.waitForFunction(locale=>window.ComidadleLocalization?.locale===locale&&typeof renderAll==='function',locale);
+    assert.equal(await page.evaluate(()=>done),true);assert.equal(await page.evaluate(()=>totalXP),1234);
+    console.log('Cambio de idioma: conserva respuestas y XP, sin volver a premiar la partida.');
+    await page.evaluate(()=>{enterGuestMode();closeModal('how-modal');openInfiniteModal();});
+    const infinite=await page.evaluate(()=>({country:infDish.country,original:infDish.name}));
+    const canonicalValues=await page.locator('#infinite-modal-content .country-btn').evaluateAll(buttons=>buttons.map(button=>button.dataset.c));
+    assert.ok(canonicalValues.includes(infinite.country));
+    await page.locator('#infinite-modal-content .country-btn').filter({has:page.locator('span')}).evaluateAll((buttons,country)=>buttons.find(button=>button.dataset.c===country).click(),infinite.country);
+    assert.equal(await page.evaluate(()=>infWins),1);
+    console.log('Modo infinito: etiquetas traducidas con data-c canónico y acierto válido.');
+    await page.evaluate(()=>{closeModal('infinite-modal');openMemoryModal();startMemoryRound();});
+    await page.waitForTimeout(3300);
+    const memoryCountry=await page.evaluate(()=>memDish.country);
+    await page.locator('#memory-modal-content .country-btn').evaluateAll((buttons,country)=>buttons.find(button=>button.dataset.c===country).click(),memoryCountry);
+    assert.equal(await page.evaluate(()=>memWins),1);
+    console.log('Modo memoria: respuesta canónica aceptada.');
+    await page.evaluate(()=>{closeModal('memory-modal');isGuest=false;myUser='Guardar';myId='00000000-0000-0000-0000-000000000001';myCountry='España';openProfile();});
+    assert.ok((await page.locator('#profile-content').innerText()).includes('Guardar'));
+    await page.evaluate(()=>closeModal('profile-modal'));
+    for(const [fn,id] of [['openStats','stats-modal'],['openWeekly','weekly-modal'],['openRanking','ranking-modal'],['openShop','shop-modal'],['openAchievements','achievements-modal'],['openMissions','missions-modal'],['openPassportModal','passport-modal'],['openReviews','reviews-modal']]){
+      await page.evaluate(async name=>{await window[name]();},fn);
+      await page.waitForTimeout(60);
+      if(fn==='openReviews')await page.locator('#rv-list').getByText('Comentario original sin traducir',{exact:false}).waitFor();
+      if(fn==='openShop')assert.ok(await page.locator('#shop-content').innerText());
+      await page.evaluate(id=>closeModal(id),id);
+    }
+    console.log('Perfil, estadísticas, rankings, tienda, logros, misiones, pasaporte y reseñas comprobados. Nombres y comentarios originales conservados.');
+    await page.evaluate(()=>{
+      duel={id:'fixture-duel',role:'creator',attempts_max:6,dish_indices:[0],roundIdx:0,startedAt:Date.now(),log:[],wrong:new Set(),done:false,rounds:1};
+      openModal('duel-modal');renderDuelPlay();
+    });
+    const duelCountry=await page.evaluate(()=>ComidadleLocalization.country(ALL_DISHES[0].country));
+    await page.locator('#duel-grid .country-btn').evaluateAll(async(buttons,country)=>{const button=buttons.find(button=>button.textContent.endsWith(country));assertButton(button);await button.onclick();function assertButton(value){if(!value)throw Error('No aparece el país correcto en el duelo traducido.');}},duelCountry);
+    assert.equal(await page.evaluate(()=>duel.won),true);
+    await page.evaluate(()=>{grp={id:'fixture-group',attempts_max:6,dish_indices:[0],roundIdx:0,startedAt:Date.now(),log:[],wrong:new Set(),done:false,rounds:1};renderGroupPlay();});
+    await page.locator('#grp-grid .country-btn').evaluateAll(async(buttons,country)=>{const button=buttons.find(button=>button.textContent.endsWith(country));if(!button)throw Error('No aparece el país correcto en el grupo traducido.');await button.onclick();},duelCountry);
+    assert.equal(await page.evaluate(()=>grp.won),true);
+    console.log('Duelos individuales y de grupo: los nombres traducidos conservan la respuesta correcta.');
+    const blocked=await page.evaluate(async()=>{const response=await fetch(SB+'/rest/v1/ranking',{method:'POST',headers:SH,body:JSON.stringify({username:'must-not-be-sent'})});return response.status;});
+    assert.equal(blocked,409);assert.deepEqual(backendWrites,[]);
+    console.log('Vista de prueba: ninguna escritura llega a Supabase.');
+    assert.deepEqual(errors,[]);
+    await context.close();
+  }finally{await browser?.close();await new Promise(resolve=>server.close(resolve));}
+})().catch(error=>{console.error(error);process.exitCode=1;});

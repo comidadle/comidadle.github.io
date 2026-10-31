@@ -1,40 +1,32 @@
 # Comidadle
 
-Juego en español servido como web estática. Código importado del ZIP `comidadle.github.io-main.zip`.
+Juego de adivinar el país de origen de un plato. La rama `codex/i18n-review` incluye una versión jugable para revisar español, inglés, francés, alemán, portugués de Brasil y portugués de Portugal antes de publicarlos.
 
-## Ejecutar en local
-
-Desde esta carpeta, con Python instalado:
+## Probar los idiomas
 
 ```powershell
-python -m http.server 8080
+npm ci
+python -m http.server 8765 --bind 127.0.0.1
 ```
 
-Abrir http://localhost:8080. El modo sin conexión necesita una primera visita con red. Los proveedores de autenticación pueden necesitar configurar el origen local en Supabase.
+Abrir [la demo](http://127.0.0.1:8765/preview/index.html), elegir el idioma y pulsar **Probar sin cuenta (demostración)**. También se puede cambiar desde Configuración. La demo bloquea las escrituras a Supabase; no modifica la cuenta ni el ranking reales. Las partidas de demostración se guardan en este navegador y origen local.
 
-## Comprobar las correcciones
+Los seis catálogos incluyen 1.231 claves de interfaz, 1.154 descripciones y 5.770 pistas por idioma. Los nombres tradicionales de los platos se conservan. La [tabla de revisión](http://127.0.0.1:8765/i18n/review.html) permite buscar textos y compararlos con el español.
 
-Con Node.js instalado:
+**Las traducciones siguen siendo borradores editoriales.** Hay generación automática inicial, controles revisados y adaptación regional portuguesa; no se ha aprobado cada frase. `index.html`, `sw.js` y `manifest.json` públicos conservan su contenido. Esta rama no activa los idiomas en producción.
+
+## Verificar
+
+Node.js 24 y Chrome instalado:
 
 ```powershell
-node --test tests/regression.cjs
+npm test
+npm run i18n:check-preview
+npm run i18n:test-browser
+npm run i18n:test-game
+npm run i18n:test-offline
 ```
 
-Las pruebas cubren la fecha local de la semana, el reinicio de puntos con una pestaña abierta, la actualización del token REST y los archivos guardados por el service worker. Usan dobles locales; no llaman a Supabase ni sustituyen la verificación en un navegador real.
+Las pruebas de navegador usan respuestas locales simuladas. Comprueban partidas, conservación del progreso, pantallas, comentarios originales, bloqueo de escrituras y arranque sin conexión. `npm run i18n:check` mantiene el bloqueo de publicación hasta completar la revisión editorial.
 
-## Correcciones locales
-
-- El service worker guarda `index.html`, que es el archivo incluido en el proyecto. Se distingue la caché corregida para retirar la anterior.
-- El token de las peticiones REST sigue los eventos de Supabase Auth.
-- La semana se calcula en fecha local y se renueva antes de consultar o modificar los puntos, conservando el resumen de la semana anterior.
-
-Se conserva la versión del juego 3.3.0 y su changelog.
-
-## Pendiente
-
-- Verificar tablas, restricciones y políticas de Supabase antes de cambiar la sincronización del ranking.
-- Resolver el cambio de nombre en el ranking semanal y las inserciones simultáneas de varias pestañas. Las correcciones locales todavía no solucionan esos dos problemas.
-- Revisar el acceso a `email_for_username`, `app_secrets` y `xp_gifts`, y el estado real de las funciones `username-login` y `dish-recipe`.
-- Comprobar la instalación PWA y los flujos de sesión en navegador real.
-
-Los cambios de código están subidos a la rama `main` de `comidadle/comidadle.github.io`. No se han aplicado cambios remotos a Supabase.
+La arquitectura, generación y pendientes están documentados en [docs/IDIOMAS.md](docs/IDIOMAS.md). La función de recetas multilingües incluida está preparada y probada localmente; todavía no está desplegada en Supabase.

@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title data-l10n-node-0="msg_66a85356b7fc996f">Comidadle — ¿De dónde es esta comida?</title>
+
+
+<link rel="manifest" href="manifest.json">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Comidadle">
+<meta name="theme-color" content="#FF6B35">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23100900'/><text y='.9em' font-size='75' x='12'>🌶️</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌶️</text></svg>">
+<meta name="description" content="Adivina el país de origen de 3 platos hispanos cada día." data-l10n-attr-content="msg_486eb537c6fde2fb">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,800;9..144,900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+.hidden{display:none!important}
+:root{--bg:#100900;--surface:#1C1208;--surface2:#251A0D;--border:rgba(255,150,50,.14);--border-strong:rgba(255,150,50,.28);--text:#FFF3E0;--text-muted:#9A7050;--accent:#FF6B35;--gold:#FFB627;--green:#22C55E;--green-bg:rgba(34,197,94,.12);--red:#F05050;--r:12px;--r-sm:8px}
+body.colorblind{--green:#2D7DD2;--green-bg:rgba(45,125,210,.14);--red:#F59E0B}
+.passport-card{display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.6rem .3rem;cursor:pointer;text-align:center;color:var(--text);font-family:inherit;transition:transform .15s ease}
+.passport-card:active{transform:scale(.95)}
+.passport-card.unlocked{border-color:var(--gold);background:rgba(255,182,39,.08)}
+body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;overflow-x:hidden}
+body::before{content:'';position:fixed;top:-80px;left:50%;transform:translateX(-50%);width:700px;height:500px;background:radial-gradient(ellipse at center,rgba(255,107,53,.07) 0%,transparent 65%);pointer-events:none;z-index:0}
+header{width:100%;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(16,9,0,.92);backdrop-filter:blur(10px);z-index:10}
+.header-inner{max-width:520px;margin:0 auto;padding:.875rem 1.25rem;display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:'Fraunces',serif;font-size:19px;font-weight:900;color:var(--text);display:flex;align-items:center;gap:6px}
+.logo .dot-accent{color:var(--accent)}
+.header-actions{flex-shrink:0;display:flex;gap:8px;align-items:center}
+.date-pill{font-size:11px;font-weight:600;color:var(--text-muted);background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:3px 10px;white-space:nowrap}
+.header-hard-row{display:none;background:rgba(255,182,39,.08);border-bottom:1px solid rgba(255,182,39,.2);padding:4px 1.25rem;font-size:10px;font-weight:700;color:var(--gold);letter-spacing:.07em;justify-content:center;gap:6px}
+.icon-btn{background:var(--surface2);border:1px solid var(--border-strong);border-radius:var(--r-sm);width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);transition:color .15s,border-color .15s}
+.icon-btn:hover{color:var(--accent);border-color:var(--accent)}
+/* MODALS */
+.modal-overlay{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:1rem;animation:fadeIn .2s ease}
+#auth-prompt-modal{z-index:250}
+.modal{background:var(--surface);border:1px solid var(--border-strong);border-radius:16px;width:100%;max-width:430px;padding:1.75rem 1.5rem;position:relative;max-height:90vh;overflow-y:auto;animation:popIn .3s cubic-bezier(.34,1.56,.64,1) both}
+.modal-close{position:absolute;top:1rem;right:1rem;background:var(--surface2);border:1px solid var(--border);border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);font-size:16px;line-height:1;transition:color .15s}
+.modal-close:hover{color:var(--text)}
+.modal-title{font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--text);margin-bottom:1.1rem}
+.modal-divider{height:1px;background:var(--border);margin:1rem 0}
+/* HOW TO PLAY */
+.how-step{display:flex;gap:10px;align-items:flex-start;margin-bottom:.75rem}
+.step-num{background:var(--accent);color:#fff;border-radius:50%;width:22px;height:22px;min-width:22px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.step-text{font-size:13px;color:var(--text-muted);line-height:1.55}
+.step-text strong{color:var(--text);font-weight:600}
+.emoji-demo{display:flex;gap:6px;justify-content:center;margin:.75rem 0;font-size:20px;letter-spacing:3px}
+/* SETTINGS */
+.settings-section-label{font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:.1em;margin:.875rem 0 .5rem;text-transform:uppercase}
+.setting-row{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;padding:.7rem 0;border-bottom:1px solid var(--border)}
+.setting-row:last-child{border-bottom:none}
+.setting-label{font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px}
+.setting-desc{font-size:12px;color:var(--text-muted);line-height:1.5}
+.toggle{position:relative;width:44px;height:24px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-track{position:absolute;inset:0;background:var(--surface2);border:1px solid var(--border-strong);border-radius:99px;cursor:pointer;transition:background .2s,border-color .2s}
+.toggle input:checked+.toggle-track{background:var(--accent);border-color:var(--accent)}
+.toggle-track::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s}
+.toggle input:checked+.toggle-track::after{transform:translateX(20px)}
+/* BUTTONS */
+.play-btn{width:100%;padding:.75rem;background:var(--accent);color:#fff;border:none;border-radius:var(--r-sm);font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:1rem;transition:opacity .15s}
+.play-btn:hover{opacity:.88}
+.ranking-btn{display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border-strong);border-radius:var(--r-sm);padding:.5rem .875rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;transition:border-color .15s,color .15s}
+.ranking-btn:hover{border-color:var(--accent);color:var(--accent)}
+.ranking-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.ranking-btn.primary:hover{opacity:.88}
+.share-btn{display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:#fff;border:none;border-radius:var(--r-sm);padding:.65rem 1.35rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .15s}
+.share-btn:hover{opacity:.88}
+.infinite-btn{width:100%;padding:.75rem;background:var(--surface2);color:var(--text);border:1px solid var(--border-strong);border-radius:var(--r-sm);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-top:.75rem;transition:border-color .15s,color .15s;display:flex;align-items:center;justify-content:center;gap:8px}
+.infinite-btn:hover{border-color:var(--accent);color:var(--accent)}
+/* SHARE */
+.share-textarea{width:100%;background:var(--surface2);border:1px solid var(--border-strong);border-radius:var(--r-sm);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;padding:.75rem;resize:none;margin:.75rem 0;line-height:1.6}
+.copy-btn{width:100%;padding:.65rem;background:var(--accent);color:#fff;border:none;border-radius:var(--r-sm);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .15s,background .2s}
+.copy-btn:hover{opacity:.88}
+.copy-btn.copied{background:var(--green)}
+/* GAME */
+main{flex:1;width:100%;display:flex;justify-content:center;position:relative;z-index:1}
+.game{width:100%;max-width:520px;padding:1.5rem 1.25rem 3rem;display:flex;flex-direction:column;gap:.875rem}
+.subtitle{text-align:center;padding-bottom:.25rem}
+.subtitle h1{font-family:'Fraunces',serif;font-size:clamp(21px,5.5vw,27px);font-weight:900;line-height:1.1;color:var(--text);margin-bottom:.3rem}
+.subtitle p{font-size:13px;color:var(--text-muted)}
+.dish-tabs{display:flex;gap:6px;justify-content:center}
+.dish-tab{background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--r-sm);padding:.4rem .875rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;color:var(--text-muted);cursor:pointer;transition:all .15s}
+.dish-tab:hover{border-color:var(--accent);color:var(--accent)}
+.dish-tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.dish-tab.completed{border-color:var(--green);color:var(--green)}
+.dish-tab.active.completed{background:var(--green);border-color:var(--green);color:#fff}
+.dish-card{background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--r);padding:1.5rem 1.25rem;text-align:center;animation:fadeUp .45s ease both}
+.dish-emoji{font-size:54px;line-height:1;margin-bottom:.75rem;display:block}
+.dish-name{font-family:'Fraunces',serif;font-size:21px;font-weight:900;color:var(--text);margin-bottom:.45rem}
+.dish-desc{font-size:13px;color:var(--text-muted);line-height:1.65}
+.dots{display:flex;gap:7px;justify-content:center}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--surface2);border:1px solid var(--border-strong);transition:background .3s,transform .25s}
+.dot.correct{background:var(--green);border-color:var(--green);transform:scale(1.25)}
+.dot.wrong{background:var(--red);border-color:var(--red)}
+.hints{display:flex;flex-direction:column;gap:6px}
+.hint{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.6rem .875rem;font-size:13px;color:var(--text-muted);line-height:1.55;animation:fadeUp .35s ease both}
+.hint strong{color:var(--gold);font-weight:600}
+.country-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.country-btn{background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--r-sm);padding:.6rem .75rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text);cursor:pointer;text-align:left;display:flex;align-items:center;gap:8px;transition:background .15s,border-color .15s,transform .1s}
+.country-btn:hover:not(:disabled){background:var(--surface2);border-color:var(--accent)}
+.country-btn:active:not(:disabled){transform:scale(.96)}
+.country-btn:disabled{opacity:.3;cursor:not-allowed}
+.country-btn.correct-answer{background:var(--green-bg)!important;border-color:var(--green)!important;color:var(--green)!important;opacity:1!important;font-weight:700}
+.country-btn.shake{animation:shake .35s ease}
+/* RESULT */
+.result-box{background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--r);padding:1.5rem 1.25rem;text-align:center;animation:popIn .45s cubic-bezier(.34,1.56,.64,1) both}
+.result-big{font-size:38px;margin-bottom:.5rem;display:block}
+.result-title{font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--text);margin-bottom:.3rem}
+.result-sub{font-size:13px;color:var(--text-muted);margin-bottom:.75rem}
+.emoji-row{font-size:22px;letter-spacing:5px;margin-bottom:1rem;line-height:1}
+.countdown-box{text-align:center;padding:.75rem 0 .25rem}
+.countdown-label{font-size:11px;color:var(--text-muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.countdown-time{font-family:'Fraunces',serif;font-size:28px;font-weight:900;color:var(--gold);letter-spacing:2px}
+/* YESTERDAY */
+.yesterday-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.25rem;display:flex;align-items:center;gap:12px}
+.yesterday-emoji{font-size:30px;line-height:1;flex-shrink:0}
+.yesterday-info{flex:1;min-width:0}
+.yesterday-label{font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px}
+.yesterday-name{font-size:14px;font-weight:600;color:var(--text)}
+.yesterday-country{font-size:12px;color:var(--text-muted);margin-top:2px}
+/* INFINITE */
+.infinite-section{background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--r);padding:1.25rem;animation:fadeUp .4s ease both}
+.infinite-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.infinite-title{font-family:'Fraunces',serif;font-size:16px;font-weight:900;color:var(--text)}
+.infinite-score{font-size:12px;color:var(--text-muted);font-weight:600}
+.infinite-score span{color:var(--gold);font-weight:700}
+/* RANKING */
+.ranking-table{width:100%;border-collapse:collapse;margin-top:.5rem}
+.ranking-table th{font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;padding:.5rem .75rem;text-align:left;border-bottom:1px solid var(--border)}
+.ranking-table td{padding:.65rem .75rem;font-size:13px;color:var(--text);border-bottom:1px solid var(--border);vertical-align:middle}
+.ranking-table tr:last-child td{border-bottom:none}
+.ranking-table tr.me td{background:rgba(255,107,53,.08);color:var(--accent);font-weight:600}
+.rank-pos{font-family:'Fraunces',serif;font-size:16px;font-weight:900;color:var(--text-muted)}
+.rank-pos.gold{color:#FFB627}.rank-pos.silver{color:#C0C0C0}.rank-pos.bronze{color:#CD7F32}
+.rank-name{font-weight:600;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rank-streak{color:var(--accent);font-weight:700;font-family:'Fraunces',serif;font-size:15px}
+.rank-wins{color:var(--text-muted);font-size:12px}
+.username-input{width:100%;background:var(--surface2);border:1px solid var(--border-strong);border-radius:var(--r-sm);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;padding:.65rem .875rem;margin:.75rem 0;outline:none}
+.username-input:focus{border-color:var(--accent)}
+.ranking-empty{text-align:center;padding:2rem;color:var(--text-muted);font-size:13px}
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem}
+.stat-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.875rem;text-align:center}
+.stat-card-num{font-family:'Fraunces',serif;font-size:28px;font-weight:900;color:var(--text);line-height:1}
+.stat-card-label{font-size:11px;color:var(--text-muted);margin-top:4px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.stat-card.accent .stat-card-num{color:var(--accent)}
+.stat-card.gold .stat-card-num{color:var(--gold)}
+.stat-card.green .stat-card-num{color:var(--green)}
+.attempts-chart{margin-bottom:1rem}
+.attempts-chart-title{font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.625rem}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.bar-label{font-size:12px;color:var(--text-muted);width:14px;text-align:right;flex-shrink:0}
+.bar-track{flex:1;background:var(--surface2);border-radius:99px;height:18px;overflow:hidden}
+.bar-fill{height:100%;border-radius:99px;background:var(--accent);display:flex;align-items:center;justify-content:flex-end;padding-right:6px}
+.bar-count{font-size:11px;font-weight:700;color:#fff;white-space:nowrap}
+.bar-fill.zero{background:var(--surface2)}
+/* REVIEWS */
+.review-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.875rem;margin-bottom:.625rem}
+.review-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem}
+.review-name{font-size:13px;font-weight:700;color:var(--text)}
+.review-stars{font-size:14px;letter-spacing:1px}
+.review-date{font-size:11px;color:var(--text-muted)}
+.review-comment{font-size:13px;color:var(--text-muted);line-height:1.55}
+.review-textarea{width:100%;background:var(--surface2);border:1px solid var(--border-strong);border-radius:var(--r-sm);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;padding:.75rem;resize:none;margin:.5rem 0;line-height:1.6;min-height:80px}
+.reply-card{background:var(--surface);border-left:2px solid var(--border-strong);padding:.625rem .75rem;margin-top:.4rem;border-radius:0 var(--r-sm) var(--r-sm) 0}
+.reply-name{font-size:12px;font-weight:700;color:var(--text)}
+.reply-admin-badge{background:var(--accent);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:99px;margin-left:5px;vertical-align:middle}
+.reply-text{font-size:12px;color:var(--text-muted);margin-top:2px;line-height:1.5}
+.reply-date{font-size:10px;color:var(--text-muted)}
+.reply-toggle-btn{background:none;border:none;color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;padding:.25rem 0;font-family:'Plus Jakarta Sans',sans-serif}
+.reply-input-row{display:flex;gap:6px;margin-top:.5rem}
+.reply-input{flex:1;background:var(--surface2);border:1px solid var(--border-strong);border-radius:var(--r-sm);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;padding:.4rem .65rem;outline:none}
+.reply-send-btn{background:var(--accent);border:none;border-radius:var(--r-sm);color:#fff;font-size:12px;font-weight:600;padding:.4rem .75rem;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap}
+/* SIDE MENU */
+.side-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;opacity:0;pointer-events:none;transition:opacity .3s}
+.side-overlay.open{opacity:1;pointer-events:all}
+.side-menu{position:fixed;top:0;left:0;height:100%;width:280px;max-width:85vw;background:var(--surface);border-right:1px solid var(--border);z-index:201;transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;overflow-y:auto}
+.side-menu.open{transform:translateX(0)}
+.side-menu-header{padding:1.25rem;border-bottom:1px solid rgba(255,150,50,.14);display:flex;align-items:center;justify-content:space-between}
+.side-menu-title{font-family:'Fraunces',serif;font-size:18px;font-weight:900;color:var(--text)}
+.side-menu-close{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:20px;line-height:1;padding:4px}
+.side-menu-section{padding:.75rem 1.25rem;border-bottom:1px solid rgba(255,150,50,.08)}
+.side-menu-label{font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem}
+.side-menu-item{display:flex;align-items:center;gap:12px;padding:.75rem;border-radius:10px;cursor:pointer;transition:background .15s;width:100%;background:none;border:none;text-align:left;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif}
+.side-menu-item:hover{background:rgba(255,107,53,.08)}
+.side-menu-item.locked{position:relative;overflow:hidden;cursor:not-allowed;opacity:.6}
+.side-menu-item.locked:hover{background:none}
+.side-menu-item.locked .side-menu-item-icon,.side-menu-item.locked .side-menu-item-name,.side-menu-item.locked .side-menu-item-desc{filter:blur(1.5px)}
+.locked-badge{position:absolute;inset:0;background:rgba(16,9,0,.82);display:flex;align-items:center;justify-content:center;gap:6px;z-index:2;border-radius:inherit}
+.locked-badge span{font-size:11px;font-weight:900;color:var(--accent);letter-spacing:.2px;white-space:nowrap}
+.side-menu-item-icon{width:36px;height:36px;border-radius:10px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px}
+.side-menu-item-name{font-size:14px;font-weight:600;color:var(--text)}
+.side-menu-item-desc{font-size:11px;color:var(--text-muted);margin-top:1px}
+.side-menu-footer{padding:1rem 1.25rem;margin-top:auto;font-size:11px;color:var(--text-muted);text-align:center}
+/* FOOTER */
+footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;position:relative;z-index:1}
+.footer-inner{max-width:520px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem}
+.footer-credit{font-size:12px;color:var(--text-muted)}
+.footer-credit strong{color:var(--text);font-weight:600}
+.footer-links{display:flex;gap:1rem;align-items:center}
+.footer-links a{font-size:12px;font-weight:500;color:var(--text-muted);text-decoration:none;display:flex;align-items:center;gap:5px;transition:color .15s}
+.footer-links a:hover{color:var(--accent)}
+.footer-links a.no-gmail{opacity:.4;cursor:default;pointer-events:none}
+/* ANIMATIONS */
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes popIn{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+@keyframes splashPop{0%{transform:scale(0) rotate(-20deg);opacity:0}100%{transform:scale(1) rotate(0deg);opacity:1}}
+.shop-tab-btn{flex:1;padding:.45rem .5rem;border:none;border-radius:6px;background:transparent;color:var(--text-muted);font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .15s}
+.shop-tab-btn.active{background:var(--accent);color:#fff}
+.shop-item-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.875rem;margin-bottom:.5rem;display:flex;align-items:center;gap:12px}
+.shop-item-card.owned{border-color:var(--green)}
+.shop-item-preview{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;border:2px solid rgba(255,255,255,.15)}
+.avatar-frame-gold{box-shadow:0 0 0 3px #FFB627,0 0 0 5px rgba(255,182,39,.3)}
+.avatar-frame-silver{box-shadow:0 0 0 3px #C0C0C0,0 0 0 5px rgba(192,192,192,.3)}
+.avatar-frame-neon{box-shadow:0 0 0 3px #22C55E,0 0 8px rgba(34,197,94,.6)}
+.avatar-frame-fire{box-shadow:0 0 0 3px #EF4444,0 0 8px rgba(239,68,68,.6)}
+@keyframes toastUp{0%{opacity:0;transform:translateX(-50%) translateY(20px)}20%{opacity:1;transform:translateX(-50%) translateY(0)}80%{opacity:1;transform:translateX(-50%) translateY(0)}100%{opacity:0;transform:translateX(-50%) translateY(-20px)}}
+@keyframes toastSlideUp{from{opacity:0;transform:translateY(16px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes splashFadeOut{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.05)}}
+@media(max-width:380px){.country-btn{font-size:13px;padding:.5rem .6rem}.dish-emoji{font-size:46px}}
+/* iOS Safari hace auto-zoom al enfocar un input/select con font-size menor a 16px.
+   Este ajuste solo afecta a pantallas pequeñas (móvil) y no cambia el tamaño visual
+   en escritorio, evitando el zoom accidental al abrir el teclado en iPhone. */
+@media (max-width:600px){
+  input,select,textarea{font-size:16px!important}
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" defer></script>
+<style>.country-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.country-btn{min-width:0}.country-btn>span:last-child{min-width:0;overflow-wrap:anywhere;hyphens:auto}.setting-info{min-width:0;flex:1}.setting-desc{overflow-wrap:anywhere}</style><script src="../i18n/runtime.js"></script>
+</head>
+<body>
+<!-- LOGIN OVERLAY -->
+<div id="login-overlay" style="position:fixed;inset:0;background:var(--bg);z-index:9998;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem;overflow-y:auto">
+  <div style="width:100%;max-width:360px">
+    <div style="text-align:center;margin-bottom:2rem">
+      <div style="font-family:'Fraunces',serif;font-size:2.4rem;font-weight:900;color:var(--accent)">🌶️ Comidadle</div>
+      <div style="font-size:13px;color:var(--text-muted);margin-top:.3rem" data-l10n-node-0="msg_3bf8927aa7f59d50">El juego diario de gastronomía hispana</div>
+    </div>
+
+    <!-- HOME STATE -->
+    <div id="auth-state-home">
+      <button onclick="showLoginState('register')" style="width:100%;padding:.9rem 1rem;background:var(--accent);color:#fff;border:none;border-radius:var(--r-sm);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:.6rem" data-l10n-node-0="msg_d3253f6f0d99153f">📝 Registrarme</button>
+      <button onclick="showLoginState('login')" style="width:100%;padding:.9rem 1rem;background:var(--surface2);color:var(--text);border:1.5px solid var(--border-strong);border-radius:var(--r-sm);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:1.25rem" data-l10n-node-0="msg_b5bffc028a692068">🔑 Iniciar sesión</button>
+      <div style="display:flex;align-items:center;gap:.75rem;margin:0 0 1.25rem"><div style="flex:1;height:1px;background:var(--border)"></div><span style="font-size:12px;color:var(--text-muted)">o</span><div style="flex:1;height:1px;background:var(--border)"></div></div>
+      <button onclick="enterGuestMode()" style="width:100%;padding:.75rem;background:transparent;color:var(--text-muted);border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit" data-l10n-node-0="msg_b3763b5ff5b77b98">👀 Modo invitado</button>
+      <div style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:.4rem" data-l10n-node-0="msg_87dfe494c66d713a">Sin cuenta · Sin XP · Solo juego</div>
+    </div>
+
+    <!-- REGISTER STATE -->
+    <div id="auth-state-register" style="display:none">
+      <button onclick="showLoginState('home')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;font-family:inherit;margin-bottom:1rem;padding:0" data-l10n-node-0="msg_8c0c8c68e7d08015">← Volver</button>
+      <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:1rem" data-l10n-node-0="msg_1f2ffbaa5698001f">Crear una cuenta</div>
+      <input id="reg-username" placeholder="Nombre de usuario" maxlength="20" style="width:100%;padding:.7rem .875rem;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:14px;color:var(--text);box-sizing:border-box;outline:none;margin-bottom:.6rem" autocomplete="username" data-l10n-attr-placeholder="msg_9dbc56a187da5c33">
+      <input id="reg-email" type="email" placeholder="Correo electrónico" style="width:100%;padding:.7rem .875rem;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:14px;color:var(--text);box-sizing:border-box;outline:none;margin-bottom:.6rem" autocomplete="email" data-l10n-attr-placeholder="msg_ec64dc30a483cdcf">
+      <input id="reg-password" type="password" placeholder="Contraseña (mín. 6 caracteres)" style="width:100%;padding:.7rem .875rem;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:14px;color:var(--text);box-sizing:border-box;outline:none;margin-bottom:.6rem" autocomplete="new-password" data-l10n-attr-placeholder="msg_d315f6737833f35d">
+      <input id="reg-password2" type="password" placeholder="Repite la contraseña" style="width:100%;padding:.7rem .875rem;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:14px;color:var(--text);box-sizing:border-box;outline:none;margin-bottom:.6rem" autocomplete="new-password" onkeydown="if(event.key==='Enter')registerWithEmail()" data-l10n-attr-placeholder="msg_fb1ba2096139e4aa">
+      <select id="reg-country" class="username-input" style="width:100%;padding:.7rem .875rem;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:14px;color:var(--text);box-sizing:border-box;outline:none;margin-bottom:.75rem"></select>
+      <div id="register-err" style="display:none;background:#fee2e2;border:1px solid #fca5a5;border-radius:var(--r-sm);padding:.65rem .875rem;font-size:13px;color:#dc2626;margin-bottom:.75rem;text-align:center"></div>
+      <button onclick="registerWithEmail()" id="register-submit-btn" style="width:100%;padding:.8rem;background:var(--accent);color:#fff;border:none;border-radius:var(--r-sm);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit" data-l10n-node-0="msg_f620f0331df880f1">Crear cuenta</button>
+    </div>
+
+    <!-- LOGIN STATE -->
+    <div id="auth-state-login" style="display:none">
+      <button onclick="showLoginState('home')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;font-family:inherit;margin-bottom:1rem;padding:0" data-l10n-node-0="msg_8c0c8c68e7d08015">← Volver</button>
+      <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:1rem" data-l10n-node-0="msg_8d518bb65ea3dedb">Iniciar sesión</div>
+      <button onclick="signInWithGoogle()" id="google-signin-btn" style="width:100%;display:flex;align-items:center;justify-content:center;gap:.75rem;padding:.9rem 1rem;background:#fff;color:#1f1f1f;border:1.5px solid #dadce0;border-radius:var(--r-sm);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 1px 3px rgba(0,0,0,.08)" data-l10n-node-1="msg_ab51f6ea598536b6"><svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>Continuar con Google</button>
+      <div style="display:flex;align-items:center;gap:.75rem;margin:1.1rem 0"><div style="flex:1;height:1px;background:var(--border)"></div><span style="font-size:12px;color:var(--text-muted)" data-l10n-node-0="msg_fdf6477704c7c7b2">o con tu correo</span><div style="flex:1;height:1px;background:var(--border)"></div></div>
+      <input id="login-email" type="text" placeholder="Usuario o correo electrónico" style="width:100%;padding:.7rem .875rem;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:14px;color:var(--text);box-sizing:border-box;outline:none;margin-bottom:.6rem" autocomplete="username" data-l10n-attr-placeholder="msg_687f15fc42342719">
+      <input id="login-password" type="password" placeholder="Contraseña" style="width:100%;padding:.7rem .875rem;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:14px;color:var(--text);box-sizing:border-box;outline:none;margin-bottom:.75rem" autocomplete="current-password" onkeydown="if(event.key==='Enter')loginWithEmail()" data-l10n-attr-placeholder="msg_a389a638dec32538">
+      <div id="login-err" style="display:none;background:#fee2e2;border:1px solid #fca5a5;border-radius:var(--r-sm);padding:.65rem .875rem;font-size:13px;color:#dc2626;margin-bottom:.75rem;text-align:center"></div>
+      <button onclick="loginWithEmail()" id="login-submit-btn" style="width:100%;padding:.8rem;background:var(--surface2);color:var(--text);border:1.5px solid var(--border-strong);border-radius:var(--r-sm);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit" data-l10n-node-0="msg_4105811890aee724">Entrar</button>
+      <div id="login-resend-row" style="display:none;text-align:center;margin-top:.75rem"><button onclick="resendVerificationEmail()" id="login-resend-btn" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:12px;font-family:inherit;text-decoration:underline" data-l10n-node-0="msg_2116afde1bfd3bb0">Reenviar correo de verificación</button></div>
+    </div>
+
+    <!-- VERIFY EMAIL STATE -->
+    <div id="auth-state-verify" style="display:none;text-align:center">
+      <div style="font-size:2.5rem;margin-bottom:.5rem">📬</div>
+      <div style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:.5rem" data-l10n-node-0="msg_0a4ee7e2fb2e4ee3">Verifica tu correo</div>
+      <div style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:1.25rem" data-l10n-node-2="msg_0254666cbe457013" data-l10n-node-0="msg_d09887d864277fdf">Te enviamos un enlace de verificación a <strong id="verify-email-target" style="color:var(--text)"></strong>. Ábrelo desde tu correo y luego vuelve aquí.</div>
+      <div id="verify-err" style="display:none;background:#fee2e2;border:1px solid #fca5a5;border-radius:var(--r-sm);padding:.65rem .875rem;font-size:13px;color:#dc2626;margin-bottom:.75rem;text-align:center"></div>
+      <button onclick="checkEmailVerified()" id="verify-continue-btn" style="width:100%;padding:.8rem;background:var(--accent);color:#fff;border:none;border-radius:var(--r-sm);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:.6rem" data-l10n-node-0="msg_0d6b062a6fcb77b7">Ya verifiqué, continuar</button>
+      <button onclick="resendVerificationEmail()" id="verify-resend-btn" style="width:100%;padding:.65rem;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:12px;font-family:inherit;text-decoration:underline" data-l10n-node-0="msg_dbb38b7500fc7784">Reenviar correo</button>
+      <button onclick="showLoginState('home')" style="width:100%;padding:.5rem;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:12px;font-family:inherit;margin-top:.5rem" data-l10n-node-0="msg_0130e0af4af127b8">← Volver al inicio</button>
+    </div>
+  </div>
+</div>
+<!-- AUTH PROMPT TWIST (shown when a guest taps a locked feature) -->
+<div class="modal-overlay hidden" id="auth-prompt-modal">
+  <div class="modal" style="max-width:340px;text-align:center">
+    <div style="font-size:2rem;margin-bottom:.5rem">🔒</div>
+    <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:.5rem" data-l10n-node-0="msg_0612c52da3d55323">Esto es solo para cuentas</div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:1.25rem" data-l10n-node-0="msg_79ffbcb664e76ebd">¿Quieres registrarte o iniciar sesión?</div>
+    <div style="display:flex;gap:8px">
+      <button onclick="closeModal('auth-prompt-modal')" style="flex:1;padding:.7rem;background:var(--surface2);color:var(--text);border:1.5px solid var(--border-strong);border-radius:var(--r-sm);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit" data-l10n-node-0="msg_1ea442a134b2a184">No</button>
+      <button onclick="closeModal('auth-prompt-modal');showLoginState('home');document.getElementById('login-overlay').style.display='flex';" style="flex:1;padding:.7rem;background:var(--accent);color:#fff;border:none;border-radius:var(--r-sm);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit" data-l10n-node-0="msg_739215889580345e">Sí</button>
+    </div>
+  </div>
+</div>
+<!-- USERNAME SETUP -->
+<div id="username-setup-overlay" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:9999;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem">
+  <div style="width:100%;max-width:360px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.5rem">
+    <div style="text-align:center;margin-bottom:1.25rem"><div style="font-size:2rem;margin-bottom:.4rem">👋</div><div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:.25rem" data-l10n-node-0="msg_727d7214e4a9696a">¡Bienvenido/a!</div><div style="font-size:13px;color:var(--text-muted)" data-l10n-node-0="msg_a80e44c3b527e8b0">Elige un nombre para el ranking</div></div>
+    <input id="username-setup-input" placeholder="Tu nombre de jugador" maxlength="20" style="width:100%;padding:.7rem .875rem;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:14px;color:var(--text);box-sizing:border-box;outline:none;margin-bottom:.6rem" onkeydown="if(event.key==='Enter')saveGoogleUsername()" data-l10n-attr-placeholder="msg_32be0eb1808cb14f">
+    <select id="username-setup-country" class="username-input" style="width:100%;padding:.7rem .875rem;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:14px;color:var(--text);box-sizing:border-box;outline:none;margin-bottom:.75rem"></select>
+    <div id="username-setup-err" style="display:none;font-size:12px;color:#dc2626;margin-bottom:.75rem"></div>
+    <button onclick="saveGoogleUsername()" style="width:100%;padding:.8rem;background:var(--accent);color:#fff;border:none;border-radius:var(--r-sm);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit" data-l10n-node-0="msg_5c40d570852de9df">Guardar y jugar 🎮</button>
+  </div>
+</div>
+<div class="modal-overlay hidden" id="recipe-modal">
+  <div class="modal" style="max-width:480px"><div class="modal-header"><span id="recipe-modal-title" style="font-size:15px;font-weight:700" data-l10n-node-0="msg_0458e9e3bea8a3e2">Receta</span><button class="modal-close" onclick="closeModal('recipe-modal')">✕</button></div><div class="modal-body" style="max-height:72vh;overflow-y:auto" id="recipe-content"></div></div>
+</div>
+
+<!-- SPLASH -->
+<div id="splash" style="position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0">
+  <div style="font-size:80px;animation:splashPop .6s cubic-bezier(.34,1.56,.64,1) both">🌶️</div>
+  <div id="splash-title" style="font-family:'Fraunces',serif;font-size:32px;font-weight:900;color:var(--text);opacity:0;transform:translateY(12px);transition:all .5s ease .3s">Comidadle</div>
+  <div id="splash-sub" style="font-size:13px;color:var(--text-muted);opacity:0;transform:translateY(8px);transition:all .5s ease .5s;margin-top:6px" data-l10n-node-0="msg_9e4db296746ea7ec">Adivina de dónde es la comida</div>
+</div>
+
+<!-- HOW TO PLAY -->
+<div class="modal-overlay hidden" id="how-modal">
+  <div class="modal">
+    <button class="modal-close" id="how-close">✕</button>
+    <div class="modal-title">🌶️ <span data-i18n="how_title" data-l10n-node-0="msg_b6e604c514e5e12d">Cómo jugar</span></div>
+    <div class="how-step"><div class="step-num">1</div><div class="step-text"><span data-i18n="how_step1" data-l10n-node-2="msg_5d4288f8904c5368" data-l10n-node-0="msg_20bc2e32faf036c0">Cada día aparecen <strong data-l10n-node-0="msg_e9b8f9e8f4489ece">3 platos diferentes</strong> de la gastronomía hispana.</span></div></div>
+    <div class="how-step"><div class="step-num">2</div><div class="step-text"><span data-i18n="how_step2" data-l10n-node-2="msg_1abd1cc685f94d6f" data-l10n-node-0="msg_89615142e50c101d">Cambia entre platos con las <strong data-l10n-node-0="msg_9cc5fdc6598aabc8">pestañas</strong> de arriba. Cada plato tiene sus propios intentos.</span></div></div>
+    <div class="how-step"><div class="step-num">3</div><div class="step-text"><span data-i18n="how_step3" data-l10n-node-4="msg_c52199c34650ad09" data-l10n-node-2="msg_2d465df256afedaa" data-l10n-node-0="msg_178435700776a1e4">Elige el <strong data-l10n-node-0="msg_82bf7b1fe3b6653f">país de origen</strong>. Tienes <strong data-l10n-node-0="msg_3a55b6e6a4240099">6 intentos</strong> por defecto.</span></div></div>
+    <div class="how-step"><div class="step-num">4</div><div class="step-text"><span data-i18n="how_step4" data-l10n-node-2="msg_0e9a1d171f714783" data-l10n-node-0="msg_790a729277e9afdb">Con cada fallo aparece una <strong data-l10n-node-0="msg_137ee98b36075434">pista nueva</strong>. Al terminar se resalta el país correcto en verde.</span></div></div>
+    <div class="modal-divider"></div>
+    <div class="emoji-demo">🟥🟥🟥🟩</div>
+    <div style="font-size:12px;color:var(--text-muted);text-align:center;margin-bottom:.5rem" data-l10n-node-0="msg_cc4dde1542d9a601">🟩 Acierto · 🟥 Fallo</div>
+    <div class="modal-divider"></div>
+    <div style="font-size:13px;color:var(--text-muted)"><span data-i18n="how_footer" data-l10n-node-0="msg_bb4eab7964f8adf9">Hay 3 platos nuevos cada día. Puedes hacerlo más difícil en ⚙️ Configuración.</span></div>
+    <button class="play-btn" id="how-play"><span data-i18n="play_btn" data-l10n-node-0="msg_186c75e8c7749b80">¡A jugar!</span></button>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="modal-overlay hidden" id="cfg-modal">
+  <div class="modal">
+    <button class="modal-close" id="cfg-close">✕</button>
+    <div class="modal-title"><span data-i18n="settings_title" data-l10n-node-0="msg_30a6319b726dab5f">⚙️ Configuración</span></div>
+    <div class="setting-row" style="display:block"><div><label class="setting-label" for="language-select">Idioma / Language</label><div class="setting-desc" id="language-notice">El cambio recarga la página. Tu progreso diario se conserva.</div></div><select id="language-select" aria-describedby="language-notice" style="font:inherit;width:100%;margin-top:8px;background:var(--surface2);color:var(--text);padding:8px;border:1px solid var(--border-strong);border-radius:8px"></select></div><div class="settings-section-label" data-l10n-node-0="msg_01943332833cc183">🔥 Modo difícil</div>
+    <div class="setting-row"><div class="setting-info"><div class="setting-label" data-l10n-node-0="msg_d4b8a18a3a2cc3fa">Menos intentos</div><div class="setting-desc" data-l10n-node-0="msg_a6797d553963432d">Solo 3 intentos en vez de 6.</div></div><label class="toggle"><input type="checkbox" id="few-attempts-toggle"><div class="toggle-track"></div></label></div>
+    <div class="setting-row"><div class="setting-info"><div class="setting-label" data-l10n-node-0="msg_819d4a7bc25ad21b">Más países</div><div class="setting-desc" data-l10n-node-0="msg_5ca78a08611a19e9">Todos los países en la tabla, no solo 8.</div></div><label class="toggle"><input type="checkbox" id="more-countries-toggle"><div class="toggle-track"></div></label></div>
+    <div class="setting-row"><div class="setting-info"><div class="setting-label" data-l10n-node-0="msg_4bcae46afbf23a36">Sin pistas</div><div class="setting-desc" data-l10n-node-0="msg_f19e158381bcf950">No aparecen pistas durante la partida.</div></div><label class="toggle"><input type="checkbox" id="no-hints-toggle"><div class="toggle-track"></div></label></div>
+    <div class="modal-divider"></div>
+
+    <div class="settings-section-label" data-l10n-node-0="msg_ac845da3e70d3285">🎛️ Preferencias</div>
+    <div class="setting-row"><div class="setting-info"><div class="setting-label" data-l10n-node-0="msg_e40fab455089e857">Pistas progresivas</div><div class="setting-desc" data-l10n-node-0="msg_b125cbd15f274557">Las pistas aparecen de una en una con cada fallo.</div></div><label class="toggle"><input type="checkbox" id="prog-toggle" checked><div class="toggle-track"></div></label></div>
+    <div class="setting-row"><div class="setting-info"><div class="setting-label" data-l10n-node-0="msg_2b0bfc6f43b6070d">Ocultar descripción</div><div class="setting-desc" data-l10n-node-0="msg_af525f69f2adc197">Solo ves el nombre y el emoji.</div></div><label class="toggle"><input type="checkbox" id="no-desc-toggle"><div class="toggle-track"></div></label></div>
+    <div class="setting-row"><div class="setting-info"><div class="setting-label" data-l10n-node-0="msg_0f4d204db94aba20">Plato de ayer</div><div class="setting-desc" data-l10n-node-0="msg_f795995be027f267">Muestra el resultado de ayer encima del plato de hoy.</div></div><label class="toggle"><input type="checkbox" id="show-yesterday-toggle" checked><div class="toggle-track"></div></label></div>
+    <div class="setting-row"><div class="setting-info"><div class="setting-label" data-l10n-node-0="msg_bf427a4ad34e16bd">Mostrar "Cómo jugar" al entrar</div><div class="setting-desc" data-l10n-node-0="msg_09decad1a3a75ef4">Abre la guía de reglas automáticamente cada vez que entras al juego.</div></div><label class="toggle"><input type="checkbox" id="show-howto-toggle" checked><div class="toggle-track"></div></label></div>
+    <div class="setting-row"><div class="setting-info"><div class="setting-label" data-l10n-node-0="msg_25ab720915f5f9ac">Sonido</div><div class="setting-desc" data-l10n-node-0="msg_0ed00e1779aeb045">Efectos de sonido al acertar o fallar, independiente de la vibración.</div></div><label class="toggle"><input type="checkbox" id="sound-toggle" checked><div class="toggle-track"></div></label></div>
+    <div class="setting-row"><div class="setting-info"><div class="setting-label" data-l10n-node-0="msg_6181cd204151777a">Vibración</div><div class="setting-desc" data-l10n-node-2="msg_8b6084ba3af6d243" data-l10n-node-0="msg_4787cbe8d24d06e7">Feedback háptico al acertar o fallar. <strong data-l10n-node-0="msg_1e39c72dc24494ce">No funciona en iPhone</strong> — es una limitación de iOS, no del juego.</div></div><label class="toggle"><input type="checkbox" id="haptics-toggle" checked><div class="toggle-track"></div></label></div>
+    <div class="setting-row"><div class="setting-info"><div class="setting-label" data-l10n-node-0="msg_e46196d203f9f4d6">Modo daltónico</div><div class="setting-desc" data-l10n-node-0="msg_7781591bd5664a69">Cambia el verde/rojo de aciertos por colores más distinguibles.</div></div><label class="toggle"><input type="checkbox" id="colorblind-toggle"><div class="toggle-track"></div></label></div>
+    <div class="setting-row"><div class="setting-info"><div class="setting-label" data-l10n-node-0="msg_de3127f33c6f67e3">Ocultar mi posición en rankings</div><div class="setting-desc" data-l10n-node-0="msg_ba4777cb4db6904e">Sigues jugando y guardando tu progreso, pero nadie más te verá en el Ranking Global ni Semanal.</div></div><label class="toggle"><input type="checkbox" id="hide-ranking-toggle"><div class="toggle-track"></div></label></div>
+    <div class="modal-divider"></div>
+    <div class="settings-section-label" data-l10n-node-0="msg_211e04ce1ebf20e2">💾 Datos</div>
+    <button class="ranking-btn" id="export-progress-btn" style="width:100%" data-l10n-node-0="msg_0e13aa7a3e6f6112">⬇️ Exportar mi progreso (.json)</button>
+    <button class="ranking-btn" id="import-progress-btn" style="width:100%;margin-top:.5rem" data-l10n-node-0="msg_c208a452d24b339f">⬆️ Importar progreso (.json)</button>
+    <input type="file" id="import-progress-file" accept="application/json" style="display:none">
+    <div id="import-progress-msg" style="font-size:12px;text-align:center;margin-top:.5rem"></div>
+    <button onclick="if(confirm(ComidadleLocalization.raw('msg_edd795454c81352a')))logOut()" style="width:100%;margin-top:.875rem;padding:.65rem;background:transparent;border:1.5px solid var(--border);border-radius:var(--r-sm);color:var(--text-muted);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit" data-l10n-node-0="msg_e071bcae37250048">🚪 Cerrar sesión</button>
+  </div>
+</div>
+
+<!-- SHARE -->
+<div class="modal-overlay hidden" id="share-modal">
+  <div class="modal">
+    <button class="modal-close" id="share-modal-close">✕</button>
+    <div class="modal-title"><span data-i18n="share_title" data-l10n-node-0="msg_3e7d95c7f69c2764">📤 Compartir resultado</span></div>
+    <button class="share-btn" id="share-img-btn" style="width:100%;margin-bottom:.75rem" data-l10n-node-0="msg_c929d54754cfa8b6">📸 Compartir como imagen</button>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:.5rem" data-l10n-node-0="msg_aa6fff3774c3c7f2">O copia el texto:</div>
+    <textarea class="share-textarea" id="share-textarea" rows="5" readonly></textarea>
+    <button class="copy-btn" id="copy-btn"><span data-i18n="copy_btn" data-l10n-node-0="msg_6ab1756c945c6c3e">Copiar al portapapeles</span></button>
+    <div style="font-size:12px;color:var(--text-muted);margin-top:.5rem;text-align:center" id="copy-note"></div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="modal-overlay hidden" id="stats-modal">
+  <div class="modal">
+    <button class="modal-close" id="stats-close">✕</button>
+    <div class="modal-title" data-l10n-node-0="msg_723ebb6837e760c0">📊 Mis Estadísticas</div>
+    <div id="stats-content"></div>
+  </div>
+</div>
+
+<!-- PROFILE -->
+<div class="modal-overlay hidden" id="profile-modal">
+  <div class="modal" style="max-height:90vh;overflow-y:auto">
+    <button class="modal-close" id="profile-close">✕</button>
+    <div class="modal-title" data-l10n-node-0="msg_ad34dab219da679b">👤 Mi Perfil</div>
+    <div id="profile-content"></div>
+  </div>
+</div>
+
+<!-- RANKING GLOBAL -->
+<div class="modal-overlay hidden" id="ranking-modal">
+  <div class="modal">
+    <button class="modal-close" id="ranking-close">✕</button>
+    <div class="modal-title"><span data-i18n="ranking_title" data-l10n-node-0="msg_03472b6d9b0ba844">🏆 Ranking Global</span></div>
+    <div style="display:flex;gap:8px;margin-bottom:.75rem">
+      <select id="ranking-country-filter" class="username-input" style="margin:0;flex:1;box-sizing:border-box" onchange="filterRankingCountry(this.value)"></select>
+      <button class="ranking-btn" id="ranking-refresh-btn">↻</button>
+    </div>
+    <div id="ranking-username-section"></div>
+    <div id="ranking-list"><div class="ranking-empty" data-l10n-node-0="msg_78164e6c88f6cf6b">Cargando...</div></div>
+  </div>
+</div>
+
+<!-- AMIGOS -->
+<div class="modal-overlay hidden" id="friends-modal">
+  <div class="modal" style="max-height:90vh;overflow-y:auto">
+    <button class="modal-close" id="friends-close">✕</button>
+    <div class="modal-title" data-l10n-node-0="msg_6782d3771aa3cdaf">🧑‍🤝‍🧑 Amigos</div>
+    <div style="display:flex;gap:4px;margin-bottom:1rem;background:var(--surface2);border-radius:var(--r-sm);padding:4px;overflow-x:auto">
+      <button onclick="friendsTab('list')" id="ft-list" class="shop-tab-btn active" data-l10n-node-0="msg_ca831aaf0460688b">Mis amigos</button>
+      <button onclick="friendsTab('requests')" id="ft-requests" class="shop-tab-btn" data-l10n-node-0="msg_03e7cb126f4b2a26">Solicitudes</button>
+      <button onclick="friendsTab('invites')" id="ft-invites" class="shop-tab-btn" data-l10n-node-0="msg_7bbd0f2b13900f3f">Duelos</button>
+      <button onclick="friendsTab('add')" id="ft-add" class="shop-tab-btn" data-l10n-node-0="msg_7542a5e800f9280a">Añadir</button>
+    </div>
+    <div id="friends-content"><div class="ranking-empty" data-l10n-node-0="msg_78164e6c88f6cf6b">Cargando...</div></div>
+  </div>
+</div>
+<div class="modal-overlay hidden" id="gift-xp-friend-modal">
+  <div class="modal">
+    <button class="modal-close" id="gift-xp-friend-close">✕</button>
+    <div class="modal-title" data-l10n-node-0="msg_061a9921682634d1">🎁 Regalar XP a <span id="gtf-username"></span></div>
+    <div id="gift-xp-friend-content"><div class="ranking-empty" data-l10n-node-0="msg_78164e6c88f6cf6b">Cargando...</div></div>
+  </div>
+</div>
+
+<!-- RETAR A AMIGO: elegir modo -->
+<div class="modal-overlay hidden" id="challenge-modal">
+  <div class="modal">
+    <button class="modal-close" id="challenge-close">✕</button>
+    <div class="modal-title" data-l10n-node-0="msg_284f77908d7aa2c1">⚔️ Retar a duelo</div>
+    <div id="challenge-content"></div>
+  </div>
+</div>
+
+<!-- CÓDIGO QR DE AMIGOS -->
+<div class="modal-overlay hidden" id="qr-modal">
+  <div class="modal">
+    <button class="modal-close" id="qr-close">✕</button>
+    <div class="modal-title" data-l10n-node-0="msg_8fc82bafb3eecfb0">📱 Añadir por QR</div>
+    <div style="display:flex;gap:4px;margin-bottom:1rem;background:var(--surface2);border-radius:var(--r-sm);padding:4px">
+      <button onclick="qrTab('show')" id="qt-show" class="shop-tab-btn active" data-l10n-node-0="msg_5dd4c070004eeca4">🔳 Mostrar mi QR</button>
+      <button onclick="qrTab('scan')" id="qt-scan" class="shop-tab-btn" data-l10n-node-0="msg_2cb07cf280e0019a">📷 Escanear QR</button>
+    </div>
+    <div id="qr-content"></div>
+  </div>
+</div>
+
+<!-- RANKING SEMANAL -->
+<div class="modal-overlay hidden" id="weekly-modal">
+  <div class="modal">
+    <button class="modal-close" id="weekly-close">✕</button>
+    <div class="modal-title"><span data-i18n="weekly_title" data-l10n-node-0="msg_f653a1bf56b2f903">📅 Ranking Semanal</span></div>
+    <div style="font-size:11px;color:var(--text-muted);margin-bottom:.75rem" id="weekly-period"></div>
+    <div style="display:flex;gap:8px;margin-bottom:.75rem">
+      <select id="weekly-country-filter" class="username-input" style="margin:0;flex:1;box-sizing:border-box" onchange="filterWeeklyCountry(this.value)"></select>
+      <button class="ranking-btn" id="weekly-refresh-btn">↻</button>
+    </div>
+    <div id="weekly-username-section"></div>
+    <div id="weekly-list"><div class="ranking-empty" data-l10n-node-0="msg_78164e6c88f6cf6b">Cargando...</div></div>
+  </div>
+</div>
+
+<!-- ANNOUNCEMENT MODAL -->
+<div class="modal-overlay hidden" id="ann-modal">
+  <div class="modal">
+    <button class="modal-close" id="ann-modal-close">✕</button>
+    <div class="modal-title" data-l10n-node-0="msg_982432b056bee293">📢 Anuncio</div>
+    <div id="ann-modal-content"></div>
+  </div>
+</div>
+
+<!-- OWNER PANEL -->
+<div class="modal-overlay hidden" id="owner-modal">
+  <div class="modal" style="max-height:90vh;overflow-y:auto;border:1px solid var(--gold)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem">
+      <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--gold)" data-l10n-node-0="msg_cba9364a331be62d">👑 Panel del Owner</div>
+      <div style="display:flex;gap:6px">
+        <button id="owner-minimize" title="Minimizar" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);font-size:14px" data-l10n-attr-title="msg_3fc5f90b27f1acbc">—</button>
+        <button id="owner-logout" title="Cerrar sesión" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--red);font-size:14px" data-l10n-attr-title="msg_c6e6960395f49b48">✕</button>
+      </div>
+    </div>
+    <div id="owner-content"><div class="ranking-empty" data-l10n-node-0="msg_78164e6c88f6cf6b">Cargando...</div></div>
+  </div>
+</div>
+
+<!-- REVIEWS -->
+<div class="modal-overlay hidden" id="reviews-modal">
+  <div class="modal" style="max-height:90vh;overflow-y:auto">
+    <button class="modal-close" id="reviews-close">✕</button>
+    <div class="modal-title"><span data-i18n="reviews_title" data-l10n-node-0="msg_304d5bc86b7c5e37">⭐ Reseñas</span></div>
+    <div id="reviews-content"></div>
+  </div>
+</div>
+
+<!-- SUGGESTIONS -->
+<div class="modal-overlay hidden" id="suggestions-modal">
+  <div class="modal" style="max-height:90vh;overflow-y:auto">
+    <button class="modal-close" id="suggestions-close">✕</button>
+    <div class="modal-title" data-l10n-node-0="msg_65db33a4ee19fcc5">💡 Sugerencias</div>
+    <div id="suggestions-content"></div>
+  </div>
+</div>
+
+<!-- INFINITE MODAL -->
+<div class="modal-overlay hidden" id="infinite-modal">
+  <div class="modal" style="max-height:90vh;overflow-y:auto">
+    <button class="modal-close" id="infinite-close">✕</button>
+    <div class="modal-title" data-l10n-node-0="msg_b2a3cafdf2ceb3c5">♾️ Modo Infinito</div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:1rem;line-height:1.6" data-l10n-node-2="msg_44e37aeacf1fcc05" data-l10n-node-0="msg_ce1c2bf802610f5a">Juega todos los platos que quieras sin límite diario. Los puntos <strong style="color:var(--text)" data-l10n-node-0="msg_ce51f0001efe351b">no cuentan</strong> para el ranking.</div>
+    <div id="infinite-modal-content"></div>
+  </div>
+</div>
+
+<!-- MEMORY MODAL -->
+<div class="modal-overlay hidden" id="memory-modal">
+  <div class="modal" style="max-height:90vh;overflow-y:auto">
+    <button class="modal-close" id="memory-close">✕</button>
+    <div class="modal-title" data-l10n-node-0="msg_e7096209cd89eb49">🧠 Modo Memoria</div>
+    <div id="memory-modal-content"></div>
+  </div>
+</div>
+
+<!-- PASSPORT MODAL -->
+<div class="modal-overlay hidden" id="passport-modal">
+  <div class="modal" style="max-height:90vh;overflow-y:auto">
+    <button class="modal-close" id="passport-close">✕</button>
+    <div class="modal-title" data-l10n-node-0="msg_fcb83d77dccebfc3">🗺️ Pasaporte Culinario</div>
+    <div id="passport-progress"></div>
+    <div id="passport-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px"></div>
+  </div>
+</div>
+<div class="modal-overlay hidden" id="passport-country-modal">
+  <div class="modal" style="max-height:90vh;overflow-y:auto">
+    <button class="modal-close" id="passport-country-close">✕</button>
+    <div id="passport-detail"></div>
+  </div>
+</div>
+
+<!-- DUEL -->
+<div class="modal-overlay hidden" id="duel-modal">
+  <div class="modal">
+    <button class="modal-close" id="duel-close">✕</button>
+    <div class="modal-title" data-l10n-node-0="msg_838d60f5e8a9dbfb">⚔️ Modo Duelo</div>
+    <div id="duel-content"></div>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<div class="modal-overlay hidden" id="about-modal">
+  <div class="modal">
+    <button class="modal-close" id="about-close">✕</button>
+    <div style="text-align:center;margin-bottom:1.25rem"><div style="font-size:52px;margin-bottom:.5rem">🌶️</div><div style="font-family:'Fraunces',serif;font-size:24px;font-weight:900;color:var(--text)">Comidadle</div><div style="font-size:12px;color:var(--text-muted);margin-top:4px;letter-spacing:.05em;text-transform:uppercase" data-l10n-node-0="msg_9e4db296746ea7ec">Adivina de dónde es la comida</div><div style="font-size:11px;color:var(--text-muted);margin-top:6px;opacity:.6">v<span id="about-version"></span></div></div>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:1rem;margin-bottom:.875rem;font-size:13px;color:var(--text-muted);line-height:1.7" data-l10n-node-4="msg_a639df6327687c7b" data-l10n-node-2="msg_e31d55f89ab5646e" data-l10n-node-0="msg_174ec5ab900b0cb4">Comidadle nació en <strong style="color:var(--text)">2025</strong> como un juego diario de gastronomía hispana. Cada día aparecen <strong style="color:var(--text)" data-l10n-node-0="msg_e9b8f9e8f4489ece">3 platos diferentes</strong> y tienes que adivinar de qué país es cada uno.</div>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:1rem;margin-bottom:.875rem;font-size:13px;color:var(--text-muted);line-height:1.7" data-l10n-node-2="msg_316669a23b6cf6cf" data-l10n-node-0="msg_36adeaf8666874ee">Creado por <strong style="color:var(--accent)">Anas</strong>, inspirado en Wordle pero con todo el sabor de Latinoamérica y España.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.875rem">
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center"><div style="font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:var(--accent)">1082</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px" data-l10n-node-0="msg_e49ab55991a69bb9">Platos</div></div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center"><div style="font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:var(--gold)">20</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px" data-l10n-node-0="msg_993af13e12d3771f">Países</div></div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center"><div style="font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:var(--text)">48</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px" data-l10n-node-0="msg_d3c5e392543756d5">Países no hispanos</div></div><div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem;text-align:center"><div style="font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:var(--green)">3</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px" data-l10n-node-0="msg_dbd6561b86b271d7">Platos/día</div></div>
+    </div>
+    <div style="border-top:1px solid var(--border);padding-top:.875rem;display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.65rem .875rem;color:var(--text-muted);font-size:13px;font-weight:600;opacity:0.5;cursor:not-allowed"><span style="font-size:20px">🎵</span> TikTok <span style="margin-left:4px;font-size:11px" data-l10n-node-0="msg_08267a620017247f">🔒 Próximamente</span></div>
+      <a href="https://www.instagram.com/aanxs404" target="_blank" style="display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.65rem .875rem;text-decoration:none;color:var(--text);font-size:13px;font-weight:600" data-l10n-node-1="msg_d0ef331f717f0640"><span style="font-size:20px">📸</span> @aanxs404 en Instagram</a>
+    </div>
+  </div>
+</div>
+
+<!-- CHANGELOG -->
+<div class="modal-overlay hidden" id="changelog-modal">
+  <div class="modal" style="max-height:90vh;overflow-y:auto">
+    <button class="modal-close" id="changelog-close">✕</button>
+    <div class="modal-title" data-l10n-node-0="msg_4fa353b924d33519">📜 Historial de versiones</div>
+    <div id="changelog-content"></div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <div class="logo">🌶️ Comida<span class="dot-accent">dle</span></div>
+    <div class="header-actions">
+      <div class="date-pill" id="date-pill"></div>
+
+      <button class="icon-btn" id="notif-bell-btn" title="Notificaciones" style="position:relative" data-l10n-attr-title="msg_80dade6fab6f9387">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span id="notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;font-size:9px;font-weight:700;border-radius:99px;min-width:16px;height:16px;line-height:16px;text-align:center;padding:0 3px">0</span>
+      </button>
+      <button class="icon-btn" id="how-open-btn" title="Cómo jugar" data-l10n-attr-title="msg_b6e604c514e5e12d"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></button>
+      <button class="icon-btn" id="cfg-open-btn" title="Configuración" data-l10n-attr-title="msg_bb507137e3631379"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+    </div>
+  </div>
+  <div class="header-hard-row" id="header-hard-row" data-l10n-node-0="msg_416c5bf0579fa517">🔥 MODO DIFÍCIL · <span id="hard-multiplier">x1</span></div>
+</header>
+
+<div style="max-width:520px;width:100%;margin:0 auto;padding:.5rem 1.25rem 0;position:relative;z-index:1">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <button id="menu-open-btn" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;color:var(--text-muted);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;padding:.25rem 0;transition:color .15s;position:relative" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-muted)'">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg><span id="extras-label" data-l10n-node-0="msg_30385237387ab082">Extras</span>
+      <span id="extras-dot" style="display:none;position:absolute;top:-3px;left:14px;width:9px;height:9px;background:var(--red);border-radius:50%;border:1.5px solid var(--bg)"></span>
+    </button>
+    <button id="profile-open-btn" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;color:var(--text-muted);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;padding:.25rem 0;transition:color .15s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-muted)'" data-l10n-node-0="msg_00d551e63dd540fc">
+      Perfil
+      <div id="profile-mini-avatar" style="width:22px;height:22px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0">?</div>
+    </button>
+  </div>
+</div>
+
+<main>
+  <div class="game">
+    <div class="dish-tabs" id="dish-tabs"></div>
+    <div class="subtitle">
+      <h1><span data-i18n="main_title" data-l10n-node-0="msg_722f9b5e0dde51da">¿De dónde es esta comida?</span></h1>
+      <p id="subtitle-attempts" data-l10n-node-0="msg_0f55198bc4272047">Adivina el país de origen — 6 intentos</p>
+    </div>
+    <div id="yesterday-card"></div>
+    <div id="guest-banner"></div>
+    <div id="special-banner"></div>
+    <div class="dish-card">
+      <span class="dish-emoji" id="dish-emoji"></span>
+      <div class="dish-name" id="dish-name"></div>
+      <div class="dish-desc" id="dish-desc"></div>
+    </div>
+    <div class="dots" id="dots"></div>
+    <div class="hints" id="hints"></div>
+    <div class="country-grid" id="grid"></div>
+    <div id="result"></div>
+    <div id="trivia-card"></div>
+    <div id="infinite-section"></div>
+  </div>
+</main>
+
+<!-- SIDE MENU -->
+<!-- FLOATING OWNER BUTTON (shows when logged in as owner) -->
+<div id="owner-float" style="display:none;position:fixed;bottom:1.5rem;right:1.5rem;z-index:500">
+  <button id="owner-float-btn" style="width:52px;height:52px;border-radius:50%;background:var(--gold);border:none;cursor:pointer;font-size:22px;box-shadow:0 4px 20px rgba(255,182,39,.5);transition:transform .15s" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">👑</button>
+</div>
+
+<div class="side-overlay" id="side-overlay"></div>
+<div class="side-menu" id="side-menu">
+  <div class="side-menu-header">
+    <div class="side-menu-title" data-l10n-node-0="msg_f9dc4d6b1f5281aa">🌶️ Extras</div>
+    <button class="side-menu-close" id="side-menu-close">✕</button>
+  </div>
+  <div class="side-menu-section">
+    <button class="side-menu-item" id="sm-reload"><div class="side-menu-item-icon">🔄</div><div><div class="side-menu-item-name" data-l10n-node-0="msg_8741e57ba9f09b4d">Recargar app</div><div class="side-menu-item-desc" data-l10n-node-0="msg_9ac7a57578e0e2e7">Útil si la app instalada se queda desactualizada</div></div></button>
+  </div>
+  <div class="side-menu-section">
+    <div class="side-menu-label" data-l10n-node-0="msg_95d758303422ec7a">🕹️ Modos</div>
+    <button class="side-menu-item" id="sm-infinite"><div class="side-menu-item-icon">♾️</div><div><div class="side-menu-item-name" data-l10n-node-0="msg_8e73f2a9d58328cb">Modo Infinito</div><div class="side-menu-item-desc" data-l10n-node-0="msg_c9108e7dbeeea4cd">Juega platos sin límite</div></div></button>
+    <button class="side-menu-item" id="sm-memory"><div class="side-menu-item-icon">🧠</div><div><div class="side-menu-item-name" data-l10n-node-0="msg_508fe17757a814eb">Modo Memoria</div><div class="side-menu-item-desc" data-l10n-node-0="msg_e7085e39a4116600">Memoriza el plato antes de que desaparezca</div></div></button>
+    <button class="side-menu-item" id="sm-passport"><div class="side-menu-item-icon">🗺️</div><div><div class="side-menu-item-name" data-l10n-node-0="msg_5392b1a01356b137">Pasaporte Culinario</div><div class="side-menu-item-desc" data-l10n-node-0="msg_af91763f95246258">Desbloquea países a medida que aciertas</div></div></button>
+    <button class="side-menu-item" id="sm-duel"><div class="side-menu-item-icon">⚔️</div><div><div class="side-menu-item-name" data-l10n-node-0="msg_8b3919d2b9df7d16">Modo Duelo</div><div class="side-menu-item-desc" data-l10n-node-0="msg_66d59d32f13a0efa">Reta a un amigo con un plato sorpresa</div></div></button>
+  </div>
+  <div class="side-menu-section">
+    <div class="side-menu-label" data-l10n-node-0="msg_36f497e3de3995f2">📊 Yo</div>
+    <button class="side-menu-item" id="sm-stats"><div class="side-menu-item-icon">📈</div><div><div class="side-menu-item-name" data-l10n-node-0="msg_ae65a7d11917c4ec">Mis Estadísticas</div><div class="side-menu-item-desc" data-l10n-node-0="msg_619c6889d6ddb052">Tu racha, victorias y gráfica de intentos</div></div></button>
+    <button class="side-menu-item" id="sm-achievements"><div class="side-menu-item-icon">🏅</div><div><div class="side-menu-item-name" data-l10n-node-0="msg_469f68b5b6d65287">Logros</div><div class="side-menu-item-desc" data-l10n-node-0="msg_7a3ea57965d739c0">Medallas e hitos desbloqueados</div></div></button>
+    <button class="side-menu-item" id="sm-missions"><div class="side-menu-item-icon">🎯</div><div><div class="side-menu-item-name" data-l10n-node-0="msg_ddfd977bd8ae0b6d">Misiones Diarias</div><div class="side-menu-item-desc" data-l10n-node-0="msg_a3d1506e69dd0efc">3 retos nuevos cada día</div></div></button>
+  </div>
+  <div class="side-menu-section">
+    <div class="side-menu-label" data-l10n-node-0="msg_f1e9a8a112b4461a">🌍 Comunidad</div>
+    <button class="side-menu-item" id="sm-ranking"><div class="side-menu-item-icon">🏆</div><div><div class="side-menu-item-name" data-l10n-node-0="msg_7a1b3d33e90a5835">Ranking Global</div><div class="side-menu-item-desc" data-l10n-node-0="msg_a1a404b8fa4712a2">Los mejores jugadores del mundo</div></div></button>
+    <button class="side-menu-item" id="sm-friends"><div class="side-menu-item-icon">🧑‍🤝‍🧑</div><div><div class="side-menu-item-name" data-l10n-node-0="msg_bead8677698a4b14">Amigos <span id="friends-badge" style="display:none;background:var(--accent);color:#fff;font-size:10px;font-weight:700;border-radius:99px;padding:1px 6px;margin-left:4px">0</span></div><div class="side-menu-item-desc" data-l10n-node-0="msg_a7bdf1ecd3323efc">Solicitudes, lista e invitaciones de duelo</div></div></button>
+    <button class="side-menu-item" id="sm-weekly"><div class="side-menu-item-icon">📅</div><div><div class="side-menu-item-name" data-l10n-node-0="msg_bba85eeb647c640b">Ranking Semanal</div><div class="side-menu-item-desc" data-l10n-node-0="msg_2a0d204ff12c9ab5">Top de la semana, se reinicia cada lunes</div></div></button>
+    <button class="side-menu-item" id="sm-reviews"><div class="side-menu-item-icon">⭐</div><div><div class="side-menu-item-name" data-l10n-node-0="msg_afa91b1548edcd11">Reseñas</div><div class="side-menu-item-desc" data-l10n-node-0="msg_bfba95f53e58dca7">Lo que dice la gente de Comidadle</div></div></button>
+    <button class="side-menu-item" id="sm-suggestions"><div class="side-menu-item-icon">💡</div><div><div class="side-menu-item-name" data-l10n-node-0="msg_70cf296fe178d5d4">Sugerencias</div><div class="side-menu-item-desc" data-l10n-node-0="msg_dce97b6f6a7a908a">Manda tus ideas al creador</div></div></button>
+  </div>
+  <div class="side-menu-section">
+    <div class="side-menu-label" data-l10n-node-0="msg_fa846ee3576b4a8d">ℹ️ Info</div>
+    <button class="side-menu-item" id="sm-shop"><div class="side-menu-item-icon">🛒</div><div><div class="side-menu-item-name" data-l10n-node-0="msg_49c081725b0b36b1">Tienda</div><div class="side-menu-item-desc" data-l10n-node-0="msg_d912cf0104ac4d3d">Gasta tu XP en items exclusivos</div></div></button>
+    <button class="side-menu-item" id="sm-rules"><div class="side-menu-item-icon">📋</div><div><div class="side-menu-item-name" data-l10n-node-0="msg_db8661d1e95a31b0">Reglas</div><div class="side-menu-item-desc" data-l10n-node-0="msg_41a4d066370e3c27">Normas de la comunidad y del ranking</div></div></button>
+    <button class="side-menu-item" id="sm-about"><div class="side-menu-item-icon">🌶️</div><div><div class="side-menu-item-name" data-l10n-node-0="msg_2294490c3ec53018">Sobre Comidadle</div><div class="side-menu-item-desc" data-l10n-node-0="msg_c5ecf04980234f0c">La historia del juego y su creador</div></div></button>
+    <button class="side-menu-item" id="sm-changelog"><div class="side-menu-item-icon">📜</div><div><div class="side-menu-item-name" data-l10n-node-0="msg_86bd5274f8c26bbe">Historial de versiones</div><div class="side-menu-item-desc" data-l10n-node-0="msg_b45a2b56e100a334">Qué ha cambiado en cada actualización</div></div></button>
+  </div>
+  <div class="side-menu-footer" data-l10n-node-0="msg_4d231df4f7f2f986">Hecho con 🌶️ por <strong style="color:var(--text)">Anas</strong></div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-credit" data-l10n-node-0="msg_4d231df4f7f2f986">Hecho con 🌶️ por <strong>Anas</strong></div>
+    <div class="footer-links">
+      <a href="https://instagram.com/aanxs404" target="_blank" rel="noopener"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg>@aanxs404</a>
+    </div>
+  </div>
+</footer>
+
+<!-- ADMIN LOGIN MODAL -->
+<div class="modal-overlay hidden" id="admin-login-modal">
+  <div class="modal">
+    <button class="modal-close" id="admin-login-close">✕</button>
+    <div class="modal-title" data-l10n-node-0="msg_08da8d42a1c677b7">🔑 Acceso Staff</div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:1rem;line-height:1.6" data-l10n-node-0="msg_6c9c2cd607c38ca0">Introduce la contraseña de Admin u Owner para acceder al panel de control.</div>
+    <input id="admin-login-pass" type="password" class="username-input" placeholder="Contraseña..." style="margin:0 0 .5rem" data-l10n-attr-placeholder="msg_dcb498192da0e0f4">
+    <button class="play-btn" id="admin-login-confirm" style="margin-top:.5rem" data-l10n-node-0="msg_4105811890aee724">Entrar</button>
+    <div id="admin-login-msg" style="text-align:center;font-size:12px;margin-top:.5rem"></div>
+  </div>
+</div>
+
+<!-- NOTIFICATIONS MODAL -->
+<div class="modal-overlay hidden" id="notif-modal">
+  <div class="modal" style="max-height:90vh;overflow-y:auto">
+    <button class="modal-close" id="notif-close">✕</button>
+    <div class="modal-title" data-l10n-node-0="msg_10ff258711b238cb">🔔 Notificaciones</div>
+    <div id="notif-content"><div class="ranking-empty" data-l10n-node-0="msg_78164e6c88f6cf6b">Cargando...</div></div>
+  </div>
+</div>
+
+<!-- SHOP MODAL -->
+<div class="modal-overlay hidden" id="shop-modal">
+  <div class="modal" style="max-height:90vh;overflow-y:auto">
+    <button class="modal-close" id="shop-close">✕</button>
+    <div class="modal-title" data-l10n-node-0="msg_e72cf53ec0314d72">🛒 Tienda</div>
+    <div id="shop-xp-bar" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem 1rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between">
+      <div><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700" data-l10n-node-0="msg_95ebb691274524a6">Tu XP</div><div id="shop-xp-val" style="font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:var(--gold)">0</div></div>
+      <div id="shop-level-badge" style="font-size:12px;font-weight:600;color:var(--accent)"></div>
+    </div>
+    <div id="shop-weekly-section"></div>
+    <div style="display:flex;gap:4px;margin-bottom:1rem;background:var(--surface2);border-radius:var(--r-sm);padding:4px;overflow-x:auto">
+      <button onclick="shopTab('colores')" id="st-colores" class="shop-tab-btn active" data-l10n-node-0="msg_59a8ffd5b479f5a5">🎨 Colores</button>
+      <button onclick="shopTab('marcos')" id="st-marcos" class="shop-tab-btn" data-l10n-node-0="msg_cc61295dad25b8e4">🖼️ Marcos</button>
+      <button onclick="shopTab('badges')" id="st-badges" class="shop-tab-btn" data-l10n-node-0="msg_42f536e9984272e4">🏷️ Badges</button>
+      <button onclick="shopTab('titulos')" id="st-titulos" class="shop-tab-btn" data-l10n-node-0="msg_eaa56230ee35a7b7">📝 Títulos</button>
+      <button onclick="shopTab('emojis')" id="st-emojis" class="shop-tab-btn" data-l10n-node-0="msg_9a804a1d2c8c1dd9">😊 Emojis</button>
+    </div>
+    <div id="shop-content"><div class="ranking-empty" data-l10n-node-0="msg_78164e6c88f6cf6b">Cargando...</div></div>
+  </div>
+</div>
+
+<!-- PLAYER PROFILE MODAL -->
+<div class="modal-overlay hidden" id="player-modal">
+  <div class="modal" style="max-height:90vh;overflow-y:auto">
+    <button class="modal-close" id="player-close">✕</button>
+    <div id="player-content"><div class="ranking-empty" data-l10n-node-0="msg_78164e6c88f6cf6b">Cargando...</div></div>
+  </div>
+</div>
+
+<!-- REGLAS MODAL -->
+<div class="modal-overlay hidden" id="rules-modal">
+  <div class="modal" style="max-height:90vh;overflow-y:auto">
+    <button class="modal-close" id="rules-close">✕</button>
+    <div class="modal-title" data-l10n-node-0="msg_d395f3b30c9d0396">📋 Reglas de Comidadle</div>
+    <div style="display:flex;flex-direction:column;gap:.75rem">
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.875rem">
+        <div style="font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem" data-l10n-node-0="msg_dc0e2d25f0bb3c16">🎮 Sobre el juego</div>
+        <div style="font-size:13px;color:var(--text-muted);line-height:1.65" data-l10n-node-4="msg_461969e46687df96" data-l10n-node-2="msg_9ab56ead2a60051d" data-l10n-node-0="msg_b070d705500c1185">Comidadle es un juego diario gratuito. Cada día aparecen <strong style="color:var(--text)" data-l10n-node-0="msg_322c40e5498013d2">3 platos nuevos</strong> de la gastronomía hispana. Tienes <strong style="color:var(--text)" data-l10n-node-0="msg_3a55b6e6a4240099">6 intentos</strong> por plato para adivinar el país de origen.</div>
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.875rem">
+        <div style="font-size:12px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem" data-l10n-node-0="msg_5b12d0060794e76c">🏆 Ranking</div>
+        <div style="font-size:13px;color:var(--text-muted);line-height:1.65" data-l10n-node-2="msg_9b6a50230d59bb7c" data-l10n-node-0="msg_95a5f64a2367b41b">El ranking es un espacio <strong style="color:var(--text)" data-l10n-node-0="msg_d5cc49bf91911b49">público y compartido</strong>. Al registrarte aceptas que tu nombre y estadísticas sean visibles para todos los jugadores.</div>
+      </div>
+      <div style="background:rgba(240,80,80,.08);border:1px solid var(--red);border-radius:var(--r-sm);padding:.875rem">
+        <div style="font-size:12px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem" data-l10n-node-0="msg_c641261133ce06fb">🚫 Prohibido</div>
+        <div style="display:flex;flex-direction:column;gap:.4rem">
+          <div style="display:flex;gap:8px;font-size:13px;color:var(--text-muted)"><span>❌</span><span data-l10n-node-0="msg_5d56f600e83b3e8a">Usar nombres ofensivos, insultos o palabrotas</span></div>
+          <div style="display:flex;gap:8px;font-size:13px;color:var(--text-muted)"><span>❌</span><span data-l10n-node-0="msg_e2a71b761402abd5">Hacer trampas o manipular el ranking</span></div>
+          <div style="display:flex;gap:8px;font-size:13px;color:var(--text-muted)"><span>❌</span><span data-l10n-node-0="msg_a5fb10201968a6b9">Suplantar la identidad de otros jugadores</span></div>
+          <div style="display:flex;gap:8px;font-size:13px;color:var(--text-muted)"><span>❌</span><span data-l10n-node-0="msg_364adfffe837e375">Usar el chat de reseñas o sugerencias para spamear o insultar</span></div>
+          <div style="display:flex;gap:8px;font-size:13px;color:var(--text-muted)"><span>❌</span><span data-l10n-node-0="msg_dc87174a6f7a5f4a">Crear múltiples cuentas para subir en el ranking</span></div>
+        </div>
+      </div>
+      <div style="background:rgba(34,197,94,.08);border:1px solid var(--green);border-radius:var(--r-sm);padding:.875rem">
+        <div style="font-size:12px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem" data-l10n-node-0="msg_40d67e0f5b577a7f">✅ Sí está permitido</div>
+        <div style="display:flex;flex-direction:column;gap:.4rem">
+          <div style="display:flex;gap:8px;font-size:13px;color:var(--text-muted)"><span>✅</span><span data-l10n-node-0="msg_5df5a7d0246a3fcb">Jugar todos los días y competir limpiamente</span></div>
+          <div style="display:flex;gap:8px;font-size:13px;color:var(--text-muted)"><span>✅</span><span data-l10n-node-0="msg_a84fef03efed380f">Dejar reseñas honestas, buenas o malas</span></div>
+          <div style="display:flex;gap:8px;font-size:13px;color:var(--text-muted)"><span>✅</span><span data-l10n-node-0="msg_7a8d14b35fc4f5ec">Enviar sugerencias y feedback constructivo</span></div>
+          <div style="display:flex;gap:8px;font-size:13px;color:var(--text-muted)"><span>✅</span><span data-l10n-node-0="msg_ea7baa9d512a8276">Compartir tus resultados en redes sociales</span></div>
+          <div style="display:flex;gap:8px;font-size:13px;color:var(--text-muted)"><span>✅</span><span data-l10n-node-0="msg_282d64fbe962b894">Eliminar tu nombre del ranking cuando quieras</span></div>
+        </div>
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.875rem">
+        <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem" data-l10n-node-0="msg_5b340914b2d19462">⚖️ Consecuencias</div>
+        <div style="font-size:13px;color:var(--text-muted);line-height:1.65" data-l10n-node-2="msg_a09c72da30b7c6ca" data-l10n-node-0="msg_3e259c22fe631225">El incumplimiento de las reglas puede resultar en la <strong style="color:var(--red)" data-l10n-node-0="msg_f989589a6eccf3c8">eliminación permanente</strong> del ranking. El Owner se reserva el derecho de banear a cualquier jugador que no respete las normas de la comunidad.</div>
+      </div>
+      <div style="text-align:center;font-size:12px;color:var(--text-muted);padding:.5rem 0" data-l10n-node-0="msg_bbdc9bc38c571a53">Comidadle es un proyecto personal hecho con ❤️ por <strong style="color:var(--accent)">Anas</strong></div>
+    </div>
+    <button class="play-btn" id="rules-ok-btn" data-l10n-node-0="msg_3f3f7d88e05abb17">Entendido</button>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="achievements-modal">
+  <div class="modal" style="max-height:90vh;overflow-y:auto">
+    <button class="modal-close" id="achievements-close">✕</button>
+    <div class="modal-title" data-l10n-node-0="msg_66da736b0d6bbcc1">🏅 Logros</div>
+    <div id="achievements-content"><div class="ranking-empty" data-l10n-node-0="msg_78164e6c88f6cf6b">Cargando...</div></div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="missions-modal">
+  <div class="modal" style="max-height:90vh;overflow-y:auto">
+    <button class="modal-close" id="missions-close">✕</button>
+    <div class="modal-title" data-l10n-node-0="msg_8d898d165a8f0c48">🎯 Misiones Diarias</div>
+    <div id="missions-content"><div class="ranking-empty" data-l10n-node-0="msg_78164e6c88f6cf6b">Cargando...</div></div>
+  </div>
+</div>
+
+<script>
+(()=>{
+  try{
+    const sp=document.getElementById("splash"),t=document.getElementById("splash-title"),sub=document.getElementById("splash-sub");
+    if(t){requestAnimationFrame(()=>{t.style.opacity="1";t.style.transform="translateY(0)";});}
+    if(sub){setTimeout(()=>{sub.style.opacity="1";sub.style.transform="translateY(0)";},200);}
+    setTimeout(()=>{
+      try{checkLoginOnLoad();}catch(e){}
+      if(sp){sp.style.animation="splashFadeOut .5s ease forwards";setTimeout(()=>sp.style.display="none",500);}
+    },1600);
+  }catch(e){}
+})();
+</script>
+
+
+<!-- Weekly Summary Modal -->
+<script src="../i18n/game-boot.js"></script>
+</body>
+</html>

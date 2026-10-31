@@ -1,0 +1,31 @@
+{
+  "requestedLocales": [
+    "es",
+    "en",
+    "fr",
+    "pt-BR",
+    "pt-PT",
+    "de"
+  ],
+  "regularDishes": 1082,
+  "sundayDishes": 72,
+  "descriptions": 1154,
+  "hints": 5770,
+  "existingUiKeys": 49,
+  "existingLocales": {
+    "es": {
+      "translatedKeys": 49,
+      "missingKeys": []
+    },
+    "en": {
+      "translatedKeys": 49,
+      "missingKeys": []
+    },
+    "fr": {
+      "translatedKeys": 49,
+      "missingKeys": []
+    }
+  },
+  "explicitlyMarkedHtmlElements": 17,
+  "status": "Auditoría inicial. El diccionario actual no cubre toda la aplicación."
+}

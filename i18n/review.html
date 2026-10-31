@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Comidadle · Revisión de idiomas</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#100900;color:#fff3e0;font:16px/1.55 system-ui,sans-serif}main{max-width:1100px;margin:auto;padding:32px 20px}h1{font-size:clamp(26px,4vw,40px);margin:0 0 10px}p{color:#c9ae91}label{display:block;margin:12px 0 6px}select,input{font:inherit;background:#251a0d;color:inherit;border:1px solid #926342;border-radius:8px;padding:10px;width:100%}.controls{display:grid;grid-template-columns:1fr 2fr;gap:20px}.status{border:1px solid #ffb627;padding:14px;border-radius:10px;color:#ffcf69}.table-wrap{overflow:auto;margin-top:24px}table{border-collapse:collapse;width:100%;table-layout:fixed;min-width:500px}th,td{padding:12px;border-bottom:1px solid #51371f;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{color:#ffb627}small{display:block;color:#c9ae91}.missing{color:#ffb627}.error{color:#ff9c9c}.visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}@media(max-width:600px){.controls{grid-template-columns:1fr;gap:0}main{padding:20px 12px}}
+</style>
+</head>
+<body>
+<main>
+<h1>Revisión de idiomas</h1>
+<p>Vista de revisión separada del juego. Los catálogos en borrador no se han activado en la web pública. Los nombres tradicionales de los platos se conservan.</p>
+<div class="status" id="status" role="status" aria-live="polite">Cargando catálogos…</div>
+<div class="controls">
+<div><label for="locale">Idioma que revisar</label><select id="locale" disabled></select></div>
+<div><label for="search">Buscar un texto, una clave o un plato</label><input id="search" type="search" placeholder="Por ejemplo: Configuración o Tacos"></div>
+</div>
+<p id="summary"></p>
+<div class="table-wrap"><table><caption class="visually-hidden">Textos originales y traducciones disponibles</caption><thead><tr><th scope="col">Original en español</th><th scope="col">Traducción</th></tr></thead><tbody id="rows"></tbody></table></div>
+<button id="more" type="button" hidden>Mostrar más textos</button>
+</main>
+<script src="runtime.js"></script>
+<script>
+(async()=>{
+  const select=document.getElementById('locale'),search=document.getElementById('search'),rows=document.getElementById('rows'),status=document.getElementById('status'),more=document.getElementById('more');
+  const cache=new Map();
+  async function load(locale){
+    if(cache.has(locale))return cache.get(locale);
+    const response=await fetch('../locales/catalogs/'+encodeURIComponent(locale)+'.json');
+    if(!response.ok)throw new Error('No se pudo cargar el catálogo '+locale+'.');
+    const data=await response.json();cache.set(locale,data);return data;
+  }
+  try{
+    const source=await load('es');
+    const i18n=new ComidadleI18n.I18n(source,{fetchCatalog:load,preview:true});
+    for(const [locale,name] of Object.entries(ComidadleI18n.LOCALES)){const option=document.createElement('option');option.value=locale;option.textContent=name;select.appendChild(option);}
+    let limit=100;
+    const format=value=>typeof value==='string'?value:JSON.stringify(value);
+    function render(){
+      const target=i18n.catalog;
+      const translated=Object.keys(source.ui).filter(key=>Object.hasOwn(target.ui,key)).length;
+      const dishCount=Object.keys(target.dishes).length;
+      status.className='status';
+      const complete=translated===Object.keys(source.ui).length&&dishCount===Object.keys(source.dishes).length;
+      status.textContent=i18n.locale==='es'?'Español: catálogo de origen.':`${ComidadleI18n.LOCALES[i18n.locale]} · ${target.status==='reviewed'?'Revisado':'Borrador'}: ${translated}/${Object.keys(source.ui).length} textos y ${dishCount}/${Object.keys(source.dishes).length} platos. ${complete?'Catálogo completo.':'Traducción incompleta.'} ${target.status==='reviewed'?'':'Revisión pendiente; no publicable.'}`;
+      const query=search.value.toLocaleLowerCase('es');
+      const items=Object.entries(source.ui).map(([key,value])=>({key,source:format(value),translated:Object.hasOwn(target.ui,key)?format(target.ui[key]):null}));
+      for(const [id,dish] of Object.entries(source.dishes)){
+        const targetDish=target.dishes[id];
+        for(const field of ['name','desc'])items.push({key:id+'.'+field,source:dish[field],translated:targetDish?.[field]||null});
+        dish.hints.forEach((hint,index)=>items.push({key:id+'.hints.'+index,source:hint,translated:targetDish?.hints?.[index]||null}));
+      }
+      const filtered=items.filter(item=>(item.key+' '+item.source+' '+(item.translated||'')).toLocaleLowerCase('es').includes(query));
+      document.getElementById('summary').textContent=`${filtered.length} textos encontrados. Mostrando ${Math.min(limit,filtered.length)}.`;
+      rows.replaceChildren();
+      for(const item of filtered.slice(0,limit)){
+        const row=document.createElement('tr'),original=document.createElement('td'),translation=document.createElement('td'),key=document.createElement('small');
+        original.textContent=item.source;key.textContent=item.key;original.appendChild(key);
+        translation.textContent=item.translated??'Pendiente de traducir';if(item.translated===null)translation.className='missing';
+        row.append(original,translation);rows.appendChild(row);
+      }
+      more.hidden=limit>=filtered.length;
+    }
+    select.disabled=false;
+    select.addEventListener('change',async()=>{try{status.textContent='Cargando idioma…';if(await i18n.setLocale(select.value)){limit=100;render();}}catch(error){select.value=i18n.locale;status.className='status error';status.textContent=error.message;}});
+    search.addEventListener('input',()=>{limit=100;render();});
+    more.addEventListener('click',()=>{limit+=100;render();});
+    render();
+  }catch(error){status.className='status error';status.textContent=error.message+' Abre esta vista mediante el servidor local, no como un archivo.';}
+})();
+</script>
+</body>
+</html>
