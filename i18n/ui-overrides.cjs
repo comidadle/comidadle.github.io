@@ -1,5 +1,6 @@
 // Redacción de controles y conceptos del juego. Orden: en, fr, de, pt-BR, pt-PT.
 module.exports={
+  '🔥 Racha: {p0}':['🔥 Streak: {p0}','🔥 Série : {p0}','🔥 Serie: {p0}','🔥 Sequência: {p0}','🔥 Sequência: {p0}'],
   '🟩 Acierto · 🟥 Fallo':['🟩 Correct · 🟥 Wrong','🟩 Bonne réponse · 🟥 Mauvaise réponse','🟩 Richtig · 🟥 Falsch','🟩 Acerto · 🟥 Erro','🟩 Acerto · 🟥 Erro'],
   'Idioma':['Language','Langue','Sprache','Idioma','Idioma'],
   'El cambio recarga la página. Tu progreso diario se conserva.':['Changing the language reloads the page. Your daily progress is saved.','Le changement de langue recharge la page. Votre progression quotidienne est conservée.','Beim Sprachwechsel wird die Seite neu geladen. Dein täglicher Fortschritt bleibt gespeichert.','A mudança de idioma recarrega a página. Seu progresso diário é mantido.','A mudança de idioma recarrega a página. O teu progresso diário é guardado.'],

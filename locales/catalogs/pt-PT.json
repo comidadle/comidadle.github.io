@@ -335,7 +335,7 @@
     "msg_cadce0c513bc90c9": "Foi {p0} {p1}",
     "msg_5d1d7c23081eae0e": "Você vê a placa por alguns segundos, então ela desaparece. Adivinha pela memória, sem pistas e apenas uma tentativa. Direita para ganhar +10 XP corrigido!",
     "msg_b255473b59bca35f": "Copiado ( {p0} )",
-    "msg_f4fa93af1edaa877": "🔥 Racha: {p0}",
+    "msg_f4fa93af1edaa877": "🔥 Sequência: {p0}",
     "msg_fe2482cad6ffc118": "Memorize- o, ele vai desaparecer.",
     "msg_45c9cd8aff4ff00b": "De que país é ele?",
     "msg_7f6a507bd41b22bb": "Direita! {p0} {p1} · +10 XP 🎉",
@@ -1286,7 +1286,7 @@
         "Puebla criou-o para celebrar o Exército Trigarante em 1821",
         "É um dos pratos mais complexos e festivos do país"
       ],
-      "displayName": "Chiles en Nogada"
+      "displayName": "Chiles em Nogada"
     },
     "regular:3": {
       "name": "Pozole Rojo",
@@ -1334,7 +1334,7 @@
         "Canela, cravo e cominho são especiarias chave",
         "A versão original foi feita com cabra, não carne de vaca"
       ],
-      "displayName": "Birria de Res"
+      "displayName": "Birria de carne de vaca"
     },
     "regular:7": {
       "name": "Paella Valenciana",
@@ -1478,7 +1478,7 @@
         "É um dos pratos mais confortáveis da cozinha doméstica peruana",
         "Nozes dão textura e um sabor ligeiramente amargo ao molho"
       ],
-      "displayName": "Ají de Gallina"
+      "displayName": "Ají de galinha"
     },
     "regular:19": {
       "name": "Anticuchos",
@@ -1646,7 +1646,7 @@
         "A costa do país produz o maior e mais fresco camarão",
         "Guayaquil e Manta são os portos onde está melhor preparado"
       ],
-      "displayName": "Ceviche de Camarón"
+      "displayName": "Ceviche de camarão"
     },
     "regular:33": {
       "name": "Llapingachos",
@@ -1874,7 +1874,7 @@
         "O preenchimento pode ser queijo de Oaxaca ou carne picada",
         "Eles são servidos em molho de tomate ou noze dependendo da época"
       ],
-      "displayName": "Chiles Rellenos"
+      "displayName": "Enchendo Chiles"
     },
     "regular:52": {
       "name": "Pan de Muerto",
@@ -1970,7 +1970,7 @@
         "Leite condensado cozido dá um resultado similar, mas não igual",
         "É o sabor mais representativo dos doces rioflatensos"
       ],
-      "displayName": "Dulce de Leche"
+      "displayName": "Dulce de leite"
     },
     "regular:60": {
       "name": "Medialunas",
@@ -2042,7 +2042,7 @@
         "A pele deve ser completamente crocante e dourada no final",
         "Ele é vendido em lotes em mercados e restaurantes de Tolima"
       ],
-      "displayName": "Lechona Tolimense"
+      "displayName": "Lechona Tolimenso"
     },
     "regular:66": {
       "name": "Arroz con Coco",
@@ -2150,7 +2150,7 @@
         "Cada região tem sua própria versão: costeira, serrano e amazônica",
         "Cuenca e Quito são cidades com as versões mais reconhecidas"
       ],
-      "displayName": "Seco de Pollo"
+      "displayName": "Seco de frango"
     },
     "regular:75": {
       "name": "Fritada Ecuatoriana",
@@ -2186,7 +2186,7 @@
         "Vendido em barracas nas manhãs frias de La Paz",
         "Ele é acompanhado com bolo choclo ou fritos recém fritos"
       ],
-      "displayName": "Api Morado"
+      "displayName": "Api púrpura"
     },
     "regular:78": {
       "name": "Moqueca Baiana",
@@ -2258,7 +2258,7 @@
         "Ele é vendido em barracas de rua nas tardes frias das terras altas",
         "É a bebida mais consumida nas feiras e mercados indígenas"
       ],
-      "displayName": "Atol de Elote"
+      "displayName": "Atol de milho"
     },
     "regular:84": {
       "name": "Empanada Criolla Uruguaya",
@@ -2342,7 +2342,7 @@
         "Veracruz e a costa do Pacífico são suas áreas de origem",
         "É comido como lanche em frutos do mar em todo o país"
       ],
-      "displayName": "Coctel de Camarón"
+      "displayName": "Coctel de camarão"
     },
     "regular:91": {
       "name": "Flautas de Pollo",
@@ -2354,7 +2354,7 @@
         "Cidade do México os tem em praticamente todos os mercados",
         "Eles também são feitos de batata com chorizo ou queijo em algumas regiões"
       ],
-      "displayName": "Flautas de Pollo"
+      "displayName": "Flautas de frango"
     },
     "regular:92": {
       "name": "Pescado a la Veracruzana",
@@ -2390,7 +2390,7 @@
         "Mercados do México Central os vendem cedo",
         "Eles também são preenchidos com feijão, rajas, tinga ou guisado do dia"
       ],
-      "displayName": "Gorditas de Chicharrón"
+      "displayName": "Gorditas Chicharrón"
     },
     "regular:95": {
       "name": "Pan Dulce",
@@ -2594,7 +2594,7 @@
         "Cada casa tem a sua própria versão que vai de geração em geração",
         "Servido em prato profundo quente com uma repetição ao lado"
       ],
-      "displayName": "Asopado de Pollo"
+      "displayName": "Asopado de frango"
     },
     "regular:112": {
       "name": "Pisillo de Chigüire",
@@ -2642,7 +2642,7 @@
         "É o almoço familiar de dias frios e chuvosos no sul",
         "É comido com pão amassado ou brownie para molhar no caldo"
       ],
-      "displayName": "Cazuela de Vacuno"
+      "displayName": "Cazuela de Vaqueiro"
     },
     "regular:116": {
       "name": "Porotos Granados",
@@ -2766,7 +2766,7 @@
     },
     "regular:126": {
       "name": "Pepitoria de Gallina",
-      "desc": "Frango em molho espesso com gemas de ovo, amêndoas, açafrão e xerez seco.",
+      "desc": "Galinha num molho engrossado com gemas, amêndoas, açafrão e xerez seco.",
       "hints": [
         "É um dos pratos mais antigos da cozinha castelhana medieval",
         "Gemas de ovo e molho de amêndoas espessas naturalmente",
@@ -2774,7 +2774,7 @@
         "Vinho de xerez seco traz acidez e corpo para o molho",
         "Aparece no Quijote de Cervantes como um prato de celebração"
       ],
-      "displayName": "Pepitoria de Gallina"
+      "displayName": "Galinha em molho de pepitoria"
     },
     "regular:127": {
       "name": "Cochinillo Asado",
@@ -3002,7 +3002,7 @@
         "É a sopa mais confortante das terras altas do Equador no inverno",
         "Difere de ajiaco colombianos por não carregar guacas ou frango"
       ],
-      "displayName": "Locro de Papa"
+      "displayName": "Locro de batata"
     },
     "regular:146": {
       "name": "Caldo de Patas",
@@ -3254,7 +3254,7 @@
         "Montevideo e o interior de criação de gado têm a cultura mais profundamente enraizada",
         "A carne só transporta sal espesso, nada mais é necessário na receita"
       ],
-      "displayName": "Asado Uruguayo a la Cruz"
+      "displayName": "Assado uruguaio à Cruz"
     },
     "regular:167": {
       "name": "Milanesa al Limón",
@@ -3290,7 +3290,7 @@
         "Bahia e Pernambuco são os estados onde mais consomem e comemoram",
         "Derrete frio e o caramelo cai no flan formando um molho"
       ],
-      "displayName": "Flan de Coco Brasileño"
+      "displayName": "Flan de Coco Brasileiro"
     },
     "regular:170": {
       "name": "Vatapá Baiano",
@@ -3482,7 +3482,7 @@
         "Mérida reivindica como a sopa mais emblemática e de identidade",
         "É completamente diferente do limão em aroma e sabor floral"
       ],
-      "displayName": "Sopa de Lima"
+      "displayName": "sopa de Lima"
     },
     "regular:186": {
       "name": "Queso Fundido",
@@ -3698,7 +3698,7 @@
         "O socarrat crocante do fundo é tão apreciado como em valenciano",
         "Decorado com camarão inteiro e limão antes de servir na mesa"
       ],
-      "displayName": "Paella de Mariscos"
+      "displayName": "Paella de marisco"
     },
     "regular:204": {
       "name": "Arroz a Banda",
@@ -3962,7 +3962,7 @@
         "É o remédio mais prescrito para gripes e resfriados no país",
         "Cada região tem sua versão com diferentes tubérculos locais"
       ],
-      "displayName": "Hervido de Pollo"
+      "displayName": "Frango Fervido"
     },
     "regular:226": {
       "name": "Pasticho",
@@ -4082,7 +4082,7 @@
         "Arequipa afirma que é parte da sua cozinha conventual histórica",
         "Os macarrãoes grossos absorvem o caldo e são muito saborosos"
       ],
-      "displayName": "Sopa Teologa"
+      "displayName": "Teologá de sopa"
     },
     "regular:236": {
       "name": "Pepián de Tostadas",
@@ -4298,7 +4298,7 @@
         "É a variante mais cozida por famílias com preferências alimentares",
         "Cada família chama-lhe hallaca frango, mas a receita varia de acordo com o domicílio"
       ],
-      "displayName": "Hayaca de Pollo"
+      "displayName": "Hayaca de frango"
     },
     "regular:254": {
       "name": "Mazorca Asada",
@@ -4562,7 +4562,7 @@
         "Iquitos, Tarapoto e toda a Amazônia o consomem na festa de San Juan",
         "O nome vem de John, John, que é comemorado em junho"
       ],
-      "displayName": "Juane de Arroz"
+      "displayName": "Juane de arroz"
     },
     "regular:276": {
       "name": "Inchicapi",
@@ -4682,7 +4682,7 @@
         "Lima Vieja e os distritos de Callao estão onde melhor preparado",
         "É o prémio de ceviche que é solicitado em cevicherías de luxo de Lima"
       ],
-      "displayName": "Ceviche de Pulpo"
+      "displayName": "Ceviche de polvo"
     },
     "regular:286": {
       "name": "Arroz con Leche Cubano",
@@ -4754,7 +4754,7 @@
         "É a sopa de domingos e dias chuvosos por toda a ilha",
         "A vovó é a pessoa mais autorizada para preparar o melhor sopon"
       ],
-      "displayName": "Sopón de Pollo"
+      "displayName": "Sopa de galinha"
     },
     "regular:292": {
       "name": "Caldo Santo",
@@ -4838,7 +4838,7 @@
         "É o almoço de domingo mais tradicional das famílias guatemaltecas",
         "Servido com tortillas de milho recém-fazidas na prancha quente"
       ],
-      "displayName": "Caldo de Res Guatemalteco"
+      "displayName": "Res caldo guatemalteco"
     },
     "regular:299": {
       "name": "Garnachas",
@@ -4862,7 +4862,7 @@
         "O Ocidente indigena — Huehuetenango, San Marcos — vem cozindo-o há séculos",
         "O nome é Tzeltal e significa frango verde nesse idioma maia"
       ],
-      "displayName": "Jocón de Pollo"
+      "displayName": "Jocón de frango"
     },
     "regular:301": {
       "name": "Sopa de Pan",
@@ -4994,7 +4994,7 @@
         "É o seco mais solicitado em restaurantes das montanhas equatorianas",
         "Difere de seco de pollo por ser mais escuro e mais res"
       ],
-      "displayName": "Seco de Carne"
+      "displayName": "Seco de carne"
     },
     "regular:312": {
       "name": "Encebollado",
@@ -5030,7 +5030,7 @@
         "Especialmente comido nos fins de semana como prato de celebração",
         "Tegucigalpa e San Pedro Sula têm as versões mais reconhecidas do país"
       ],
-      "displayName": "Sancocho de Gallina"
+      "displayName": "Frango Sancho"
     },
     "regular:315": {
       "name": "Tamales Costeños",
@@ -5246,7 +5246,7 @@
         "O toque de limão azedo é adicionado pouco antes de servir",
         "É um prato muito popular nos restaurantes Criollos de Miami e Cuba"
       ],
-      "displayName": "Vaca Frita"
+      "displayName": "Vaca frita"
     },
     "regular:333": {
       "name": "Tigrillo Ecuatoriano",
@@ -5474,7 +5474,7 @@
         "A pimenta andaluz dá um toque diferente ao caldo",
         "É um típico prato de colher de inverno do sul"
       ],
-      "displayName": "Cocido Andaluz"
+      "displayName": "Andaluz stew"
     },
     "regular:352": {
       "name": "Marmitako",
@@ -5558,7 +5558,7 @@
         "É um prato de domingo em família em grande parte do país",
         "O coentro e a cor amarela do açafrão o decoram ao servir"
       ],
-      "displayName": "Sancocho de Gallina Colombiano"
+      "displayName": "Sancocho de galinha"
     },
     "regular:359": {
       "name": "Buñuelos Colombianos",
@@ -5678,7 +5678,7 @@
         "Eles são vendidos na mesma noite de rua barracas",
         "É mais suave que a versão do coração, mas tão popular"
       ],
-      "displayName": "Anticuchos de Pollo"
+      "displayName": "Anticuchos de frango"
     },
     "regular:369": {
       "name": "Tres Leches Hondureño",
@@ -5714,7 +5714,7 @@
         "Cumin e achiote dão-lhe a cor e aroma típicos",
         "É comida diária em muitas casas salvadorenhas"
       ],
-      "displayName": "Picadillo de Res Salvadoreño"
+      "displayName": "Picadillo de carne de vaca"
     },
     "regular:372": {
       "name": "Ropa Vieja Panameña",
@@ -5810,7 +5810,7 @@
         "Cozer até dourado no exterior e ficar macio por dentro",
         "É típico de lanches de mineração ao lado do café"
       ],
-      "displayName": "Pão de Açúcar Mineiro"
+      "displayName": "Pão Açúcar Mineiro"
     },
     "regular:380": {
       "name": "Empanada de Cambray",
@@ -5978,7 +5978,7 @@
         "Tomate, cebola e pimenta serrano completam o ensopado",
         "É servido em tacos de farinha, que são típicos do norte"
       ],
-      "displayName": "Machaca Norteña"
+      "displayName": "Machaca Norte"
     },
     "regular:394": {
       "name": "Tepache de Piña",
@@ -6266,7 +6266,7 @@
         "O leite é aromatizado com canela e casca de limão antes de cozinhar",
         "Servido em cazuelita de argila individual diretamente para a tabela"
       ],
-      "displayName": "Crema Catalana"
+      "displayName": "Creme Catalão"
     },
     "regular:418": {
       "name": "Fideuà Valenciana",
@@ -6314,7 +6314,7 @@
         "O chorizo e a cantabra de salsichas dão-lhe o sabor fumado profundo",
         "É um prato de inverno que aquece bem no frio do norte"
       ],
-      "displayName": "Cocido Montañés"
+      "displayName": "Montanha cozida"
     },
     "regular:422": {
       "name": "Porrusalda Vasca",
@@ -6554,7 +6554,7 @@
         "Cádiz e o Algarve Português são suas áreas de origem marinha",
         "É servido temperado, nunca muito quente, para que os sabores se acalmem"
       ],
-      "displayName": "Atún Encebollado"
+      "displayName": "Atum Encebollado"
     },
     "regular:442": {
       "name": "Humita en Olla",
@@ -6626,7 +6626,7 @@
         "É um prato típico da cozinha Buenos Aires Buenos Aires",
         "É servido em bistros e restaurantes da cozinha criola argentina"
       ],
-      "displayName": "Revuelto Gramajo"
+      "displayName": "Engole Gramajo"
     },
     "regular:448": {
       "name": "Rogel Argentino",
@@ -6650,7 +6650,7 @@
         "Mercados são vendidos especialmente nos feriados nacionais",
         "Doce batata doce ou quince são os dois preenchimentos mais clássicos"
       ],
-      "displayName": "Pastelitos de Membrillo"
+      "displayName": "tortas de Membrillo"
     },
     "regular:450": {
       "name": "Pionono Relleno",
@@ -6710,7 +6710,7 @@
         "Queijo cremoso ou mozzarella derrete no forno em cima",
         "Eles também são recheados com arroz, presunto e legumes na versão vegetariana"
       ],
-      "displayName": "Zapallitos Rellenos"
+      "displayName": "Zapallitos Enchimentos"
     },
     "regular:455": {
       "name": "Ravioles Caseros Porteños",
@@ -6806,7 +6806,7 @@
         "O caldo de enchimento torna-os especialmente suculentos quando mordendo",
         "O Festival da Empanada em Famaillá convoca todo o país"
       ],
-      "displayName": "Empanadas Tucumanas"
+      "displayName": "Tucumanas empanadas"
     },
     "regular:463": {
       "name": "Asado de Cordero Patagónico",
@@ -7010,7 +7010,7 @@
         "O origano seco é a grama aromática inseparável deste guisado",
         "Servido com arroz branco ou pão amassado no campo"
       ],
-      "displayName": "Porotos Negros Guisados"
+      "displayName": "Porotas Pretos Fritos"
     },
     "regular:480": {
       "name": "Asado de Cerdo Chileno",
@@ -7034,7 +7034,7 @@
         "Adiciona-se arroz ou macarrão nos últimos minutos de cozimento",
         "É casserola de domingo no campo sul do país"
       ],
-      "displayName": "Cazuela de Cordero Chilena"
+      "displayName": "Ensopado de borrego"
     },
     "regular:482": {
       "name": "Curanto en Olla",
@@ -7442,7 +7442,7 @@
         "A parte oriental da ilha é onde esta receita está mais preservada",
         "É enrolado a vapor em folha de banana por uma hora"
       ],
-      "displayName": "Bacán Cubano"
+      "displayName": "Bacán Cuban"
     },
     "regular:516": {
       "name": "Boliche Cubano",
@@ -7454,7 +7454,7 @@
         "Quando cortado em fatias, ele mostra o preenchimento colorido no centro",
         "É o prato de domingos especiais na família cubana"
       ],
-      "displayName": "Boliche Cubano"
+      "displayName": "Boliche Cuban"
     },
     "regular:517": {
       "name": "Arroz con Mariscos",
@@ -7514,7 +7514,7 @@
         "É o prato mais criativo da cozinha de Lima",
         "Decorado com ovo duro e azeitonas pretas ao demolir"
       ],
-      "displayName": "Arroz Tapado"
+      "displayName": "arroz Tapado"
     },
     "regular:522": {
       "name": "Causa Norteña",
@@ -7526,7 +7526,7 @@
         "Trujillo e Piura são as cidades onde está preparado com mais elegância",
         "A causa do Norte é muitas vezes maior e mais generosa que a de Lima"
       ],
-      "displayName": "Causa Norteña"
+      "displayName": "Causa Norte"
     },
     "regular:523": {
       "name": "Shambar",
@@ -7766,7 +7766,7 @@
         "Eje Cafetero e Medellin os vendem na esquina para o pequeno-almoço",
         "Eles são os mais doces arepas e favoritos das crianças colombianas"
       ],
-      "displayName": "Arepas de Choclo"
+      "displayName": "Arepas de milho"
     },
     "regular:543": {
       "name": "Puchero Bogotano",
@@ -7814,7 +7814,7 @@
         "O coentro fresco dá o aroma que equilibra o sabor forte do peixe-gato",
         "O Magdalena e o Cauca são os rios que produzem o melhor peixe-gato"
       ],
-      "displayName": "Sancocho de Bagre"
+      "displayName": "Sancho de Bagre"
     },
     "regular:547": {
       "name": "Postre de Natas",
@@ -7898,7 +7898,7 @@
         "Especiarias andinas como cominho e achiote dão cor",
         "É diferente da pepitoria espanhola em seus ingredientes americanos"
       ],
-      "displayName": "Pepitoria de Gallina Colombiana"
+      "displayName": "Galinha em molho de pepitoria"
     },
     "regular:554": {
       "name": "Mamona de los Llanos",
@@ -8594,7 +8594,7 @@
         "É a bebida que acompanha os tamales nas festas e feiras",
         "É diferente da goiaba ou atole de morango no seu sabor puro de milho"
       ],
-      "displayName": "Atol de Maíz Guatemalteco"
+      "displayName": "Milho guatemalteco Atol"
     },
     "regular:612": {
       "name": "Garnachas Orientales",
@@ -8654,7 +8654,7 @@
         "Eles são o fritre mais popular de quiosques e praias do Luquillo",
         "O achiote no óleo dá-lhe a cor laranja característica"
       ],
-      "displayName": "Alcapurrias de Yuca"
+      "displayName": "Alcapurrias de mandioca"
     },
     "regular:617": {
       "name": "Bacalaítos Fritos",
@@ -8690,7 +8690,7 @@
         "Eles são um dos pratos mais populares em famílias porto-riquenhas",
         "Aquecido servido com mayoketchup — maionese e mistura de ketchup —"
       ],
-      "displayName": "Rellenos de Papa Boricua"
+      "displayName": "Rellenos de batata"
     },
     "regular:620": {
       "name": "Empanadillas de Guayaba",
@@ -8750,7 +8750,7 @@
         "É a sopa de domingos e dias chuvosos por toda a ilha",
         "A vovó é a pessoa mais autorizada para preparar o melhor sopon"
       ],
-      "displayName": "Sopón de Pollo Puertorriqueño"
+      "displayName": "Sopa de galinha porto-riquenha"
     },
     "regular:625": {
       "name": "Caldo Santo Boricua",
@@ -8894,7 +8894,7 @@
         "Cochabamba tem os rolos mais famosos de todo o país",
         "É o almoço festivo mais preparado para celebrações bolivianas"
       ],
-      "displayName": "Enrollado de Cerdo Boliviano"
+      "displayName": "Enrollado de porco boliviano"
     },
     "regular:637": {
       "name": "Buñuelos Bolivianos",
@@ -9086,7 +9086,7 @@
         "Uruguai é o único país onde esta versão doce é tão popular",
         "É comido no assado no domingo próximo ao outro churrasco achuras"
       ],
-      "displayName": "Morcilla Dulce Uruguaya"
+      "displayName": "Morcilla Dulce Uruguaia"
     },
     "regular:653": {
       "name": "Ojo de Bife Uruguayo",
@@ -9378,7 +9378,7 @@
     },
     "regular:677": {
       "name": "Hojaldras Panameñas",
-      "desc": "Massa frita esponjosa servida no pequeno-almoço com queijo branco ou manteiga.",
+      "desc": "Pães fritos e fofos, servidos ao pequeno-almoço com queijo fresco ou manteiga.",
       "hints": [
         "A farinha é esticada e frita para inflar como um balão",
         "É o pão de pequeno-almoço panamense mais popular ao lado da carimañola",
@@ -9386,7 +9386,7 @@
         "As barracas de rua as vendem a partir das 5 da manhã em todo o país",
         "Eles são comidos ao lado de café preto ou sumo de laranja natural"
       ],
-      "displayName": "Hojaldras panamenhos"
+      "displayName": "Pão frito panamiano"
     },
     "regular:678": {
       "name": "Arroz con Pollo Panameño",
@@ -9566,7 +9566,7 @@
         "É o almoço de domingo mais tradicional das famílias nicaragüenses",
         "Servido com tortillas de milho recém-fazidas"
       ],
-      "displayName": "Sopa de Res Nicaragüense"
+      "displayName": "Sopa de Res Nicarágua"
     },
     "regular:693": {
       "name": "Perrerreque Nicaragüense",
@@ -9710,7 +9710,7 @@
         "É diferente da tortilla mexicana quesadilla em todo o seu conceito",
         "San Salvador tem padarias coloniais que fizeram isso por séculos"
       ],
-      "displayName": "Quesadilla de Arroz Salvadoreña"
+      "displayName": "Quesadilla de arroz salvadorenho"
     },
     "regular:705": {
       "name": "Mariscada Salvadoreña",
@@ -9926,7 +9926,7 @@
         "Servido com tortillas de milho e arroz branco ao lado",
         "San José e as províncias centrais têm as melhores versões do país"
       ],
-      "displayName": "Olla de Carne Costarricense"
+      "displayName": "Olla de carne costa-riquenha"
     },
     "regular:723": {
       "name": "Arroz con Leche Tico",
@@ -9950,7 +9950,7 @@
         "Servido como um prato para qualquer carne assada ou frita",
         "Existem variantes com chayote, vainicas ou raracache dependendo da região"
       ],
-      "displayName": "Picadillo de Papas Tico"
+      "displayName": "Picadillo dos Papas Tico"
     },
     "regular:725": {
       "name": "Chorreadas Costarricenses",
@@ -10178,7 +10178,7 @@
         "O milho em grãos dá-lhe a doçura que equilibra a pimenta com coceira",
         "Servido em frasco de argila muito quente como um primeiro prato"
       ],
-      "displayName": "Chileatole de Pollo"
+      "displayName": "Chileatole de frango"
     },
     "regular:744": {
       "name": "Sopa Azteca",
@@ -10286,7 +10286,7 @@
         "Cidade do México os vende em praticamente todos os mercados",
         "A cor vermelha intensa do exterior torna-os muito impressionantes e reconhecíveis"
       ],
-      "displayName": "Pambazos de Papas"
+      "displayName": "Pambazos de batatas"
     },
     "regular:753": {
       "name": "Helado de Mamey",
@@ -10418,7 +10418,7 @@
         "Mérida reivindica como a sopa mais emblemática e de identidade",
         "É completamente diferente do limão em aroma e sabor floral"
       ],
-      "displayName": "Sopa de Lima Yucateca"
+      "displayName": "sopa de Lima Yucateca"
     },
     "regular:764": {
       "name": "Buñuelos de Viento",
@@ -10550,7 +10550,7 @@
         "É comido em tacos de farinha com guacamole e molho fresco",
         "É o prato de reuniões camponesas e ranchos no norte"
       ],
-      "displayName": "Discada Norteña"
+      "displayName": "Discada Norte"
     },
     "regular:775": {
       "name": "Marquesitas de Nutella",
@@ -10790,7 +10790,7 @@
         "Yucatan oferece-o nos menus do dia como alternativa ao porco",
         "O sabor de achiote e laranja azeda domina como na versão tradicional"
       ],
-      "displayName": "Cocinita Pibil de Pollo"
+      "displayName": "Cocinita Pibil de frango"
     },
     "regular:795": {
       "name": "Tacos de Nopales con Queso",
@@ -11138,7 +11138,7 @@
         "É diferente do equatoriano frito no uso de hogao colombiano",
         "Os vales inter-andianos de Cauca e Valle o consomem mais frequentemente"
       ],
-      "displayName": "Fritada de Cerdo Colombiana"
+      "displayName": "Fritada de porco"
     },
     "regular:824": {
       "name": "Hogao con Arroz",
@@ -11270,7 +11270,7 @@
         "É o prato diário em casas colombianas de qualquer região",
         "Servido com arroz branco e banana madura frita como acompanhamento"
       ],
-      "displayName": "Sudado de Pollo"
+      "displayName": "Sudado de frango"
     },
     "regular:835": {
       "name": "Masato de Maíz",
@@ -12170,7 +12170,7 @@
         "Latacunga e Riobamba são as cidades mais famosas para assar",
         "É o prato mais caro da cozinha equatoriana serraniana pelo preço do cuy"
       ],
-      "displayName": "Ají de Cuy"
+      "displayName": "Aji de Cuy"
     },
     "regular:910": {
       "name": "Rosero Quiteño",
@@ -12222,7 +12222,7 @@
     },
     "regular:914": {
       "name": "Pollo en Pepitoria Cubana",
-      "desc": "Frango ensopado em gema de ovo, molho de amêndoa e açafrão, herança espanhola em Cuba.",
+      "desc": "Frango estufado num molho de gemas, amêndoas e açafrão, herança da cozinha espanhola em Cuba.",
       "hints": [
         "A pepitoria cubana chegou com os colonizadores espanhóis do século XVI",
         "A gema de ovo espessa o molho dando-lhe a cor dourada intensa",
@@ -12230,7 +12230,7 @@
         "Açafrão – ou bico como substituto – dá-lhe a cor e aroma especial",
         "É um dos pratos coloniais mais antigos da cozinha tradicional cubana"
       ],
-      "displayName": "Frango em Pepitoria Cubana"
+      "displayName": "Frango em molho de pepitoria"
     },
     "regular:915": {
       "name": "Fricasé de Pollo Cubano",
@@ -12302,7 +12302,7 @@
         "Havana o serve em barracas de rua e restaurantes populares diariamente",
         "É o prato de frango mais rápido e fácil na cozinha caseira cubana"
       ],
-      "displayName": "Chicharrón de Pollo Cubano"
+      "displayName": "Chicharrón de frango"
     },
     "regular:921": {
       "name": "Arroz con Pollo Habanero",
@@ -12494,7 +12494,7 @@
         "Cada avó Boricua tem sua versão secreta do caldo sagrado da família",
         "Pimenta e chili doce lhe dão o sabor que não pode ser perdido"
       ],
-      "displayName": "Caldo Santo de Bacalao"
+      "displayName": "caldo de Bachalao sagrado"
     },
     "regular:937": {
       "name": "Majarete de Coco Boricua",
@@ -12506,7 +12506,7 @@
         "Refrigerado em quadrados e espolvorado com canela ao servir",
         "É diferente do majarete venezuelano na proporção de ingredientes"
       ],
-      "displayName": "Majarete de Coco Boricua"
+      "displayName": "Majarete Coco Boricua"
     },
     "regular:938": {
       "name": "Alcapurria de Jueyes",
@@ -12578,7 +12578,7 @@
         "As sementes de sésamo também são adicionadas para espessar o molho",
         "Antigua Guatemala tem os restaurantes mais conhecidos para este prato"
       ],
-      "displayName": "Pepián de Res"
+      "displayName": "Pepián de carne de vaca"
     },
     "regular:944": {
       "name": "Estofado Guatemalteco",
@@ -12602,7 +12602,7 @@
         "É o caldo mais consumido nos domingos em famílias urbanas guatemaltecas",
         "É servido com tortillas de milho frescas feitas em comal sempre"
       ],
-      "displayName": "Caldillo de Pollo Guatemalteco"
+      "displayName": "Caldillo de Frango Guatemalteco"
     },
     "regular:946": {
       "name": "Tayuyos Guatemaltecos",
@@ -12770,7 +12770,7 @@
         "La Paz e as planícies bolivianas são os que mais a consomem diariamente",
         "É a sopa de cordeiro mais poderosa e nutritiva dos Andes bolivianos"
       ],
-      "displayName": "Thimpu de Cordero"
+      "displayName": "Thimpu de borrego"
     },
     "regular:960": {
       "name": "Saice de Tarija",
@@ -12794,7 +12794,7 @@
         "As terras altas bolivianas usam charqui como foram preservadas desde a época pré-hispânica",
         "É o pequeno-almoço proteico mais popular nas comunidades rurais das montanhas"
       ],
-      "displayName": "Revuelto de Charqui"
+      "displayName": "Mexido pelo Charqui"
     },
     "regular:962": {
       "name": "Lawa de Chuño",
@@ -13082,7 +13082,7 @@
         "É o frito mais popular em bares dominicanos e bairros lotados",
         "As frituras Yuca são vendidas em barracas de rua por todo o país"
       ],
-      "displayName": "Fritura de Yuca Dominicana"
+      "displayName": "Fritura de mandioca"
     },
     "regular:986": {
       "name": "Rabas Fritas",
@@ -13094,7 +13094,7 @@
         "Eles são acompanhados com maionese de alho ou molho de golfe para molhar cada aro",
         "A chave é óleo muito quente para torná-los crocantes e não gorduroso"
       ],
-      "displayName": "Rabas Fritas"
+      "displayName": "Rabas Fritos"
     },
     "regular:987": {
       "name": "Sopa de Cebolla Uruguaya",
@@ -13754,7 +13754,7 @@
         "É o prato que mais come em famílias urbanas de Asunción",
         "A consistência da sopa é engrossada pelos pellets que se dissolvem"
       ],
-      "displayName": "Borí Borí de Pollo"
+      "displayName": "Borí Borí de frango"
     },
     "regular:1042": {
       "name": "Lampreado Paraguayo",
@@ -13862,7 +13862,7 @@
         "Os domingos são o dia de tamales nos mercados de San Salvador",
         "Eles se ligam em pares e fervem por duas horas para cozinhar completamente"
       ],
-      "displayName": "Tamale de Pollo Salvadoreño"
+      "displayName": "Tamale de frango"
     },
     "regular:1051": {
       "name": "Sopa de Res Salvadoreña",
@@ -13874,7 +13874,7 @@
         "É o almoço de domingo mais tradicional das famílias salvadorenhas",
         "Servido com tortillas de milho e pimenta picante em conserva"
       ],
-      "displayName": "Sopa de Res Salvadoreña"
+      "displayName": "Sopa de carne de vaca"
     },
     "regular:1052": {
       "name": "Enchiladas Salvadoreñas",
@@ -13970,7 +13970,7 @@
         "Eles são a sobremesa mais típica da Páscoa em todos os mercados do país",
         "Anise dá-lhe o aroma festivo que os diferencia dos simples fritters"
       ],
-      "displayName": "Nuégados de Yuca"
+      "displayName": "Nuégados de mandioca"
     },
     "regular:1060": {
       "name": "Sopa de Patas con Loroco",
@@ -14030,7 +14030,7 @@
         "É o prato de festas e grandes eventos familiares no país",
         "Servido com arroz branco em um prato separado para absorver o caldo"
       ],
-      "displayName": "Olla de Carne Completa"
+      "displayName": "Olla de carne completa"
     },
     "regular:1065": {
       "name": "Picadillo de Arracache Costarricense",
@@ -14174,7 +14174,7 @@
         "É coroada com tortilla frita e pimenta xcatic como na versão de Yucatecan",
         "É menos conhecido do que o Yucateca, mas muito apreciado na região"
       ],
-      "displayName": "Sopa de Lima Campechana"
+      "displayName": "sopa de Lima Campechana"
     },
     "regular:1077": {
       "name": "Lomo en su Jugo",
@@ -14366,7 +14366,7 @@
         "Hyderabad, no sul, tem o estilo de biryani mais famoso do país",
         "Ele carrega mais de 25 especiarias diferentes na marinada do cordeiro"
       ],
-      "displayName": "Biryani de Cordero"
+      "displayName": "Biryani de borrego"
     },
     "sunday:11": {
       "name": "Naan",
@@ -14426,7 +14426,7 @@
         "Fez e Marrakech têm as versões mais antigas e documentadas do Tagine",
         "O cozimento lento de três horas faz com que a carne saia do osso sozinho"
       ],
-      "displayName": "Tagine de Cordero"
+      "displayName": "Tagine de borrego"
     },
     "sunday:16": {
       "name": "Cuscús con Verduras",
@@ -14702,7 +14702,7 @@
         "A berbera vermelha picante dá-lhe a comichão que varia de acordo com a região etíope",
         "A Addis Abeba tem centenas de restaurantes especializados apenas em tibs e wat"
       ],
-      "displayName": "Tibs de Cordero"
+      "displayName": "Tibs de borrego"
     },
     "sunday:39": {
       "name": "Jollof Rice Nigeriano",
@@ -15107,7 +15107,7 @@
     "controlsReviewed": true,
     "fullEditorialReview": false,
     "regionalVocabularyAdapted": true,
-    "manualControlOverrides": 48
+    "manualControlOverrides": 49
   },
   "regionalAdaptation": {
     "sourceLocale": "pt-BR",

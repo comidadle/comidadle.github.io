@@ -188,8 +188,10 @@ function walk(node,edits,root=true){
   }
   if(node.type==='AssignmentExpression'&&node.left.type==='MemberExpression'&&['innerHTML','textContent','innerText','title','placeholder'].includes(node.left.property?.name)){
     const value=compile(node.right,true);
-    if(parents.get(node)?.type==='ExpressionStatement'&&((node.left.property.name==='innerHTML'&&sourceText(node.right).includes('dish-name'))||node.left.object.name==='nameEl')){
-      edits.push({start:node.start,end:node.end,text:`(${sourceText(node.left)}=${value},L10N.decorateDishNames())`});
+    const contexts=scope(node),gameContext=contexts.some(name=>['renderAll','renderInfiniteGame','loadInfinite','startMemoryRound','renderDuelPlay','renderGroupPlay'].includes(name));
+    if(parents.get(node)?.type==='ExpressionStatement'&&(['innerHTML','textContent','innerText'].includes(node.left.property.name))&&(gameContext||sourceText(node.right).includes('dish-name'))){
+      const reveal=contexts.includes('showMemResult')||contexts.includes('openPassportCountry')||contexts.includes('renderYesterday')?'true':contexts.includes('renderAll')?'done':contexts.includes('renderInfiniteGame')||contexts.includes('loadInfinite')?'iDone':'false';
+      edits.push({start:node.start,end:node.end,text:`(${sourceText(node.left)}=${value},L10N.decorateDishNames(${sourceText(node.left.object)},${reveal}))`});
     }else if(value!==sourceText(node.right))edits.push({start:node.right.start,end:node.right.end,text:value});
     // No visitar la derecha dos veces.
     for(const child of children(node.left))walk(child,edits);return;
@@ -256,7 +258,7 @@ const selector='<div class="setting-row" style="display:block"><div><label class
 output=output.replace('<div class="settings-section-label">🔥 Modo difícil</div>',selector+'<div class="settings-section-label">🔥 Modo difícil</div>');
 // Insertar el selector antes de la sección marcada por el compilador.
 if(!output.includes('id="language-select"'))output=output.replace(/(<div class="settings-section-label"[^>]*>🔥 Modo difícil<\/div>)/,selector+'$1');
-output=output.replace('</head>','<style>.country-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.country-btn{min-width:0}.country-btn>span:last-child{min-width:0;overflow-wrap:anywhere;hyphens:auto}.setting-info{min-width:0;flex:1}.setting-desc{overflow-wrap:anywhere}</style><script src="../i18n/runtime.js"></script>\n</head>').replace('</body>','<script src="../i18n/game-boot.js"></script>\n</body>');
+output=output.replace('</head>','<style>.country-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.country-btn{min-width:0}.country-btn>span:last-child{min-width:0;overflow-wrap:anywhere;hyphens:auto}.setting-info{min-width:0;flex:1}.setting-desc{overflow-wrap:anywhere}</style><script src="../i18n/runtime.js"></script><script src="../i18n/geography.js"></script>\n</head>').replace('</body>','<script src="../i18n/game-boot.js"></script>\n</body>');
 output=output.replace(/<script[^>]*src="https:\/\/www\.googletagmanager\.com[^>]*><\/script>/g,'').replace(/<script>window\.dataLayer[\s\S]*?<\/script>/g,'');
 code='const L10N=window.ComidadleLocalization;\n'+code;
 const outputDir=path.join(root,'preview');fs.mkdirSync(outputDir,{recursive:true});
@@ -286,12 +288,14 @@ for(const [locale,values] of Object.entries(gameMessages)){
 }
 fs.writeFileSync('locales/source/bindings.json',JSON.stringify({messages:Object.keys(messages).length,sinks:changes.length,staticBindings:htmlEdits.length},null,2)+'\n');
 const manifest=JSON.parse(fs.readFileSync('manifest.json','utf8'));manifest.start_url='./index.html';manifest.scope='./';fs.writeFileSync(path.join(outputDir,'manifest.json'),JSON.stringify(manifest,null,2)+'\n');
-const assets=['./app.js','../i18n/runtime.js','../i18n/game-boot.js',...['es','en','fr','de','pt-BR','pt-PT'].map(locale=>'../locales/catalogs/'+locale+'.json')];
+const assets=['./app.js','../i18n/runtime.js','../i18n/geography.js','../i18n/game-boot.js',...['es','en','fr','de','pt-BR','pt-PT'].map(locale=>'../locales/catalogs/'+locale+'.json')];
 const catalogContent=['es','en','fr','de','pt-BR','pt-PT'].map(locale=>fs.readFileSync(`locales/catalogs/${locale}.json`,'utf8')).join('');
-const shellVersion=crypto.createHash('sha256').update(output+code+fs.readFileSync('i18n/game-boot.js','utf8')+fs.readFileSync('i18n/runtime.js','utf8')+catalogContent).digest('hex').slice(0,12);
+const shellVersion=crypto.createHash('sha256').update(output+code+fs.readFileSync('i18n/game-boot.js','utf8')+fs.readFileSync('i18n/runtime.js','utf8')+fs.readFileSync('i18n/geography.js','utf8')+catalogContent).digest('hex').slice(0,12);
+output=output.replace(/(src="\.\.\/i18n\/(?:runtime|geography|game-boot)\.js)"/g,'$1?v='+shellVersion+'"');
+fs.writeFileSync(path.join(outputDir,'index.html'),output);
 let sw=fs.readFileSync('sw.js','utf8').replace('"-shell-1"',JSON.stringify('-preview-'+shellVersion));
 sw=sw.replaceAll('"comidadle-"','"comidadle-preview-"');
-sw=sw.replace('const APP_SHELL = [','const APP_SHELL = [\n'+assets.map(asset=>'  '+JSON.stringify(asset)+',').join('\n'));
+sw=sw.replace('const APP_SHELL = [','const APP_SHELL = [\n'+assets.map(asset=>'  '+JSON.stringify(asset+'?v='+shellVersion)+',').join('\n'));
 const offline=JSON.parse(fs.readFileSync('i18n/offline-messages.json','utf8'));
 sw=sw.replace(JSON.stringify(offline.es),'offlineMessage(request)');
 sw='const OFFLINE_MESSAGES='+JSON.stringify(offline)+';\nfunction offlineMessage(request){const requested=(request.headers.get("Accept-Language")||self.navigator.language||"es").split(",")[0].toLowerCase();const locale=requested.startsWith("pt-pt")?"pt-PT":requested.startsWith("pt")?"pt-BR":requested.split("-")[0];return OFFLINE_MESSAGES[locale]||OFFLINE_MESSAGES.es;}\n'+sw;

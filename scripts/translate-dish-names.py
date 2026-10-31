@@ -8,6 +8,7 @@ source=json.loads((ROOT/'locales/catalogs/es.json').read_text(encoding='utf-8'))
 names=list(dict.fromkeys(d['name'] for d in source['dishes'].values()))
 proper=['Tacos al Pastor','Lomo Saltado','Ropa Vieja','Moros y Cristianos','Dulce de Leche','Leche de Tigre','Tres Leches','Gallo Pinto','Pabellón Criollo','Pão de Queijo','Baião de Dois','Feijão Tropeiro','Fish and Chips',"Shepherd's Pie",'Mac and Cheese','Pastéis de Nata','Bacalhau à Brás','Crème Brûlée','Pizza Margherita','Pasta alla Carbonara','Dim Sum','Mapo Tofu','Döner Kebab','Pho Bo','Bánh Mì','Pad Thai','Tom Yum Goong','Nasi Goreng','Nasi Lemak','Jerk Chicken','Ackee and Saltfish','Ghormeh Sabzi','Nyama Choma','Hainanese Chicken Rice','Groundnut Soup']
 generic=set('Arroz Sopa Caldo Caldillo Pollo Pescado Carne Cerdo Ternera Cordero Costilla Costillas Ensalada Torta Tarta Pastel Pastelón Pasteles Pan Panes Huevos Huevo Fideos Leche Dulce Flan Pato Queso Papas Patatas Puré Guiso Estofado Asado Cazuela Caldereta Filete Lomo Lomos Cochinillo Lechón Jamón Albóndigas Albondiguitas Hamburguesa Helado Helados Nieve Batido Licuado Agua Chocolate Café Espinacas Garbanzos Frijoles Habichuelas Porotos Maíz Choclo Mazorca Plátano Plátanos Yuca Camarón Camarones Langosta Pulpo Calamares Cangrejo Bacalao Mariscos Pimientos Chiles Chicharrón Chicharrones Empanada Empanadas Tortilla Tortillas Tamal Tamales Tamale Tostadas Tostones Arepa Arepas Ceviche Paella Sancocho Milanesa Milanesas Churrasco Brochetas Pinchos Bollo Bollos Bolón Sándwich Enchiladas Salsa Salsas Fondue Gaufre Sopa Caldo Rellenitos Tortitas Croquetas Budín Bizcocho Natilla Pudin Cuy Conejo Pavo Lengua Chivo Cabrito Sémola Quinua Atol Atole Pescadito Pescaditos'.split())
+generic.update('Gallina Gallinas Res Coco Queso Marisco Hojaldra Hojaldras Fritura Frituras Cocido Cocidos Crema Sopas Pepitoria Puerco Granos Manteca Cerdo Ají Arvejas Atún Rellenos Rellenas Revuelto Guisada Guisado Fritada Hervido Sopón Picadillo Pastelitos Fruta Frutas Plátano Pollo Fideos Rabas Chuletas Vaca Ternera Verduras Caballo'.split())
 for name in names:
     first=name.split()[0]
     if first not in generic and first not in proper:proper.append(first)
@@ -27,7 +28,9 @@ def restore(text,values):
 for locale in ['en','fr','de','pt-BR']:
     file=cache_dir/(locale+'.json');cache=json.loads(file.read_text(encoding='utf-8')) if file.exists() else {}
     english=json.loads((cache_dir/'en.json').read_text(encoding='utf-8')) if locale!='en' else None
-    pending=[n for n in names if n not in cache]
+    exact_proper=set(proper[:0])|set(['Tacos al Pastor','Lomo Saltado','Moros y Cristianos','Dulce de Leche','Leche de Tigre','Tres Leches','Pão de Queijo','Baião de Dois','Feijão Tropeiro','Fish and Chips',"Shepherd's Pie",'Mac and Cheese','Pastéis de Nata','Bacalhau à Brás','Crème Brûlée','Pizza Margherita','Pasta alla Carbonara','Dim Sum','Mapo Tofu','Döner Kebab','Pho Bo','Bánh Mì','Pad Thai','Tom Yum Goong','Nasi Goreng','Nasi Lemak','Jerk Chicken','Ackee and Saltfish','Ghormeh Sabzi','Nyama Choma','Hainanese Chicken Rice','Groundnut Soup','Mole Poblano','Sopa Paraguaya'])
+    repairs={n for n in names if cache.get(n)==n and len(n.split())>1 and n not in exact_proper}
+    pending=[n for n in names if n not in cache or n in repairs]
     model='opus-mt-es-en' if locale=='en' else 'opus-mt-en-de' if locale=='de' else 'opus-mt-en-ROMANCE'
     directory=ROOT/'.translation-cache/ct2'/model
     translator=ctranslate2.Translator(str(directory),device='cpu',compute_type='int8',intra_threads=4) if pending else None
@@ -36,10 +39,12 @@ for locale in ['en','fr','de','pt-BR']:
     prefix={'fr':'>>fr<<','pt-BR':'>>pt_BR<<'}.get(locale)
     for offset in range(0,len(pending),64):
         batch=pending[offset:offset+64];prepared=[protect(n if locale=='en' else english[n]) for n in batch]
+        prepared=[(('Plato: ' if locale=='en' else 'Dish: ')+text,values) for text,values in prepared]
         tokens=[([prefix] if prefix else [])+encoder.encode(text,out_type=str)+['</s>'] for text,_ in prepared]
         results=translator.translate_batch(tokens,beam_size=1,max_decoding_length=48,repetition_penalty=1.1)
         for name,(_,values),out in zip(batch,prepared,results):
             translated=restore(decoder.decode(out.hypotheses[0]),values)
+            if translated and ':' in translated:translated=translated.split(':',1)[1].strip()
             # Ante un fallo del modelo, mantener el nombre auténtico; nunca mostrar marcadores.
             cache[name]=translated if translated and not re.search(r'90\d\d',translated) else name
         file.write_text(json.dumps(cache,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')

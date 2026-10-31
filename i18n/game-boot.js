@@ -1,5 +1,7 @@
 (async function(){
   'use strict';
+  const assetVersion=new URL(document.currentScript?.src||location.href).searchParams.get('v');
+  const assetUrl=path=>path+(assetVersion?'?v='+encodeURIComponent(assetVersion):'');
   const {I18n,LOCALES,normalizeLocale,escapeHtml}=window.ComidadleI18n;
   const isPreview=location.pathname.includes('/preview/');
   let demoActive=false;
@@ -25,10 +27,11 @@
   }
   const loading=document.createElement('div');loading.setAttribute('role','status');loading.textContent='Comidadle…';loading.style.cssText='position:fixed;inset:0;z-index:10000;background:#100900;color:#fff3e0;display:grid;place-items:center;font:20px system-ui';document.body.append(loading);
   const fetchCatalog=async locale=>{
-    const response=await fetch('../locales/catalogs/'+encodeURIComponent(locale)+'.json');
+    const response=await fetch(assetUrl('../locales/catalogs/'+encodeURIComponent(locale)+'.json'));
     if(!response.ok)throw Error('No se pudo cargar el idioma.');return response.json();
   };
   try{
+    if(!window.ComidadleGeography)await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=assetUrl('../i18n/geography.js');script.onload=resolve;script.onerror=reject;document.head.append(script);});
     const source=await fetchCatalog('es'),engine=new I18n(source,{fetchCatalog,preview:true});
     demoInventory=(source.publicShop||[]).map(item=>({item_id:item.id}));
     let selected='es';try{selected=normalizeLocale(localStorage.getItem('comidadle_preview_lang')||localStorage.getItem('comidadle_lang'));}catch(_){}
@@ -57,6 +60,33 @@
       pattern+=value.slice(at).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'$';return {key,names,regex:new RegExp(pattern),specificity:value.replace(/\{p\d+\}/g,'').length};
     }).sort((a,b)=>b.specificity-a.specificity);
     const format=value=>typeof value==='number'?new Intl.NumberFormat(engine.locale,{maximumFractionDigits:12}).format(value):String(value??'');
+    let geography;
+    const revealedRegions=new WeakMap();
+    const foodSelector='.dish-name,.dish-desc,.hints,.hint,#dish-desc,#hints';
+    function protectFoodText(root,reveal){
+      if(!geography)geography=ComidadleGeography.createMatcher({countries:source.flags,demonyms:typeof DEMONYMS==='undefined'?{}:DEMONYMS});
+      revealedRegions.set(root,reveal);
+      const elements=[...(root.matches?.(foodSelector)?[root]:[]),...root.querySelectorAll(foodSelector)];
+      for(const element of elements){
+        // Procesar una sola vez los contenedores que ya incluyen pistas u otros textos.
+        if(elements.some(parent=>parent!==element&&parent.contains(element)))continue;
+        let region=element,show=false;
+        while(region){if(revealedRegions.has(region)){show=revealedRegions.get(region);break;}region=region.parentNode;}
+        for(const span of element.querySelectorAll('.geography-blur,span[style*="blur(5px)"]'))span.replaceWith(document.createTextNode(span.textContent));
+        element.normalize();if(show)continue;
+        const walker=document.createTreeWalker(element,NodeFilter.SHOW_TEXT),nodes=[];
+        while(walker.nextNode())nodes.push(walker.currentNode);
+        for(const node of nodes){
+          const ranges=geography.ranges(node.nodeValue);if(!ranges.length)continue;
+          const fragment=document.createDocumentFragment();let offset=0;
+          for(const range of ranges){
+            fragment.append(document.createTextNode(node.nodeValue.slice(offset,range.start)));
+            const span=document.createElement('span');span.className='geography-blur';span.style.cssText='filter:blur(5px);user-select:none;pointer-events:none';span.setAttribute('aria-hidden','true');span.textContent=range.text;fragment.append(span);offset=range.end;
+          }
+          fragment.append(document.createTextNode(node.nodeValue.slice(offset)));node.replaceWith(fragment);
+        }
+      }
+    }
     const localization={
       get locale(){return engine.locale;},
       text:(key,vars={})=>engine.text(key,vars),
@@ -73,8 +103,8 @@
         for(const pattern of patterns){const match=pattern.regex.exec(clean);if(match){const vars=Object.fromEntries(pattern.names.map((name,index)=>[name,/^-?\d+(?:\.\d+)?$/.test(match[index+1])?Number(match[index+1]):match[index+1]]));return engine.text(pattern.key,vars);}}
         return value;
       },
-      decorateDishNames(){
-        for(const element of document.querySelectorAll('.dish-name')){
+      decorateDishNames(root=document,reveal=false){
+        for(const element of [...(root.matches?.('.dish-name')?[root]:[]),...root.querySelectorAll('.dish-name')]){
           element.querySelector('.dish-name-translation')?.remove();
           const native=element.textContent.trim(),entry=dishLookup.get(native);
           if(!entry||entry.field!=='name'||engine.locale==='es')continue;
@@ -84,13 +114,9 @@
           const label=document.createElement('span');label.className='dish-name-translation';label.lang=engine.locale;
           label.style.cssText='display:block;font:600 13px/1.5 system-ui;color:var(--text-muted);margin-top:5px;overflow-wrap:anywhere';
           label.textContent=translated;
-          if(element.querySelector('span[style*="blur"]')){
-            const [kind,index]=entry.id.split(':'),dish=kind==='regular'?ALL_DISHES[Number(index)]:SUNDAY_INTERNATIONAL_DISHES[Number(index)];
-            const countryPattern=buildBlurRegex(dish.country),pattern=new RegExp('(?:'+countryPattern.source+')[\\p{L}]*','giu');
-            label.innerHTML=escapeHtml(translated).replace(pattern,match=>'<span style="filter:blur(5px);user-select:none">'+match+'</span>');
-          }
           element.append(label);
         }
+        protectFoodText(root,reveal);
       },
       country(value){
         const code=source.flags?.[value];if(!code)return value;
@@ -158,7 +184,7 @@
       'pt-BR':['Versão de teste: sua conta real não será alterada.','Testar sem conta (demonstração)'],
       'pt-PT':['Versão de teste: a tua conta real não será alterada.','Experimentar sem conta (demonstração)'],
     };
-    const script=document.createElement('script');script.src='app.js';script.onload=()=>{
+    const script=document.createElement('script');script.src=assetUrl('app.js');script.onload=()=>{
       localization.decorateDishNames();
       localization.applyStatic();loading.remove();
       if(isPreview){
