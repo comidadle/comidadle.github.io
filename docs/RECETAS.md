@@ -1,6 +1,6 @@
 # Activación de recetas y precio orientativo
 
-El endpoint configurado devuelve HTTP 404: la función dish-recipe todavía no está desplegada. No hay una clave del proveedor configurada en el alojamiento privado de la demo. Las pruebas de receta y precio de navegador usan respuestas simuladas; no prueban una generación real.
+El endpoint configurado devuelve HTTP 404: la función dish-recipe todavía no está desplegada (comprobado de nuevo el 1 de noviembre de 2026). El plugin Supabase ya figura instalado, pero sus herramientas no están disponibles en la sesión actual, por lo que aún no se ha inspeccionado la configuración del proveedor ni desplegado la función. Las pruebas de receta y precio de navegador usan respuestas simuladas; no prueban una generación real.
 
 La función preparada está en supabase/functions/dish-recipe/index.ts. Verifica la sesión y solicita una receta para cuatro personas, en el idioma elegido, con una estimación explícita del coste de ingredientes en euros. El coste es orientativo, no una cotización de compra en tiempo real. La clave del proveedor permanece en el servidor.
 

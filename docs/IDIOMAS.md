@@ -1,6 +1,6 @@
 # Idiomas: versión jugable para revisión
 
-Hay catálogos completos para español, inglés, francés, alemán, portugués de Brasil y portugués de Portugal. Cada catálogo contiene 1.228 claves de interfaz, 1.154 descripciones y 5.770 pistas. Los nombres originales se mantienen y los títulos descriptivos traducidos aparecen debajo, sin duplicar nombres tradicionales que se mantienen iguales. El campo displayName está separado del nombre canónico name y no cambia respuestas, semillas ni progreso. **Completo significa que existen todos los textos; no significa que cada traducción haya superado una revisión editorial.** Ningún idioma nuevo está aprobado para producción.
+Hay catálogos completos para español, inglés, francés, alemán, portugués de Brasil y portugués de Portugal. Cada catálogo contiene 1.230 claves de interfaz, 1.154 descripciones y 5.770 pistas. Los nombres originales se mantienen y los títulos descriptivos traducidos aparecen debajo, sin duplicar nombres tradicionales que se mantienen iguales. El campo displayName está separado del nombre canónico name y no cambia respuestas, semillas ni progreso. **Completo significa que existen todos los textos; no significa que cada traducción haya superado una revisión editorial.** Ningún idioma nuevo está aprobado para producción.
 
 ## Uso
 

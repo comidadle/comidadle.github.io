@@ -1,6 +1,6 @@
 {
   "locale": "en",
-  "sourceRevision": "f457d82ee464a26163085a0408a1e67e23e267438cc78f3004c24ec3e9f562c5",
+  "sourceRevision": "d75722ab429fd3253e33d60292117be6a61e09bc607372eddc1ff8008774289d",
   "status": "draft",
   "applicationCoverageReviewed": false,
   "ui": {
@@ -85,7 +85,7 @@
     "msg_01943332833cc183": "🔥 Hard mode",
     "msg_028c44fdd3da98d8": "{p8} total attempts",
     "msg_02b8c68dca03f7d4": "{p0} wants to be your friend.",
-    "msg_03005cf22cb92fdd": "🐛 Corrected the real reason why some players did not appear in the ranking: when registering, their row never came to be created in the database.",
+    "msg_03005cf22cb92fdd": "🐛 Fixed missing ranking entries: some players’ database rows were not created during sign-up.",
     "msg_031b29595f4a5f71": "Total Azza 2000 XP",
     "msg_0402e3fa11d68c24": "Waiting for response from",
     "msg_0524877129971f58": "retired XP",
@@ -116,7 +116,7 @@
     "msg_0c482343a4e2ce1f": "⚔️ Invitation to duel",
     "msg_0c4ff7f04a631082": "Log in to appear in the ranking",
     "msg_0c663223d32cca12": "Sending invitation.:.:.",
-    "msg_0c69a8a72508db9a": "🏆 The 7 achievements and 7 daily missions announced above are finally implemented and correctly connected to the progress of the game (Passport, XP, streaks, trivia).",
+    "msg_0c69a8a72508db9a": "🏆 The seven previously announced achievements and daily missions are now linked to passport progress, XP, streaks and quizzes.",
     "msg_0cb80430275f5e93": "Error loading duel 😔",
     "msg_0d6b062a6fcb77b7": "I've checked, go on.:.??.?",
     "msg_0e13aa7a3e6f6112": "⬇️ Export my progress (.json)",
@@ -133,11 +133,11 @@
     "msg_121f8a06681ed2f2": "Error joining 😔",
     "msg_1260396383a9cb3b": "Leave your review",
     "msg_12bea46ec6060ce5": "7-day period",
-    "msg_131e187360208ad0": "🤖 Recipes with AI: applications now go through a Supabase's Edge-Fit, keeping Antropic key out of the customer.",
+    "msg_131e187360208ad0": "🤖 AI recipe requests go through a Supabase Edge Function, keeping the Anthropic key on the server.",
     "msg_137ee98b36075434": "new track",
     "msg_1523324a219e047f": "Could not access camera 😔",
     "msg_1554fc76c25040f8": "Dish",
-    "msg_169842fb2ed12da6": "📸 Updated Instagram user to @aanxs404.",
+    "msg_169842fb2ed12da6": "📸 Updated the Instagram account name to @aanxs404.",
     "msg_16cfd9619ca3cd40": "Initiating camera.",
     "msg_16eb880b62492b54": "Magnate_BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR___BAR__BAR__BAR__BAR__BAR_",
     "msg_17222dc98db3ebcf": "Countries unlocked",
@@ -236,7 +236,7 @@
     "msg_4105811890aee724": "Come in",
     "msg_416c5bf0579fa517": "🔥 DIFFICULT MODE ·",
     "msg_41a4d066370e3c27": "Community and ranking standards",
-    "msg_41ae917cd19986e8": "🔒 User names no longer distinguish capitals/minuscules when checked, and \"Owner\" is reserved.",
+    "msg_41ae917cd19986e8": "🔒 Username checks are now case-insensitive, and “Owner” remains reserved.",
     "msg_427a4e227f340e1e": "Number of XP.",
     "msg_4296e5513af719d4": "24 Jun 2026",
     "msg_44006c60e800daed": "Reinforced Owner Panel: Administrative actions verified by server password.",
@@ -416,7 +416,7 @@
     "msg_8846b965108c86f9": "Buy '",
     "msg_88c97b16d27069bd": "The Owner gave you away",
     "msg_88db8979c385d164": "No XP",
-    "msg_88fee3ef3c7985d0": "🧠 Trivia redesigned: first ask if you want to play it (Yes/No), several question templates (not just \"Which of these is a track?\"), and hide the clues and country options while it lasts to avoid cheating.",
+    "msg_88fee3ef3c7985d0": "🧠 The bonus quiz first asks whether you want to play. It offers more varied questions and hides hints and country choices while you play to prevent cheating.",
     "msg_89083827a04d6d76": "Right 1 dish today",
     "msg_893f9701300c004e": "+ Add",
     "msg_89615142e50c101d": "Switches between dishes with the",
@@ -522,7 +522,7 @@
     "msg_ac6eeb50a7d39280": "⁇  Start game",
     "msg_acbd69187a99c8b6": "Misses you",
     "msg_acec4d2ce6919834": "Error starting game 😔",
-    "msg_adc920c0445d9950": "🐛 The ranking and the weekly no longer lose positions by players who hide themselves.",
+    "msg_adc920c0445d9950": "🐛 Global and weekly rankings no longer leave gaps when players hide their position.",
     "msg_ae65ce903c37ac8e": "Supabase did not return the created row",
     "msg_af337868b608b720": "No Banned Users",
     "msg_af525f69f2adc197": "You only see the name and the emoji.",
@@ -546,7 +546,7 @@
     "msg_b461955321adf02e": "Aim for your friend's QR code",
     "msg_b4a61bb9251d4c3a": "Equipment A ( {p0} / {p1} )",
     "msg_b5bffc028a692068": "🔑 Log in",
-    "msg_b5c1097950f72346": "🛍️ The weekly store now rotates on Sundays, not Mondays.",
+    "msg_b5c1097950f72346": "🛍️ The weekly shop now refreshes on Sundays instead of Mondays.",
     "msg_b687819a7b7f0d6c": "😔 Your team lost",
     "msg_b68f59610656c72d": "📸 Share result as image (formerly text only).",
     "msg_b6a8d40b410bce7a": "👥 Group departure",
@@ -607,7 +607,7 @@
     "msg_c947631d2cd07bd0": "Loading QR reader, wait a second and reopen this 🙏 tab",
     "msg_c9955dc1bae86dec": "🔥 Racha de",
     "msg_c9d0fd2a1c925789": "Camera permission denied. Check browser permissions 🙏",
-    "msg_c9ee92b238bc6e44": "🔑 You can now also sign in with your username, as well as with your email or Google.",
+    "msg_c9ee92b238bc6e44": "🔑 You can also sign in with your username, as well as your email address or Google.",
     "msg_ca831aaf0460688b": "My friends",
     "msg_ca83d4ad9e3b58fb": "👀 Playing as a Guest — You won't get XP",
     "msg_cab7ac1fa2b73087": "I didn't get it today",
@@ -652,7 +652,7 @@
     "msg_d815a9b5102f511c": "💡 Send idea",
     "msg_d8da4342062316e2": "set your streak on fire",
     "msg_d912cf0104ac4d3d": "Spend your XP on exclusive items",
-    "msg_da0288803a1f77cf": "🎮 New option in Settings to enable/disable \"How to play\" from entering.",
+    "msg_da0288803a1f77cf": "🎮 A new setting controls whether “How to play” appears when you open the game.",
     "msg_da42c5df5ab7c49c": "📱 Add friends by QR code: show it or scan it with the camera, also works as a shared link.",
     "msg_da8d8ce9fdcae940": "I didn't make it today!",
     "msg_dad929bc8e9f754e": "Master",
@@ -722,7 +722,7 @@
     "msg_edd795454c81352a": "Log out?",
     "msg_ee7367bf2b81f140": "Your browser does not support 😔 camera access",
     "msg_eee7f947fd3836e2": "— press again to change",
-    "msg_ef2fc7b1586ff5a3": "🐛 Yesterday's Dishe: now it is shown whenever it is activated, even if you haven't played yesterday.",
+    "msg_ef2fc7b1586ff5a3": "🐛 Yesterday’s dish is shown whenever the option is enabled, even if you did not play yesterday.",
     "msg_ef9f001aee76adc0": "Current rate",
     "msg_efe4990448fc0a40": "Shop with colors, frames, badges, titles and emoji customizable for your profile.",
     "msg_f0d3d86eda5919e0": "Announcement of the Owner {p3}",
@@ -1246,7 +1246,9 @@
     "msg_2ccab3900c9e9f0e": "+ {p3} XP",
     "msg_2d465df256afedaa": "You got it",
     "msg_3fc5f90b27f1acbc": "Minimize",
-    "msg_fa846ee3576b4a8d": "Info"
+    "msg_fa846ee3576b4a8d": "Info",
+    "msg_7f3da61914d59db8": "🌍 A country is required at sign-up; change it for free at any time from your profile.",
+    "msg_1c619abff244aff1": "🐛 Fixed the passport: Sunday Special countries were not unlocked because of an incorrect field and a history limited to 42 games. It now uses the passport’s permanent record."
   },
   "dishes": {
     "regular:0": {
@@ -2955,15 +2957,15 @@
     },
     "regular:142": {
       "name": "Pastelón de Plátano",
-      "desc": "Sweet ripe banana lasagna with ground meat, sofrito and gratin cheese.",
+      "desc": "Layers of sweet ripe plantain, minced meat and sofrito, topped with melted cheese and baked.",
       "hints": [
-        "Mature fried banana replaces Italian lasagna pasta",
-        "The ground meat with sofrito boricua is the central filling",
-        "The yellow cheese gratin on top is the final layer mandatory",
-        "It is the most popular informal party dish in home cooking",
-        "Bake until banana caramelizes and cheese bubbles"
+        "Fried ripe plantain replaces the pasta sheets used in Italian lasagne.",
+        "The filling is minced meat cooked with Puerto Rican sofrito.",
+        "A layer of grated yellow cheese tops the dish and browns in the oven.",
+        "It is a popular home-cooked dish for informal celebrations.",
+        "It bakes until the plantain caramelises and the cheese bubbles."
       ],
-      "displayName": "Banana pastel"
+      "displayName": "Plantain and meat bake"
     },
     "regular:143": {
       "name": "Arroz Mamposteado",
@@ -6555,15 +6557,15 @@
     },
     "regular:442": {
       "name": "Humita en Olla",
-      "desc": "Choclo grated cooked in pot with onion, chili and tomato, liquid version of the solid humita.",
+      "desc": "Grated fresh corn simmered with onion, chilli and tomato, a creamy pot-cooked version of humita.",
       "hints": [
-        "Unlike the classic humita, this version is cooked in pot",
-        "Onion and tomato are fried before adding choclo grated",
-        "The northwestern Andean is where this version is most prepared",
-        "The ground pepper gives it the red color and soft itching",
-        "Served as the first hot dish in cold months"
+        "Unlike the classic wrapped humita, this version is cooked in a pot.",
+        "The onion and tomato are sautéed before the grated corn is added.",
+        "This creamy version is especially popular in the Andean northwest.",
+        "Ground chilli gives it a reddish colour and gentle heat.",
+        "It is served hot as a starter during the colder months."
       ],
-      "displayName": "Humita in Olla"
+      "displayName": "Creamy corn humita"
     },
     "regular:443": {
       "name": "Puchero Argentino",
@@ -7587,15 +7589,15 @@
     },
     "regular:528": {
       "name": "Tacu Tacu de Frijoles",
-      "desc": "Golden bean cake refried with rice and spices, tacu tacu variant.",
+      "desc": "A golden pan-fried cake of cooked white beans, rice and spices, crisp outside and soft inside.",
       "hints": [
-        "The white beans version is slightly different from the black beans version",
-        "Flattens in skillet until crispy on the outside and soft inside",
-        "The cilantro —a broad-leaf coriander — is mixed in the mass",
-        "It is the most popular breakfast or lunch in Lima",
-        "Served with fried egg or skipped on top always"
+        "The white-bean version differs slightly from the black-bean version.",
+        "The mixture is flattened in a frying pan until crisp outside and soft inside.",
+        "Culantro, a broad-leaved herb with a coriander-like flavour, is mixed into the rice and beans.",
+        "In Lima, it is a popular way to turn leftovers into breakfast or lunch.",
+        "It is served topped with a fried egg or stir-fried meat."
       ],
-      "displayName": "Tacu Tacu de Beans"
+      "displayName": "Tacu tacu with white beans"
     },
     "regular:529": {
       "name": "Ponche Arequipeño",
@@ -11223,15 +11225,15 @@
     },
     "regular:831": {
       "name": "Caldo de Costilla Bogotano",
-      "desc": "Light beef rib broth with potato and cilantro, the Bogotan hangover breakfast.",
+      "desc": "Clear beef rib broth with potatoes and coriander, traditionally eaten for breakfast in Bogotá after a night out.",
       "hints": [
-        "The rib with bone is cooked early in the morning",
-        "The broth is clear and concentrated with all the collagen in the bone",
-        "The fresh cilantro and the creole potato are the only additional ingredients",
-        "Bogota serves it in restaurants from 4 a.m. as breakfast",
-        "It is the most popular reconstitutor in the Colombian capital on weekends"
+        "The bone-in ribs are put on to simmer in the early hours.",
+        "The broth stays clear while taking on flavour and collagen from the bones.",
+        "Fresh coriander and small yellow criolla potatoes complete the broth.",
+        "Restaurants in Bogotá serve it for breakfast from four in the morning.",
+        "It is a popular restorative breakfast in the Colombian capital at weekends."
       ],
-      "displayName": "Bogotano Cot"
+      "displayName": "Bogotá-style beef rib broth"
     },
     "regular:832": {
       "name": "Envuelto de Mazorca",

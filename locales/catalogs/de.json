@@ -1,6 +1,6 @@
 {
   "locale": "de",
-  "sourceRevision": "f457d82ee464a26163085a0408a1e67e23e267438cc78f3004c24ec3e9f562c5",
+  "sourceRevision": "d75722ab429fd3253e33d60292117be6a61e09bc607372eddc1ff8008774289d",
   "status": "draft",
   "applicationCoverageReviewed": false,
   "ui": {
@@ -78,7 +78,7 @@
     "msg_01943332833cc183": "🔥 Schwerer Modus",
     "msg_028c44fdd3da98d8": "{p8} Versuche insgesamt",
     "msg_02b8c68dca03f7d4": "{p0} will dein Freund sein",
-    "msg_03005cf22cb92fdd": "🐛 Korrigierte den wahren Grund, warum einige Spieler nicht in der Rangliste erschienen: Bei der Registrierung wurde ihre Zeile nie in der Datenbank angelegt.",
+    "msg_03005cf22cb92fdd": "🐛 Fehlende Ranglisteneinträge behoben: Bei einigen Spielern wurde bei der Registrierung kein Datenbankeintrag angelegt.",
     "msg_031b29595f4a5f71": "Insgesamt Azza 2000 XP",
     "msg_03472b6d9b0ba844": "🏆 Gesamtrangliste",
     "msg_0402e3fa11d68c24": "Warten auf Antwort von",
@@ -129,7 +129,7 @@
     "msg_0c482343a4e2ce1f": "⚔️ Einladung zum Duell",
     "msg_0c4ff7f04a631082": "Melden Sie sich an, um im Ranking zu erscheinen",
     "msg_0c663223d32cca12": "Einladung:::.",
-    "msg_0c69a8a72508db9a": "🏆 Die oben angekündigten 7 Erfolge und 7 täglichen Missionen werden schließlich umgesetzt und korrekt mit dem Fortschritt des Spiels (Passport, XP, Serien, Trivia) verbunden.",
+    "msg_0c69a8a72508db9a": "🏆 Die sieben angekündigten Erfolge und täglichen Missionen sind jetzt mit Reisepass, XP, Serien und Quizfortschritt verknüpft.",
     "msg_0cb80430275f5e93": "Fehler beim Laden duell 😔",
     "msg_0d6b062a6fcb77b7": "Ich habe nachgesehen, weiter.:",
     "msg_0e13aa7a3e6f6112": "Exportieren Sie meine Fortschritte (.json)",
@@ -146,11 +146,11 @@
     "msg_121f8a06681ed2f2": "Fehler beim Beitritt zu 😔",
     "msg_1260396383a9cb3b": "Geben Sie Ihre Bewertung ab",
     "msg_12bea46ec6060ce5": "7-Tage Zeitraum",
-    "msg_131e187360208ad0": "🤖 Rezepte mit KI: Anwendungen gehen jetzt durch das Edge-Fit einer Supabase und halten den antropischen Schlüssel aus dem Kunden heraus.",
+    "msg_131e187360208ad0": "🤖 KI-Rezeptanfragen laufen über eine Supabase Edge Function. Der Anthropic-Schlüssel bleibt dabei auf dem Server.",
     "msg_137ee98b36075434": "Neue Strecke",
     "msg_1523324a219e047f": "Kamera 😔 konnte nicht aufgerufen werden",
     "msg_1554fc76c25040f8": "Gericht",
-    "msg_169842fb2ed12da6": "📸 Aktualisiert Instagram Benutzer auf @aanxs404.",
+    "msg_169842fb2ed12da6": "📸 Der Instagram-Kontoname wurde auf @aanxs404 aktualisiert.",
     "msg_16cfd9619ca3cd40": "Kamera starten.",
     "msg_16eb880b62492b54": "Magnate_BAR__BAR__BAR__BAR__BAR__BAR__BAR_BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR___BAR___BAR__BAR__BAR__BAR__BAR__BAR_",
     "msg_17222dc98db3ebcf": "Freigeschaltete Länder",
@@ -249,7 +249,7 @@
     "msg_4105811890aee724": "Kommen Sie rein",
     "msg_416c5bf0579fa517": "🔥 VERSCHIEDENES MODE ·",
     "msg_41a4d066370e3c27": "Gemeinschaft und Rangordnung",
-    "msg_41ae917cd19986e8": "🔒 User names unterscheiden bei der Prüfung nicht mehr Großbuchstaben/Miniskeln, und \"Owner\" ist reserviert.",
+    "msg_41ae917cd19986e8": "🔒 Benutzernamen werden unabhängig von Groß- und Kleinschreibung geprüft. „Owner“ bleibt reserviert.",
     "msg_427a4e227f340e1e": "Anzahl der XP.",
     "msg_4296e5513af719d4": "24.06.2026",
     "msg_44006c60e800daed": "Verstärktes Owner Panel: Administrative Aktionen durch Server-Passwort überprüft.",
@@ -427,7 +427,7 @@
     "msg_8846b965108c86f9": "Kaufen",
     "msg_88c97b16d27069bd": "Der Besitzer hat dich verschenkt",
     "msg_88db8979c385d164": "Keine XP",
-    "msg_88fee3ef3c7985d0": "🧠 Trivia neu gestaltet: fragen Sie zuerst, ob Sie es spielen wollen (Ja/Nein), mehrere Fragevorlagen (nicht nur \"Welches davon ist ein Track?\"), und verstecken Sie die Hinweise und Länderoptionen, während es dauert, um Betrug zu vermeiden.",
+    "msg_88fee3ef3c7985d0": "🧠 Das Bonusquiz fragt zuerst, ob du mitspielen möchtest. Es bietet abwechslungsreichere Fragen und blendet währenddessen Hinweise und Länderoptionen aus, um Schummeln zu verhindern.",
     "msg_89083827a04d6d76": "Rechts 1 Platte heute",
     "msg_893f9701300c004e": "+ Hinzufügen",
     "msg_89615142e50c101d": "Wechsel zwischen den Gerichten mit dem",
@@ -533,7 +533,7 @@
     "msg_ac6eeb50a7d39280": "? Spiel starten",
     "msg_acbd69187a99c8b6": "Vermisst dich",
     "msg_acec4d2ce6919834": "Fehler beim Starten von Spiel 😔",
-    "msg_adc920c0445d9950": "🐛 Das Ranking und die Wochenzeitung verlieren keine Positionen mehr von Spielern, die sich verstecken.",
+    "msg_adc920c0445d9950": "🐛 Globale und wöchentliche Ranglisten lassen keine Plätze mehr frei, wenn Spieler ihre Position verbergen.",
     "msg_ae65ce903c37ac8e": "Supabase hat die erstellte Zeile nicht zurückgegeben",
     "msg_af337868b608b720": "Keine verbotenen Benutzer",
     "msg_af525f69f2adc197": "Du siehst nur den Namen und die Emoji.",
@@ -557,7 +557,7 @@
     "msg_b461955321adf02e": "Ziel für den QR-Code Ihres Freundes",
     "msg_b4a61bb9251d4c3a": "Ausrüstung A ( {p0} / {p1} )",
     "msg_b5bffc028a692068": "🔑 Anmelden",
-    "msg_b5c1097950f72346": "🛍️ Der wöchentliche Laden dreht sich nun sonntags, nicht montags.",
+    "msg_b5c1097950f72346": "🛍️ Das wöchentliche Shopangebot wechselt jetzt sonntags statt montags.",
     "msg_b687819a7b7f0d6c": "😔 Ihr Team hat verloren",
     "msg_b68f59610656c72d": "📸 Ergebnis als Bild teilen (vormals nur Text).",
     "msg_b6a8d40b410bce7a": "👥 Abreise der Gruppe",
@@ -618,7 +618,7 @@
     "msg_c947631d2cd07bd0": "Laden QR-Reader, warten Sie eine Sekunde und öffnen Sie diese Registerkarte 🙏",
     "msg_c9955dc1bae86dec": "🔥 Racha de",
     "msg_c9d0fd2a1c925789": "Kamera-Zulassung verweigert. Überprüfen Sie Browser-Zulassungen 🙏",
-    "msg_c9ee92b238bc6e44": "🔑 Sie können sich jetzt auch mit Ihrem Benutzernamen, sowie mit Ihrer E-Mail oder Google anmelden.",
+    "msg_c9ee92b238bc6e44": "🔑 Du kannst dich auch mit deinem Benutzernamen anmelden, zusätzlich zu E-Mail und Google.",
     "msg_ca831aaf0460688b": "Meine Freunde",
     "msg_ca83d4ad9e3b58fb": "👀 Als Gast spielen — Sie werden nicht XP bekommen",
     "msg_cab7ac1fa2b73087": "Ich habe es heute nicht bekommen",
@@ -663,7 +663,7 @@
     "msg_d815a9b5102f511c": "💡 Idee senden",
     "msg_d8da4342062316e2": "zündet eure Streifen an",
     "msg_d912cf0104ac4d3d": "Verbringen Sie Ihre XP für exklusive Artikel",
-    "msg_da0288803a1f77cf": "🎮 Neue Option in Einstellungen, um \"Wie man spielt\" vom Eingeben aus zu aktivieren/deaktivieren.",
+    "msg_da0288803a1f77cf": "🎮 Eine neue Einstellung legt fest, ob „Spielanleitung“ beim Öffnen des Spiels angezeigt wird.",
     "msg_da42c5df5ab7c49c": "📱 Freunde durch QR-Code hinzufügen: Zeigen oder scannen Sie es mit der Kamera, funktioniert auch als geteilter Link.",
     "msg_da8d8ce9fdcae940": "Ich habe es heute nicht geschafft!",
     "msg_dad929bc8e9f754e": "Herr",
@@ -733,7 +733,7 @@
     "msg_edd795454c81352a": "Abmelden?",
     "msg_ee7367bf2b81f140": "Ihr Browser unterstützt keinen 😔 -Kamerazugriff",
     "msg_eee7f947fd3836e2": "— erneut drücken, um sich zu ändern",
-    "msg_ef2fc7b1586ff5a3": "🐛 Yesterday's Dishe: Jetzt wird es angezeigt, wann immer es aktiviert wird, auch wenn Sie gestern noch nicht gespielt haben.",
+    "msg_ef2fc7b1586ff5a3": "🐛 Das gestrige Gericht wird bei aktivierter Option auch angezeigt, wenn du gestern nicht gespielt hast.",
     "msg_ef9f001aee76adc0": "Laufender Zinssatz",
     "msg_efe4990448fc0a40": "Shop mit Farben, Rahmen, Abzeichen, Titel und emoji anpassbar für Ihr Profil.",
     "msg_f0d3d86eda5919e0": "Ankündigung des Eigentümers {p3}",
@@ -1246,7 +1246,9 @@
     "msg_2ccab3900c9e9f0e": "+ {p3} XP",
     "msg_2d465df256afedaa": "Du hast es geschafft",
     "msg_3fc5f90b27f1acbc": "Minimieren",
-    "msg_fa846ee3576b4a8d": "Info"
+    "msg_fa846ee3576b4a8d": "Info",
+    "msg_7f3da61914d59db8": "🌍 Bei der Registrierung ist ein Land erforderlich; du kannst es jederzeit kostenlos im Profil ändern.",
+    "msg_1c619abff244aff1": "🐛 Reisepass korrigiert: Länder des Sonntagsspezials wurden wegen eines falschen Datenfelds und eines auf 42 Spiele begrenzten Verlaufs nicht freigeschaltet. Jetzt wird der dauerhafte Reisepasseintrag verwendet."
   },
   "dishes": {
     "regular:0": {
@@ -2979,15 +2981,15 @@
     },
     "regular:142": {
       "name": "Pastelón de Plátano",
-      "desc": "Süße reife Bananen-Lasagne mit Hackfleisch, sofrito und Gratinenkäse.",
+      "desc": "Auflauf aus süßen, reifen Kochbananen, Hackfleisch und Sofrito, mit Käse überbacken.",
       "hints": [
-        "Reife gebratene Banane ersetzt italienische Lasagne Pasta",
-        "Das Hackfleisch mit sofrito Boricua ist die zentrale Füllung",
-        "Der gelbe Käsegratin oben ist die letzte Schicht obligatorisch",
-        "Es ist das beliebteste informelle Partygericht in der Hausmannskost",
-        "Bis Bananen karamellisiert und Käsebläschen backen"
+        "Gebratene reife Kochbananen ersetzen die italienischen Lasagneblätter.",
+        "Die Füllung besteht aus Hackfleisch mit puerto-ricanischem Sofrito.",
+        "Eine Schicht geriebener gelber Käse bildet die überbackene Oberfläche.",
+        "Es ist ein beliebtes hausgemachtes Gericht für ungezwungene Feiern.",
+        "Der Auflauf wird gebacken, bis die Kochbananen karamellisieren und der Käse Blasen wirft."
       ],
-      "displayName": "Bananenpastell"
+      "displayName": "Kochbananenauflauf mit Hackfleisch"
     },
     "regular:143": {
       "name": "Arroz Mamposteado",
@@ -6843,15 +6845,15 @@
     },
     "regular:442": {
       "name": "Humita en Olla",
-      "desc": "Choclo gerieben im Topf mit Zwiebel, Chili und Tomate gekocht, flüssige Version der festen humita.",
+      "desc": "Frisch geriebener Mais, mit Zwiebeln, Chili und Tomaten im Topf gegart – eine cremige Variante der Humita.",
       "hints": [
-        "Im Gegensatz zu den klassischen humita, diese Version ist in Topf gekocht",
-        "Zwiebeln und Tomaten werden gebraten, bevor choclo gerieben werden",
-        "Die nordwestliche Anden ist, wo diese Version am meisten vorbereitet ist",
-        "Der gemahlene Pfeffer gibt ihm die rote Farbe und weiches Juckreiz",
-        "Als erste heiße Speise in kalten Monaten serviert"
+        "Anders als die klassische eingewickelte Humita wird diese Variante im Topf gekocht.",
+        "Zwiebeln und Tomaten werden angedünstet, bevor der geriebene Mais dazukommt.",
+        "Diese cremige Variante ist besonders im Nordwesten der Anden verbreitet.",
+        "Gemahlene Chili sorgt für eine rötliche Farbe und milde Schärfe.",
+        "In den kalten Monaten wird sie heiß als Vorspeise serviert."
       ],
-      "displayName": "Humita in Olla"
+      "displayName": "Cremige Mais-Humita aus dem Topf"
     },
     "regular:443": {
       "name": "Puchero Argentino",
@@ -7875,15 +7877,15 @@
     },
     "regular:528": {
       "name": "Tacu Tacu de Frijoles",
-      "desc": "Goldene Bohnenkuchen mit Reis und Gewürzen, Tacu-Tacu-Variante refriediert.",
+      "desc": "Goldbraun gebratener Fladen aus gekochten weißen Bohnen, Reis und Gewürzen, außen knusprig und innen weich.",
       "hints": [
-        "Die weiße Bohnen Version ist etwas anders als die schwarze Bohnen Version",
-        "Flattens in Pfanne bis knusprig auf der Außenseite und weich innen",
-        "Der Koriander — ein breitblättriges Koriander — wird in der Masse gemischt",
-        "Es ist das beliebteste Frühstück oder Mittagessen in Lima",
-        "Serviert mit gebratenem Ei oder übersprungen auf der Oberseite immer"
+        "Die Variante mit weißen Bohnen unterscheidet sich leicht von der mit schwarzen Bohnen.",
+        "Die Masse wird in der Pfanne flach gedrückt, bis sie außen knusprig und innen weich ist.",
+        "Culantro, ein breitblättriges Kraut mit korianderähnlichem Geschmack, wird unter die Reis-Bohnen-Masse gemischt.",
+        "In Lima werden damit gerne Reste zu einem Frühstück oder Mittagessen verarbeitet.",
+        "Serviert wird es mit einem Spiegelei oder kurz gebratenem Fleisch."
       ],
-      "displayName": "Tacu Tacu de Bohnen"
+      "displayName": "Tacu Tacu mit weißen Bohnen"
     },
     "regular:529": {
       "name": "Ponche Arequipeño",
@@ -11223,15 +11225,15 @@
     },
     "regular:831": {
       "name": "Caldo de Costilla Bogotano",
-      "desc": "Leichte Rindsbrühe mit Kartoffel und Koriander, das Bogotan Katerfrühstück.",
+      "desc": "Klare Rinderrippenbrühe mit Kartoffeln und Koriander, in Bogotá traditionell als Frühstück nach einer durchfeierten Nacht serviert.",
       "hints": [
-        "Die Rippe mit Knochen wird früh am Morgen gekocht",
-        "Die Brühe ist klar und konzentriert mit all dem Kollagen im Knochen",
-        "Der frische Koriander und die Kreolkartoffel sind die einzigen zusätzlichen Zutaten",
-        "Bogota serviert es in Restaurants ab 4 Uhr als Frühstück",
-        "Es ist der beliebteste Rekonstitutionator in der kolumbianischen Hauptstadt an Wochenenden"
+        "Die Rippen mit Knochen werden schon in den frühen Morgenstunden gekocht.",
+        "Die Brühe bleibt klar und nimmt dabei Geschmack und Kollagen aus den Knochen auf.",
+        "Frischer Koriander und kleine gelbe Criolla-Kartoffeln ergänzen die Brühe.",
+        "In Bogotá servieren Restaurants die Brühe ab vier Uhr morgens zum Frühstück.",
+        "Am Wochenende ist es ein beliebtes stärkendes Frühstück in der kolumbianischen Hauptstadt."
       ],
-      "displayName": "Bogotano-Cot"
+      "displayName": "Rinderrippenbrühe nach Bogotá-Art"
     },
     "regular:832": {
       "name": "Envuelto de Mazorca",

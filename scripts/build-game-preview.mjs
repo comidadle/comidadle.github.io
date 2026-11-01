@@ -8,6 +8,8 @@ const root=path.resolve('.');
 const source=fs.readFileSync('index.html','utf8');
 const sourceCatalog=JSON.parse(fs.readFileSync('locales/catalogs/es.json','utf8'));
 const gameMessages=createRequire(import.meta.url)('../i18n/game-messages.cjs');
+const changelogTranslations=createRequire(import.meta.url)('../i18n/changelog-translations.cjs');
+const changelogMessages={};
 const messages={};
 const lookup={};
 const normalize=s=>s.replace(/\s+/g,' ').trim();
@@ -36,6 +38,9 @@ function human(value){
 const skip=new Set(['ALL_DISHES','SUNDAY_INTERNATIONAL_DISHES','FLAGS','DEMONYMS','T','SB','SK','SH']);
 const start=source.lastIndexOf('<script>')+8,end=source.indexOf('</script>',start);
 let code=source.slice(start,end);
+// El país personal se cambia desde el perfil; ambos rankings muestran solo la identidad.
+code=code.replace(/\s*<select id="my-country-select"[\s\S]*?<\/select>/,'');
+code=code.replace('document.getElementById("my-country-select").onchange=(e)=>{saveMyCountry(e.target.value);populateCountryFilterSelects();};','');
 code=code.replaceAll('<div style="text-align:center;font-size:17px;font-weight:700;color:var(--text);margin-bottom:.75rem">${d.name}</div>','<div class="dish-name" style="text-align:center;font-size:17px;font-weight:700;color:var(--text);margin-bottom:.75rem">${d.name}</div>');
 code=code.replaceAll('<div style="font-size:13px;font-weight:600">${d.name}</div>','<div class="dish-name" style="font-size:13px;font-weight:600">${d.name}</div>');
 code=code.replace(/\b(dish|d)\.name\.replace\(buildBlurRegex\(/g,'L10N.display($1.name).replace(buildBlurRegex(');
@@ -68,6 +73,17 @@ function rememberParents(node){for(const child of children(node)){parents.set(ch
 rememberParents(ast);
 function scope(node){const names=[];for(let parent=node;parent;parent=parents.get(parent))if(parent.type==='FunctionDeclaration'&&parent.id)names.push(parent.id.name);return names;}
 for(const declaration of ast.body.filter(node=>node.type==='VariableDeclaration'))for(const variable of declaration.declarations){
+  if(variable.id.name==='CHANGELOG'&&variable.init?.type==='ArrayExpression')for(const entry of variable.init.elements){
+    const changes=entry.properties.find(field=>(field.key.name||field.key.value)==='changes');
+    const version=entry.properties.find(field=>(field.key.name||field.key.value)==='v').value.value;
+    for(const [index,text] of (changes?.value.elements||[]).entries())if(text.type==='Literal'&&typeof text.value==='string'){
+      const key=register(text.value);
+      for(const [locale,versions] of Object.entries(changelogTranslations))if(versions[version]){
+        if(versions[version].length!==changes.value.elements.length)throw Error('Historial desincronizado: '+version);
+        (changelogMessages[locale]||={})[key]=versions[version][index];
+      }
+    }
+  }
   if(['ACH_LIST','MISSION_POOL'].includes(variable.id.name)&&variable.init?.type==='ArrayExpression')for(const entry of variable.init.elements||[]){
     for(const field of entry.properties||[]){
       if(!['name','desc','cat'].includes(field.key.name||field.key.value))continue;
@@ -100,6 +116,7 @@ function display(node){
   // Solo datos de presentación conocidos; nunca nombres o mensajes de jugadores.
   if(/^(?:dish|d|dd|infDish|memDish)\.(?:name|desc|hints(?:\[.*\])?)$/.test(text)||/^(?:a|m|lv|item)\.(?:name|desc|description)$/.test(text)||/^(?:myEquip|eq|equip)\.(?:title|badge)$/.test(text)||['opt','cat','h.dish'].includes(text))return `L10N.display(${text})`;
   if(text==='c'&&scope(node).includes('renderChangelog'))return `L10N.display(${text})`;
+  if(text==='entry.date'&&scope(node).includes('renderChangelog'))return `L10N.changelogDate(${text})`;
   if(['c','country','myCountry'].includes(text)||/\.country$/.test(text)||text==='c.name')return `L10N.country(${text})`;
   return compile(node,false);
 }
@@ -292,9 +309,9 @@ for(const [locale,values] of Object.entries(gameMessages)){
   if(locale==='es')continue;
   const file=`locales/catalogs/${locale}.json`,draft=JSON.parse(fs.readFileSync(file,'utf8'));
   // Al sustituir renderizadores solo se pueden retirar mensajes: los textos compartidos deben ser idénticos.
-  const onlyRemoved=Object.entries(ui).every(([key,value])=>JSON.stringify(sourceCatalog.ui[key])===JSON.stringify(value));
+  const onlyRemoved=Object.entries(ui).every(([key,value])=>JSON.stringify(sourceCatalog.ui[key])===JSON.stringify(value)||Object.hasOwn(changelogMessages[locale]||{},key));
   if(onlyRemoved&&draft.sourceRevision===sourceCatalog.sourceRevision){draft.sourceRevision=revision;draft.ui=Object.fromEntries(Object.entries(draft.ui).filter(([key])=>Object.hasOwn(ui,key)));}
-  draft.ui={...draft.ui,...values};fs.writeFileSync(file,JSON.stringify(draft,null,2)+'\n');
+  draft.ui={...draft.ui,...values,...changelogMessages[locale]};fs.writeFileSync(file,JSON.stringify(draft,null,2)+'\n');
 }
 fs.writeFileSync('locales/source/bindings.json',JSON.stringify({messages:Object.keys(messages).length,sinks:changes.length,staticBindings:htmlEdits.length},null,2)+'\n');
 const manifest=JSON.parse(fs.readFileSync('manifest.json','utf8'));manifest.start_url='./index.html';manifest.scope='./';fs.writeFileSync(path.join(outputDir,'manifest.json'),JSON.stringify(manifest,null,2)+'\n');

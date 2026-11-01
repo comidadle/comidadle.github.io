@@ -1,6 +1,6 @@
 {
   "locale": "pt-BR",
-  "sourceRevision": "f457d82ee464a26163085a0408a1e67e23e267438cc78f3004c24ec3e9f562c5",
+  "sourceRevision": "d75722ab429fd3253e33d60292117be6a61e09bc607372eddc1ff8008774289d",
   "status": "draft",
   "applicationCoverageReviewed": false,
   "ui": {
@@ -78,7 +78,7 @@
     "msg_01943332833cc183": "🔥 Modo difícil",
     "msg_028c44fdd3da98d8": "{p8} tentativas totais",
     "msg_02b8c68dca03f7d4": "{p0} quer ser seu amigo",
-    "msg_03005cf22cb92fdd": "🐛 Corregiu a verdadeira razão pela qual alguns jogadores não apareceram no ranking: ao se registrar, sua linha nunca veio a ser criada no banco de dados.",
+    "msg_03005cf22cb92fdd": "🐛 Corrigida a ausência de alguns jogadores no ranking: o registro deles não era criado no banco de dados durante o cadastro.",
     "msg_031b29595f4a5f71": "Total Azza 2000 XP",
     "msg_03472b6d9b0ba844": "🏆 Classificação geral",
     "msg_0402e3fa11d68c24": "Aguardando resposta do",
@@ -129,7 +129,7 @@
     "msg_0c482343a4e2ce1f": "⚔️ Convite para duelo",
     "msg_0c4ff7f04a631082": "Faça login para aparecer na classificação",
     "msg_0c663223d32cca12": "Enviar convite.:.:.",
-    "msg_0c69a8a72508db9a": "🏆 As 7 realizações e 7 missões diárias anunciadas acima são finalmente implementadas e corretamente conectadas ao progresso do jogo (Passport, XP, sequências, trivia).",
+    "msg_0c69a8a72508db9a": "🏆 As sete conquistas e sete missões diárias anunciadas anteriormente agora estão ligadas ao progresso: passaporte, XP, sequências e quiz.",
     "msg_0cb80430275f5e93": "Erro ao carregar o duelo 😔",
     "msg_0d6b062a6fcb77b7": "Já verifiquei, continue.:",
     "msg_0e13aa7a3e6f6112": "O meu progresso é exportado (.json)",
@@ -146,11 +146,11 @@
     "msg_121f8a06681ed2f2": "Erro ao juntar 😔",
     "msg_1260396383a9cb3b": "Deixe a sua avaliação",
     "msg_12bea46ec6060ce5": "Período de 7 dias",
-    "msg_131e187360208ad0": "🤖 Receitas com IA: os aplicativos passam agora por um Edge-Fit do Supabase, mantendo a chave Antrópica fora do cliente.",
+    "msg_131e187360208ad0": "🤖 Os pedidos de receitas com IA passam por uma Edge Function do Supabase, mantendo a chave da Anthropic no servidor.",
     "msg_137ee98b36075434": "nova faixa",
     "msg_1523324a219e047f": "Não foi possível aceder à câmera 😔",
     "msg_1554fc76c25040f8": "Prato",
-    "msg_169842fb2ed12da6": "📸 Usuário atualizado do Instagram para @aanxs404.",
+    "msg_169842fb2ed12da6": "📸 O nome da conta do Instagram foi atualizado para @aanxs404.",
     "msg_16cfd9619ca3cd40": "Iniciando a câmera.",
     "msg_16eb880b62492b54": "Magnate_BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR___BAR___BAR__BAR__BAR__BAR__BAR_",
     "msg_17222dc98db3ebcf": "Países desbloqueados",
@@ -249,7 +249,7 @@
     "msg_4105811890aee724": "Entra",
     "msg_416c5bf0579fa517": "🔥 MODO DIFFICULTO ·",
     "msg_41a4d066370e3c27": "Padrões comunitários e de classificação",
-    "msg_41ae917cd19986e8": "🔒 Nomes de usuário não mais distinguem maiúsculas/minúsculos quando selecionados, e \"Proprietário\" está reservado.",
+    "msg_41ae917cd19986e8": "🔒 A verificação dos nomes de usuário não diferencia maiúsculas de minúsculas. “Owner” continua reservado.",
     "msg_427a4e227f340e1e": "Número de XP.",
     "msg_4296e5513af719d4": "24 Jun 2026",
     "msg_44006c60e800daed": "Painel do proprietário reforçado: ações administrativas verificadas pela senha do servidor.",
@@ -427,7 +427,7 @@
     "msg_8846b965108c86f9": "Comprar '",
     "msg_88c97b16d27069bd": "O Proprietário deu-lhe o fora",
     "msg_88db8979c385d164": "Sem XP",
-    "msg_88fee3ef3c7985d0": "🧠 Trivia redesenhado: primeiro pergunte se você deseja reproduzi- lo (Sim/ Não), vários modelos de perguntas (não apenas \"Qual deles é uma faixa?\"), e esconda as pistas e opções de país enquanto durar para evitar trapaças.",
+    "msg_88fee3ef3c7985d0": "🧠 O quiz primeiro pergunta se você quer jogar. As perguntas são mais variadas, e as pistas e opções de países ficam ocultas durante o quiz para evitar trapaças.",
     "msg_89083827a04d6d76": "1 prato direito hoje",
     "msg_893f9701300c004e": "+ Adicionar",
     "msg_89615142e50c101d": "Muda entre pratos com o",
@@ -533,7 +533,7 @@
     "msg_ac6eeb50a7d39280": "? Iniciar o jogo",
     "msg_acbd69187a99c8b6": "Senti sua falta",
     "msg_acec4d2ce6919834": "Erro ao iniciar o jogo 😔",
-    "msg_adc920c0445d9950": "🐛 O ranking e o semanal não perdem mais posições por jogadores que se escondem.",
+    "msg_adc920c0445d9950": "🐛 Os rankings global e semanal não deixam mais posições vazias quando jogadores ocultam sua posição.",
     "msg_ae65ce903c37ac8e": "O Supabase não devolveu a linha criada",
     "msg_af337868b608b720": "Nenhum usuário banido",
     "msg_af525f69f2adc197": "Você só vê o nome e o emoji.",
@@ -557,7 +557,7 @@
     "msg_b461955321adf02e": "Apontar para o código QR do seu amigo",
     "msg_b4a61bb9251d4c3a": "Equipamento A ( {p0} / {p1} )",
     "msg_b5bffc028a692068": "🔑 Entrar",
-    "msg_b5c1097950f72346": "🛍️ A loja semanal agora gira aos domingos, não às segundas-feiras.",
+    "msg_b5c1097950f72346": "🛍️ A seleção da loja semanal agora muda aos domingos, em vez de às segundas-feiras.",
     "msg_b687819a7b7f0d6c": "😔 Sua equipe perdida",
     "msg_b68f59610656c72d": "📸 Compartilhe o resultado como imagem (anteriormente apenas texto).",
     "msg_b6a8d40b410bce7a": "👥 Partida do grupo",
@@ -618,7 +618,7 @@
     "msg_c947631d2cd07bd0": "Carregando o leitor QR, espere um segundo e reabrir esta aba 🙏",
     "msg_c9955dc1bae86dec": "🔥 Racha de",
     "msg_c9d0fd2a1c925789": "Permissão da câmera negada. Verifique as permissões do navegador 🙏",
-    "msg_c9ee92b238bc6e44": "🔑 Você também pode fazer login com seu nome de usuário, bem como com seu email ou Google.",
+    "msg_c9ee92b238bc6e44": "🔑 Você também pode entrar com seu nome de usuário, além do e-mail ou do Google.",
     "msg_ca831aaf0460688b": "Meus amigos",
     "msg_ca83d4ad9e3b58fb": "👀 Jogando como um convidado — Você não receberá XP",
     "msg_cab7ac1fa2b73087": "Eu não consegui hoje",
@@ -663,7 +663,7 @@
     "msg_d815a9b5102f511c": "💡 Enviar ideia",
     "msg_d8da4342062316e2": "configurar a sua linha em chamas",
     "msg_d912cf0104ac4d3d": "Gaste seu XP em itens exclusivos",
-    "msg_da0288803a1f77cf": "🎮 Nova opção em Configurações para ativar/desativar \"Como jogar\" de inserir.",
+    "msg_da0288803a1f77cf": "🎮 Uma nova configuração permite escolher se “Como jogar” aparece ao abrir o jogo.",
     "msg_da42c5df5ab7c49c": "📱 Adicione amigos por código QR: mostre- o ou varre- o com a câmera, também funciona como um link compartilhado.",
     "msg_da8d8ce9fdcae940": "Eu não fiz isso hoje!",
     "msg_dad929bc8e9f754e": "Mestre",
@@ -733,7 +733,7 @@
     "msg_edd795454c81352a": "Sair da conta?",
     "msg_ee7367bf2b81f140": "O seu navegador não suporta o acesso à câmera 😔",
     "msg_eee7f947fd3836e2": "— pressionar novamente para mudar",
-    "msg_ef2fc7b1586ff5a3": "🐛 Prato de ontem: agora é mostrado sempre que está ativado, mesmo que você não tenha jogado ontem.",
+    "msg_ef2fc7b1586ff5a3": "🐛 O prato de ontem aparece sempre que a opção está ativada, mesmo que você não tenha jogado ontem.",
     "msg_ef9f001aee76adc0": "Taxa atual",
     "msg_efe4990448fc0a40": "Compra com cores, quadros, distintivos, títulos e emoji personalizáveis para o seu perfil.",
     "msg_f0d3d86eda5919e0": "Anúncio do proprietário {p3}",
@@ -1246,7 +1246,9 @@
     "msg_2ccab3900c9e9f0e": "+ {p3} XP",
     "msg_2d465df256afedaa": "Você entendeu",
     "msg_3fc5f90b27f1acbc": "Minimizar",
-    "msg_fa846ee3576b4a8d": "Informações"
+    "msg_fa846ee3576b4a8d": "Informações",
+    "msg_7f3da61914d59db8": "🌍 É obrigatório escolher um país no cadastro; você pode alterá-lo gratuitamente a qualquer momento no perfil.",
+    "msg_1c619abff244aff1": "🐛 Passaporte corrigido: os países do Especial de Domingo não eram desbloqueados por causa de um campo incorreto e de um histórico limitado a 42 partidas. Agora é usado o registro permanente do passaporte."
   },
   "dishes": {
     "regular:0": {
@@ -2967,15 +2969,15 @@
     },
     "regular:142": {
       "name": "Pastelón de Plátano",
-      "desc": "Lasanha doce de banana madura com carne moída, sofrito e queijo gratin.",
+      "desc": "Camadas de banana-da-terra madura, carne moída e refogado, cobertas com queijo e gratinadas no forno.",
       "hints": [
-        "Banana frita madura substitui a pasta de lasanha italiana",
-        "A carne moída com sofrito boricua é o preenchimento central",
-        "O gratin de queijo amarelo em cima é a camada final obrigatória",
-        "É o prato de festa informal mais popular na cozinha caseira",
-        "Cozer até que a banana caramelize e bolhas de queijo"
+        "A banana-da-terra madura e frita substitui a massa da lasanha italiana.",
+        "O recheio é de carne moída com refogado porto-riquenho.",
+        "Uma camada de queijo amarelo ralado cobre o prato e gratina no forno.",
+        "É um prato caseiro muito popular em festas informais.",
+        "Vai ao forno até a banana-da-terra caramelizar e o queijo borbulhar."
       ],
-      "displayName": "Pastel de banana"
+      "displayName": "Lasanha de banana-da-terra com carne"
     },
     "regular:143": {
       "name": "Arroz Mamposteado",
@@ -6843,15 +6845,15 @@
     },
     "regular:442": {
       "name": "Humita en Olla",
-      "desc": "Choclo ralados em panela com cebola, pimentão e tomate, versão líquida do sólido humita.",
+      "desc": "Milho verde ralado e cozido com cebola, pimenta e tomate, numa versão cremosa de humita feita na panela.",
       "hints": [
-        "Ao contrário do clássico humita, esta versão é cozida em pote",
-        "Cebola e tomate são fritos antes de adicionar choclo ralados",
-        "O noroeste andino é onde esta versão está mais preparada",
-        "A pimenta molhada dá-lhe a cor vermelha e comichão suave",
-        "Servido como o primeiro prato quente em meses frios"
+        "Ao contrário da humita clássica embrulhada em folhas, esta versão é feita na panela.",
+        "A cebola e o tomate são refogados antes de acrescentar o milho ralado.",
+        "Esta versão cremosa é especialmente comum no noroeste andino.",
+        "A pimenta moída dá a cor avermelhada e uma ardência suave.",
+        "É servida quente como entrada nos meses frios."
       ],
-      "displayName": "Humita em Olla"
+      "displayName": "Humita cremosa de milho na panela"
     },
     "regular:443": {
       "name": "Puchero Argentino",
@@ -7875,15 +7877,15 @@
     },
     "regular:528": {
       "name": "Tacu Tacu de Frijoles",
-      "desc": "Bolo de feijão dourado refrescado com arroz e especiarias, variante tacu tacu.",
+      "desc": "Bolinho achatado de feijão-branco cozido, arroz e temperos, dourado na frigideira até ficar crocante por fora e macio por dentro.",
       "hints": [
-        "A versão de feijão branco é ligeiramente diferente da versão de feijão preto",
-        "Aplaca-se na frigideira até que seja crocante no exterior e macio no interior",
-        "O cilantro — um coentro de folhas largas — é misturado na massa",
-        "É o café da manhã ou almoço mais popular em Lima",
-        "Servido com ovo frito ou pulado em cima sempre"
+        "A versão de feijão-branco é um pouco diferente da versão de feijão-preto.",
+        "A mistura é achatada na frigideira até ficar crocante por fora e macia por dentro.",
+        "Culantro, erva de folhas largas com sabor parecido com coentro, é misturado ao arroz e ao feijão.",
+        "Em Lima, é uma forma popular de aproveitar sobras no café da manhã ou no almoço.",
+        "É servido com ovo frito ou carne salteada por cima."
       ],
-      "displayName": "Tacu Tacu de Feijões"
+      "displayName": "Tacu tacu de feijão-branco"
     },
     "regular:529": {
       "name": "Ponche Arequipeño",
@@ -11223,15 +11225,15 @@
     },
     "regular:831": {
       "name": "Caldo de Costilla Bogotano",
-      "desc": "Bolo de costela de carne leve com batata e coentro, o café da manhã de ressaca Bogotá.",
+      "desc": "Caldo claro de costela bovina com batata e coentro, tradicional no café da manhã de Bogotá depois de uma noite de festa.",
       "hints": [
-        "A costela com osso é cozida cedo pela manhã",
-        "O caldo é claro e concentrado com todo o colágeno no osso",
-        "O coentro fresco e a batata creola são os únicos ingredientes adicionais",
-        "Bogotá o serve em restaurantes a partir das 4 da manhã como café da manhã",
-        "É o reconstitutor mais popular na capital colombiana nos fins de semana"
+        "As costelas com osso começam a cozinhar ainda de madrugada.",
+        "O caldo fica claro e concentrado, com o sabor e o colágeno dos ossos.",
+        "Coentro fresco e pequenas batatas amarelas criollas completam o caldo.",
+        "Em Bogotá, restaurantes servem o caldo no café da manhã a partir das quatro da madrugada.",
+        "É um café da manhã reconfortante muito popular nos fins de semana na capital colombiana."
       ],
-      "displayName": "Cotinha Bogotano"
+      "displayName": "Caldo de costela bovina de Bogotá"
     },
     "regular:832": {
       "name": "Envuelto de Mazorca",

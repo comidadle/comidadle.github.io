@@ -119,6 +119,7 @@
           if(!translated||same(translated)===same(native))continue;
           const label=document.createElement('span');label.className='dish-name-translation';label.lang=engine.locale;
           label.style.cssText='display:block;font:600 13px/1.5 system-ui;color:var(--text-muted);margin-top:5px;overflow-wrap:anywhere';
+          if(explanation)label.style.font='400 14px/1.6 system-ui';
           label.textContent=translated;
           if(explanation)label.dataset.explanation='true';
           element.append(label);
@@ -150,6 +151,12 @@
       month(value){
         const index=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'].indexOf(value);
         return index<0?value:engine.date(new Date(2020,index,1),{month:'short'});
+      },
+      changelogDate(value){
+        const match=/^(\d{1,2}) (ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic) (\d{4})$/.exec(value);
+        if(!match)return value;
+        const month=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'].indexOf(match[2]);
+        return engine.date(new Date(Number(match[3]),month,Number(match[1])),{day:'numeric',month:'short',year:'numeric'});
       },
       relativeDate(value){
         const minutes=Math.max(0,Math.floor((Date.now()-new Date(value))/60000));

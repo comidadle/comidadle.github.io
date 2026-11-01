@@ -22,6 +22,10 @@ const bases={sopa:['Soup','Soupe','Suppe','Sopa','Sopa'],caldo:['Broth','Bouillo
   cazuela:['Casserole','Cocotte','Eintopf','Ensopado','Ensopado'],estofado:['Stew','Ragoût','Eintopf','Ensopado','Estufado'],
   guiso:['Stew','Ragoût','Eintopf','Ensopado','Guisado'],pan:['Bread','Pain','Brot','Pão','Pão'],ensalada:['Salad','Salade','Salat','Salada','Salada']};
 const patterns=[
+  [/^Pastelón de Plátano$/i,['Plantain and meat bake','Gratin de bananes plantains à la viande','Kochbananenauflauf mit Hackfleisch','Lasanha de banana-da-terra com carne','Gratinado de banana-pão com carne']],
+  [/^Humita en Olla$/i,['Creamy corn humita','Humita au maïs mijotée en casserole','Cremige Mais-Humita aus dem Topf','Humita cremosa de milho na panela','Humita cremosa de milho na panela']],
+  [/^Caldo de Costilla Bogotano$/i,['Bogotá-style beef rib broth','Bouillon de côtes de bœuf de Bogotá','Rinderrippenbrühe nach Bogotá-Art','Caldo de costela bovina de Bogotá','Caldo de costela de vaca de Bogotá']],
+  [/^Tacu Tacu de Frijoles$/i,['Tacu tacu with white beans','Tacu tacu aux haricots blancs','Tacu Tacu mit weißen Bohnen','Tacu tacu de feijão-branco','Tacu tacu de feijão-branco']],
   [/^Patatas Bravas$/i,['Potatoes with brava sauce','Pommes de terre à la sauce brava','Kartoffeln mit Brava-Sauce','Batatas ao molho brava','Batatas com molho brava']],
   [/^Cochinillo Asado$/i,['Roast suckling pig','Cochon de lait rôti','Gebratenes Spanferkel','Leitão assado','Leitão assado']],
   [/^Asado Paraguayo$/i,['Paraguayan barbecue','Grillades paraguayennes','Paraguayisches Grillfleisch','Churrasco paraguaio','Churrasco paraguaio']],
