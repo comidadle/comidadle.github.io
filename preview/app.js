@@ -1024,7 +1024,7 @@ function setupGuestLockDelegation(){
 }
 function enterGuestMode(){isGuest=true;const ov=document.getElementById("login-overlay");if(ov)ov.style.display="none";applyGuestLocks();try{renderAll();}catch(e){}}
 function _closeLoginOverlay(){const ov=document.getElementById("login-overlay");if(ov)ov.style.display="none";}
-async function logOut(){_initSBClient();if(sbClient)await sbClient.auth.signOut().catch(()=>{});localStorage.removeItem(UK);localStorage.removeItem(UDK);localStorage.removeItem(SESSK);location.reload();}
+async function logOut(){L10N.leaveDemo();_initSBClient();if(sbClient)await sbClient.auth.signOut().catch(()=>{});localStorage.removeItem(UK);localStorage.removeItem(UDK);localStorage.removeItem(SESSK);location.reload();}
 async function saveGoogleUsername(){
   const input=document.getElementById("username-setup-input");const user=(input?.value||"").trim();
   const countrySel=document.getElementById("username-setup-country");const country=(countrySel?.value||"").trim();
@@ -1234,26 +1234,7 @@ async function fetchRanking(){
 
 // (La generación de recetas ahora pasa por la Edge Function dish-recipe; ya no se
 // obtiene ni se expone la clave de Anthropic en el cliente — ver openDishRecipe.)
-async function openDishRecipe(name,country,emoji,flag){
-  closeModal("passport-country-modal");closeModal("passport-modal");
-  const titleEl=document.getElementById("recipe-modal-title");if(titleEl)titleEl.textContent=(emoji)+" "+(L10N.display(name))+" "+((flag||""));
-  openModal("recipe-modal");
-  const el=document.getElementById("recipe-content");
-  if(el)el.innerHTML="<div style='text-align:center;padding:2rem;color:var(--text-muted)'>"+(L10N.htmlText("msg_ec5d328905a92758",{}))+"</div>";
-  // La receta se pide a una Edge Function de Supabase (dish-recipe), que es quien llama a
-  // la API de Anthropic con la clave guardada en secretos del servidor. La versión anterior
-  // llamaba a api.anthropic.com directamente desde el navegador con la clave expuesta en
-  // app_secrets: eso nunca podía funcionar (la API de Anthropic bloquea peticiones CORS
-  // desde el navegador) y además filtraba la clave a cualquiera que abriera las herramientas
-  // de desarrollador. Ver el bloque de despliegue de la función al final de esta respuesta.
-  try{
-    const res=await fetch(SB+"/functions/v1/dish-recipe",{method:"POST",headers:SH,body:JSON.stringify({name,country,emoji,language:L10N.locale})});
-    if(!res.ok)throw new Error(await res.text().catch(()=>String(res.status)));
-    const data=await res.json();
-    const text=(data&&data.text)||L10N.display("Sin respuesta.");
-    if(el)el.innerHTML="<div style='padding:.5rem;line-height:1.8;font-size:14px;color:var(--text);white-space:pre-wrap'>"+((escapeHtml(text)))+"</div>";
-  }catch(e){if(el)el.innerHTML="<div style='text-align:center;padding:2rem;color:var(--red)'>"+(L10N.htmlText("msg_d4c2958265218c59",{}))+"</div>";}
-}
+async function openDishRecipe(name,country,emoji,flag){return L10N.dishRecipe(name,country,emoji,flag);}
 function syncRanking(){if(!myUser||isBanned)return Promise.resolve();return upsertRanking().catch(()=>{});}
 
 const RENAME_COST=100;
@@ -1739,7 +1720,7 @@ function openStats(){openModal("stats-modal");renderStats();}
 function renderChangelog(){
   const el=document.getElementById("changelog-content");if(!el)return;
   const reversed=[...CHANGELOG].reverse();
-  el.innerHTML=reversed.map((entry,i)=>"\n    <div style=\"background:var(--surface2);border:1px solid "+(i===0?"var(--accent)":"var(--border)")+";border-radius:var(--r-sm);padding:.875rem;margin-bottom:.6rem\">\n      <div style=\"display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem\">\n        <span style=\"font-family:'Fraunces',serif;font-size:15px;font-weight:900;color:"+(i===0?"var(--accent)":"var(--text)")+"\">"+("v"+(entry.v)+((i===0?" "+L10N.raw("msg_f3b9ca3958ff9fbc",{}):"")))+"</span>\n        <span style=\"font-size:11px;color:var(--text-muted)\">"+((entry.date))+"</span>\n      </div>\n      <ul style=\"margin:0;padding-left:1.1rem;display:flex;flex-direction:column;gap:4px\">"+("\n        "+(entry.changes.map(c=>"<li style=\"font-size:12px;color:var(--text-muted);line-height:1.5\">"+((L10N.display(c)))+"</li>").join(""))+"\n      ")+"</ul>\n    </div>").join("");
+  el.innerHTML=reversed.map((entry,i)=>"\n    <div style=\"background:var(--surface2);border:1px solid "+(i===0?"var(--accent)":"var(--border)")+";border-radius:var(--r-sm);padding:.875rem;margin-bottom:.6rem\">\n      <div style=\"display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem\">\n        <span style=\"font-family:'Fraunces',serif;font-size:15px;font-weight:900;color:"+(i===0?"var(--accent)":"var(--text)")+"\">"+("v"+(entry.v)+((i===0?" "+L10N.raw("msg_f3b9ca3958ff9fbc",{}):"")))+"</span>\n        <span style=\"font-size:11px;color:var(--text-muted)\">"+((L10N.changelogDate(entry.date)))+"</span>\n      </div>\n      <ul style=\"margin:0;padding-left:1.1rem;display:flex;flex-direction:column;gap:4px\">"+("\n        "+(entry.changes.map(c=>"<li style=\"font-size:12px;color:var(--text-muted);line-height:1.5\">"+((L10N.display(c)))+"</li>").join(""))+"\n      ")+"</ul>\n    </div>").join("");
 }
 function renderStats(){
   const el=document.getElementById("stats-content");if(!el)return;
@@ -1827,8 +1808,8 @@ async function renderRankingList(rows,cache=true){
 function renderUsernameSection(){
   const el=document.getElementById("ranking-username-section");if(!el)return;
   if(myUser){
-    el.innerHTML="<div style=\"display:flex;align-items:center;gap:8px;margin-bottom:.5rem;padding:.6rem .875rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm)\"><span style=\"font-size:13px;color:var(--text-muted)\">"+(L10N.htmlText("msg_8d9816b4ca421046",{}))+"</span><span style=\"font-size:13px;font-weight:700;color:var(--accent);flex:1\">"+((myUser))+"</span></div>\n    <select id=\"my-country-select\" class=\"username-input\" style=\"margin:0 0 .75rem;width:100%;box-sizing:border-box\">"+((countryPickerOptionsHtml(myCountry)))+"</select>";
-    document.getElementById("my-country-select").onchange=(e)=>{saveMyCountry(e.target.value);populateCountryFilterSelects();};
+    el.innerHTML="<div style=\"display:flex;align-items:center;gap:8px;margin-bottom:.5rem;padding:.6rem .875rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm)\"><span style=\"font-size:13px;color:var(--text-muted)\">"+(L10N.htmlText("msg_8d9816b4ca421046",{}))+"</span><span style=\"font-size:13px;font-weight:700;color:var(--accent);flex:1\">"+((myUser))+"</span></div>";
+    
   }else{
     el.innerHTML="<div style=\"text-align:center;padding:1rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:.75rem\"><div style=\"font-size:13px;color:var(--text-muted);margin-bottom:.6rem\">"+(L10N.htmlText("msg_0c4ff7f04a631082",{}))+"</div><button class=\"ranking-btn primary\" id=\"rk-login-btn\">"+(L10N.htmlText("msg_ab9bb005d2c88c80",{}))+"</button></div>";
     document.getElementById("rk-login-btn").onclick=()=>{closeModal("ranking-modal");showLoginState("home");const ov=document.getElementById("login-overlay");if(ov)ov.style.display="flex";};
@@ -1903,24 +1884,24 @@ function switchDish(i){
 // ═══ RENDER + GAME ═══
 function renderAll(){
   const MAX=getMax(),opts=getOpts();
-  document.getElementById("subtitle-attempts").textContent=t("attempts_label",{n:MAX});
+  (document.getElementById("subtitle-attempts").textContent=t("attempts_label",{n:MAX}),L10N.decorateDishNames(document.getElementById("subtitle-attempts"),done));
   const gb_=document.getElementById("guest-banner");
-  if(gb_)gb_.innerHTML=(isGuest?"<div style=\"background:var(--surface2);border:1px solid var(--border-strong);border-radius:var(--r-sm);padding:.6rem .9rem;text-align:center;margin-bottom:.875rem\"><span style=\"font-size:12px;font-weight:600;color:var(--text-muted)\">"+(L10N.htmlText("msg_ca83d4ad9e3b58fb",{}))+"</span></div>":"");
+  if(gb_)(gb_.innerHTML=(isGuest?"<div style=\"background:var(--surface2);border:1px solid var(--border-strong);border-radius:var(--r-sm);padding:.6rem .9rem;text-align:center;margin-bottom:.875rem\"><span style=\"font-size:12px;font-weight:600;color:var(--text-muted)\">"+(L10N.htmlText("msg_ca83d4ad9e3b58fb",{}))+"</span></div>":""),L10N.decorateDishNames(gb_,done));
   const sb_=document.getElementById("special-banner");
   if(sb_){
     const isSpecialNow=isSundaySpecial&&currentDish===2&&dish===SUNDAY_SPECIAL_DISH;
-    sb_.innerHTML=(isSpecialNow?"<div style=\"background:linear-gradient(90deg,rgba(255,107,53,.15),rgba(255,182,39,.15));border:1px solid var(--gold);border-radius:var(--r-sm);padding:.7rem .9rem;text-align:center;margin-bottom:.875rem\"><span style=\"font-size:13px;font-weight:700;color:var(--gold)\">"+(L10N.htmlText("msg_32246062f47d48a1",{}))+"</span><div style=\"font-size:11px;color:var(--text-muted);margin-top:2px\">"+(L10N.htmlText("msg_c0cfcfc8e6c4de42",{}))+"</div></div>":"");
+    (sb_.innerHTML=(isSpecialNow?"<div style=\"background:linear-gradient(90deg,rgba(255,107,53,.15),rgba(255,182,39,.15));border:1px solid var(--gold);border-radius:var(--r-sm);padding:.7rem .9rem;text-align:center;margin-bottom:.875rem\"><span style=\"font-size:13px;font-weight:700;color:var(--gold)\">"+(L10N.htmlText("msg_32246062f47d48a1",{}))+"</span><div style=\"font-size:11px;color:var(--text-muted);margin-top:2px\">"+(L10N.htmlText("msg_c0cfcfc8e6c4de42",{}))+"</div></div>":""),L10N.decorateDishNames(sb_,done));
   }
-  document.getElementById("dish-emoji").textContent=dish.emoji;
+  (document.getElementById("dish-emoji").textContent=dish.emoji,L10N.decorateDishNames(document.getElementById("dish-emoji"),done));
   const nameEl=document.getElementById("dish-name");
-  if(done)nameEl.textContent=L10N.display(dish.name);else nameEl.innerHTML=L10N.display(dish.name).replace(buildBlurRegex(dish.country),m=>"<span style=\"filter:blur(5px);user-select:none;pointer-events:none\">"+((m))+"</span>");
-  const descEl=document.getElementById("dish-desc");descEl.textContent=L10N.display(dish.desc);descEl.style.display=cfg.noDesc?"none":"";
-  const dotsEl=document.getElementById("dots");dotsEl.innerHTML="";
+  if(done)(nameEl.textContent=L10N.display(dish.name),L10N.decorateDishNames(nameEl,done));else (nameEl.innerHTML=L10N.display(dish.name).replace(buildBlurRegex(dish.country),m=>"<span style=\"filter:blur(5px);user-select:none;pointer-events:none\">"+((m))+"</span>"),L10N.decorateDishNames(nameEl,done));
+  const descEl=document.getElementById("dish-desc");(descEl.textContent=L10N.display(dish.desc),L10N.decorateDishNames(descEl,done));(descEl.style.display=cfg.noDesc?"none":"",L10N.decorateDishNames(descEl,done));
+  const dotsEl=document.getElementById("dots");(dotsEl.innerHTML="",L10N.decorateDishNames(dotsEl,done));
   for(let i=0;i<MAX;i++){const d=document.createElement("div");d.className="dot"+(i<log.length?(log[i]?" correct":" wrong"):"");dotsEl.appendChild(d);}
-  const hintsEl=document.getElementById("hints");hintsEl.innerHTML="";
-  if(!cfg.noHints){const n=done?dish.hints.length:cfg.progressive?Math.min(log.length+1,dish.hints.length):dish.hints.length;for(let i=0;i<n;i++){const h=document.createElement("div");h.className="hint";h.innerHTML="<strong>"+(L10N.htmlText("msg_57a3702f2058f938",{p0:i+1}))+"</strong>"+(" — "+(L10N.display(dish.hints[i])));hintsEl.appendChild(h);}}
-  const gridEl=document.getElementById("grid");gridEl.innerHTML="";
-  opts.forEach(c=>{const btn=document.createElement("button");btn.className="country-btn";btn.innerHTML="<span>"+((getFlag(c)))+"</span><span>"+((L10N.country(c)))+"</span>";if(done){btn.disabled=true;if(c===dish.country)btn.classList.add("correct-answer");}else if(wrong.has(c))btn.disabled=true;else btn.addEventListener("click",()=>handleGuess(c,btn));gridEl.appendChild(btn);});
+  const hintsEl=document.getElementById("hints");(hintsEl.innerHTML="",L10N.decorateDishNames(hintsEl,done));
+  if(!cfg.noHints){const n=done?dish.hints.length:cfg.progressive?Math.min(log.length+1,dish.hints.length):dish.hints.length;for(let i=0;i<n;i++){const h=document.createElement("div");h.className="hint";(h.innerHTML="<strong>"+(L10N.htmlText("msg_57a3702f2058f938",{p0:i+1}))+"</strong>"+(" — "+(L10N.display(dish.hints[i]))),L10N.decorateDishNames(h,done));hintsEl.appendChild(h);}}
+  const gridEl=document.getElementById("grid");(gridEl.innerHTML="",L10N.decorateDishNames(gridEl,done));
+  opts.forEach(c=>{const btn=document.createElement("button");btn.className="country-btn";(btn.innerHTML="<span>"+((getFlag(c)))+"</span><span>"+((L10N.country(c)))+"</span>",L10N.decorateDishNames(btn,done));if(done){btn.disabled=true;if(c===dish.country)btn.classList.add("correct-answer");}else if(wrong.has(c))btn.disabled=true;else btn.addEventListener("click",()=>handleGuess(c,btn));gridEl.appendChild(btn);});
   if(done&&!document.querySelector(".result-box"))showResultBox(log[log.length-1]===true,0);
 }
 function handleGuess(c,btn){
@@ -2188,7 +2169,7 @@ function loadInfinite(d){
     const n=iDone?d.hints.length:cfg.progressive?Math.min(iLog.length+1,d.hints.length):d.hints.length;
     const hints=!cfg.noHints?Array.from({length:n},(_,i)=>"<div class=\"hint\"><strong>"+(L10N.htmlText("msg_57a3702f2058f938",{p0:i+1}))+"</strong>"+(" — "+(L10N.display(d.hints[i])))+"</div>").join(""):"";
     const grid=opts.map(c=>"<button class=\"country-btn"+(iDone&&c===d.country?" correct-answer":"")+"\" "+(iDone||iWrong.has(c)?"disabled":"")+" data-c=\""+(c)+"\"><span>"+((getFlag(c)))+"</span><span>"+((L10N.country(c)))+"</span></button>").join("");
-    sec.innerHTML="<div class=\"infinite-section\"><div class=\"infinite-header\"><div class=\"infinite-title\">"+(L10N.htmlText("msg_b2a3cafdf2ceb3c5",{}))+"</div><div class=\"infinite-score\">"+(L10N.htmlText("msg_47bd5c9cb760a8e5",{})+" ")+"<span>"+((iWins)+"/"+(iTotal))+"</span></div></div><div class=\"dish-card\" style=\"margin-bottom:.875rem\"><span class=\"dish-emoji\">"+((d.emoji))+"</span><div class=\"dish-name\">"+((masked))+"</div>"+(((!cfg.noDesc?"<div class=\"dish-desc\">"+((L10N.display(d.desc)))+"</div>":"")))+"</div><div class=\"dots\" style=\"margin-bottom:.875rem\">"+((dots))+"</div>"+(((hints?"<div class=\"hints\" style=\"margin-bottom:.875rem\">"+((hints))+"</div>":"")))+"<div class=\"country-grid\">"+((grid))+"</div>"+(((iDone?"<button class=\"infinite-btn\" id=\"inf-next\">"+(L10N.htmlText("msg_3551aa9477d67dd3",{}))+"</button>":"")));
+    (sec.innerHTML="<div class=\"infinite-section\"><div class=\"infinite-header\"><div class=\"infinite-title\">"+(L10N.htmlText("msg_b2a3cafdf2ceb3c5",{}))+"</div><div class=\"infinite-score\">"+(L10N.htmlText("msg_47bd5c9cb760a8e5",{})+" ")+"<span>"+((iWins)+"/"+(iTotal))+"</span></div></div><div class=\"dish-card\" style=\"margin-bottom:.875rem\"><span class=\"dish-emoji\">"+((d.emoji))+"</span><div class=\"dish-name\">"+((masked))+"</div>"+(((!cfg.noDesc?"<div class=\"dish-desc\">"+((L10N.display(d.desc)))+"</div>":"")))+"</div><div class=\"dots\" style=\"margin-bottom:.875rem\">"+((dots))+"</div>"+(((hints?"<div class=\"hints\" style=\"margin-bottom:.875rem\">"+((hints))+"</div>":"")))+"<div class=\"country-grid\">"+((grid))+"</div>"+(((iDone?"<button class=\"infinite-btn\" id=\"inf-next\">"+(L10N.htmlText("msg_3551aa9477d67dd3",{}))+"</button>":""))),L10N.decorateDishNames(sec,iDone));
     sec.querySelectorAll(".country-btn:not([disabled])").forEach(btn=>{btn.onclick=()=>{const c=btn.dataset.c;if(c===d.country){playCorrect();iLog.push(true);iWins++;iTotal++;iDone=true;ri();setTimeout(()=>{launchConfetti();playWin();hapticWin();},300);bumpMission("play_infinite_2");}else{playWrong();iLog.push(false);iWrong.add(c);if(iLog.length>=MAX){iTotal++;iDone=true;ri();setTimeout(()=>playLose(),400);bumpMission("play_infinite_2");}else ri();}};});
     const nb=document.getElementById("inf-next");if(nb)nb.onclick=()=>{const pool=ALL_DISHES.filter(x=>x.name!==d.name);loadInfinite(pool[Math.random()*pool.length|0]);};
   }ri();
@@ -2412,7 +2393,7 @@ function renderInfiniteGame(){
     const n=iDone?d.hints.length:cfg.progressive?Math.min(iLog.length+1,d.hints.length):d.hints.length;
     const hints=!cfg.noHints?Array.from({length:n},(_,i)=>"<div class=\"hint\"><strong>"+(L10N.htmlText("msg_57a3702f2058f938",{p0:i+1}))+"</strong>"+(" — "+(L10N.display(d.hints[i])))+"</div>").join(""):"";
     const grid=opts.map(c=>"<button class=\"country-btn"+(iDone&&c===d.country?" correct-answer":"")+"\" "+(iDone||iWrong.has(c)?"disabled":"")+" data-c=\""+(c)+"\"><span>"+((getFlag(c)))+"</span><span>"+((L10N.country(c)))+"</span></button>").join("");
-    el.innerHTML="\n      <div style=\"display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem\">\n        <div style=\"font-size:12px;font-weight:700;color:var(--text-muted)\">"+(L10N.htmlText("msg_e1954bb4b01e8f9c",{}))+"</div>\n        <div style=\"font-size:13px;font-weight:700;color:var(--gold)\">"+("✅ "+(infWins)+"/"+(infTotal))+"</div>\n      </div>\n      <div class=\"dish-card\" style=\"margin-bottom:.875rem\"><span class=\"dish-emoji\">"+((d.emoji))+"</span><div class=\"dish-name\">"+((masked))+"</div>"+(((!cfg.noDesc?"<div class=\"dish-desc\">"+((L10N.display(d.desc)))+"</div>":"")))+"</div>\n      <div class=\"dots\" style=\"margin-bottom:.875rem\">"+((dots))+"</div>"+("\n      "+((hints?"<div class=\"hints\" style=\"margin-bottom:.875rem\">"+((hints))+"</div>":""))+"\n      ")+"<div class=\"country-grid\">"+((grid))+"</div>"+("\n      "+((iDone?"<div style=\"background:"+(iLog[iLog.length-1]?"var(--green-bg)":"rgba(240,80,80,.1)")+";border:1px solid "+(iLog[iLog.length-1]?"var(--green)":"var(--red)")+";border-radius:var(--r-sm);padding:.75rem;text-align:center;margin-top:.75rem\">\n        <div style=\"font-size:15px;font-weight:700;color:var(--text);margin-bottom:.5rem\">"+(((iLog[iLog.length-1]?L10N.raw("msg_32036a27875bdeea",{p0:d.flag,p1:L10N.country(d.country)}):L10N.raw("msg_cadce0c513bc90c9",{p0:d.flag,p1:L10N.country(d.country)}))))+"</div>\n        <button class=\"play-btn\" id=\"inf-next-btn\" style=\"margin-top:.25rem\">"+(L10N.htmlText("msg_3551aa9477d67dd3",{}))+"</button>\n      </div>":"")));
+    (el.innerHTML="\n      <div style=\"display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem\">\n        <div style=\"font-size:12px;font-weight:700;color:var(--text-muted)\">"+(L10N.htmlText("msg_e1954bb4b01e8f9c",{}))+"</div>\n        <div style=\"font-size:13px;font-weight:700;color:var(--gold)\">"+("✅ "+(infWins)+"/"+(infTotal))+"</div>\n      </div>\n      <div class=\"dish-card\" style=\"margin-bottom:.875rem\"><span class=\"dish-emoji\">"+((d.emoji))+"</span><div class=\"dish-name\">"+((masked))+"</div>"+(((!cfg.noDesc?"<div class=\"dish-desc\">"+((L10N.display(d.desc)))+"</div>":"")))+"</div>\n      <div class=\"dots\" style=\"margin-bottom:.875rem\">"+((dots))+"</div>"+("\n      "+((hints?"<div class=\"hints\" style=\"margin-bottom:.875rem\">"+((hints))+"</div>":""))+"\n      ")+"<div class=\"country-grid\">"+((grid))+"</div>"+("\n      "+((iDone?"<div style=\"background:"+(iLog[iLog.length-1]?"var(--green-bg)":"rgba(240,80,80,.1)")+";border:1px solid "+(iLog[iLog.length-1]?"var(--green)":"var(--red)")+";border-radius:var(--r-sm);padding:.75rem;text-align:center;margin-top:.75rem\">\n        <div style=\"font-size:15px;font-weight:700;color:var(--text);margin-bottom:.5rem\">"+(((iLog[iLog.length-1]?L10N.raw("msg_32036a27875bdeea",{p0:d.flag,p1:L10N.country(d.country)}):L10N.raw("msg_cadce0c513bc90c9",{p0:d.flag,p1:L10N.country(d.country)}))))+"</div>\n        <button class=\"play-btn\" id=\"inf-next-btn\" style=\"margin-top:.25rem\">"+(L10N.htmlText("msg_3551aa9477d67dd3",{}))+"</button>\n      </div>":""))),L10N.decorateDishNames(el,iDone));
     el.querySelectorAll(".country-btn:not([disabled])").forEach(btn=>{
       btn.onclick=()=>{
         const c=btn.dataset.c;
@@ -2454,14 +2435,14 @@ function startMemoryRound(){
   const SHOW_MS=3000;
   function renderShow(){
     const maskedName=L10N.display(d.name).replace(buildBlurRegex(d.country),m=>"<span style=\"filter:blur(5px);user-select:none\">"+((m))+"</span>");
-    el.innerHTML="\n      <div style=\"display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem\">\n        <div style=\"font-size:12px;font-weight:700;color:var(--text-muted)\">"+(L10N.htmlText("msg_f4fa93af1edaa877",{p0:memStreak}))+"</div>\n        <div style=\"font-size:13px;font-weight:700;color:var(--gold)\">"+("✅ "+(memWins)+"/"+(memTotal))+"</div>\n      </div>\n      <div class=\"dish-card\" style=\"margin-bottom:.875rem\"><span class=\"dish-emoji\">"+((d.emoji))+"</span><div class=\"dish-name\">"+((maskedName))+"</div>"+(((!cfg.noDesc?"<div class=\"dish-desc\">"+((L10N.display(d.desc)))+"</div>":"")))+"</div>\n      <div style=\"background:var(--surface2);border-radius:99px;height:6px;overflow:hidden;margin-bottom:.5rem\"><div id=\"mem-bar\" style=\"width:100%;height:100%;background:var(--accent);border-radius:99px;transition:width "+(SHOW_MS)+"ms linear\"></div></div>\n      <div style=\"text-align:center;font-size:12px;color:var(--text-muted)\">"+(L10N.htmlText("msg_fe2482cad6ffc118",{}))+"</div>";
+    (el.innerHTML="\n      <div style=\"display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem\">\n        <div style=\"font-size:12px;font-weight:700;color:var(--text-muted)\">"+(L10N.htmlText("msg_f4fa93af1edaa877",{p0:memStreak}))+"</div>\n        <div style=\"font-size:13px;font-weight:700;color:var(--gold)\">"+("✅ "+(memWins)+"/"+(memTotal))+"</div>\n      </div>\n      <div class=\"dish-card\" style=\"margin-bottom:.875rem\"><span class=\"dish-emoji\">"+((d.emoji))+"</span><div class=\"dish-name\">"+((maskedName))+"</div>"+(((!cfg.noDesc?"<div class=\"dish-desc\">"+((L10N.display(d.desc)))+"</div>":"")))+"</div>\n      <div style=\"background:var(--surface2);border-radius:99px;height:6px;overflow:hidden;margin-bottom:.5rem\"><div id=\"mem-bar\" style=\"width:100%;height:100%;background:var(--accent);border-radius:99px;transition:width "+(SHOW_MS)+"ms linear\"></div></div>\n      <div style=\"text-align:center;font-size:12px;color:var(--text-muted)\">"+(L10N.htmlText("msg_fe2482cad6ffc118",{}))+"</div>",L10N.decorateDishNames(el,false));
     requestAnimationFrame(()=>requestAnimationFrame(()=>{const bar=document.getElementById("mem-bar");if(bar)bar.style.width="0%";}));
     setTimeout(renderGuess,SHOW_MS);
   }
   function renderGuess(){
     const opts=cfg.moreCountries?shuffleWithSeed(ALL_COUNTRIES,Math.random()*9999999|0):shuffleWithSeed([d.country,...d.dist],(d.name.split("").reduce((a,c)=>a+c.charCodeAt(0),0)*7919^SESSION_SEED^memTotal)>>>0);
     const grid=opts.map(c=>"<button class=\"country-btn\" data-c=\""+(c)+"\"><span>"+((getFlag(c)))+"</span><span>"+((L10N.country(c)))+"</span></button>").join("");
-    el.innerHTML="\n      <div style=\"display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem\">\n        <div style=\"font-size:12px;font-weight:700;color:var(--text-muted)\">"+(L10N.htmlText("msg_f4fa93af1edaa877",{p0:memStreak}))+"</div>\n        <div style=\"font-size:13px;font-weight:700;color:var(--gold)\">"+("✅ "+(memWins)+"/"+(memTotal))+"</div>\n      </div>\n      <div class=\"dish-card\" style=\"margin-bottom:.875rem;filter:blur(10px);user-select:none\"><span class=\"dish-emoji\">"+((d.emoji))+"</span><div class=\"dish-name\">"+((L10N.display(d.name)))+"</div></div>\n      <div style=\"text-align:center;font-size:13px;font-weight:700;color:var(--text);margin-bottom:.875rem\">"+(L10N.htmlText("msg_45c9cd8aff4ff00b",{}))+"</div>\n      <div class=\"country-grid\">"+((grid))+"</div>";
+    (el.innerHTML="\n      <div style=\"display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem\">\n        <div style=\"font-size:12px;font-weight:700;color:var(--text-muted)\">"+(L10N.htmlText("msg_f4fa93af1edaa877",{p0:memStreak}))+"</div>\n        <div style=\"font-size:13px;font-weight:700;color:var(--gold)\">"+("✅ "+(memWins)+"/"+(memTotal))+"</div>\n      </div>\n      <div class=\"dish-card\" style=\"margin-bottom:.875rem;filter:blur(10px);user-select:none\"><span class=\"dish-emoji\">"+((d.emoji))+"</span><div class=\"dish-name\">"+((L10N.display(d.name)))+"</div></div>\n      <div style=\"text-align:center;font-size:13px;font-weight:700;color:var(--text);margin-bottom:.875rem\">"+(L10N.htmlText("msg_45c9cd8aff4ff00b",{}))+"</div>\n      <div class=\"country-grid\">"+((grid))+"</div>",L10N.decorateDishNames(el,false));
     el.querySelectorAll(".country-btn").forEach(btn=>{
       btn.onclick=()=>{
         el.querySelectorAll(".country-btn").forEach(b=>b.disabled=true);
@@ -2485,7 +2466,7 @@ function startMemoryRound(){
     });
   }
   function showMemResult(won){
-    el.innerHTML="\n      <div style=\"display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem\">\n        <div style=\"font-size:12px;font-weight:700;color:var(--text-muted)\">"+(L10N.htmlText("msg_f4fa93af1edaa877",{p0:memStreak}))+"</div>\n        <div style=\"font-size:13px;font-weight:700;color:var(--gold)\">"+("✅ "+(memWins)+"/"+(memTotal))+"</div>\n      </div>\n      <div class=\"dish-card\" style=\"margin-bottom:.875rem\"><span class=\"dish-emoji\">"+((d.emoji))+"</span><div class=\"dish-name\">"+((L10N.display(d.name)))+"</div>"+(((!cfg.noDesc?"<div class=\"dish-desc\">"+((L10N.display(d.desc)))+"</div>":"")))+"</div>\n      <div style=\"background:"+(won?"var(--green-bg)":"rgba(240,80,80,.1)")+";border:1px solid "+(won?"var(--green)":"var(--red)")+";border-radius:var(--r-sm);padding:.75rem;text-align:center\">\n        <div style=\"font-size:15px;font-weight:700;color:var(--text);margin-bottom:.5rem\">"+(((won?L10N.raw("msg_7f6a507bd41b22bb",{p0:d.flag,p1:L10N.country(d.country)}):L10N.raw("msg_cadce0c513bc90c9",{p0:d.flag,p1:L10N.country(d.country)}))))+"</div>\n        <button class=\"play-btn\" id=\"mem-next-btn\" style=\"margin-top:.25rem\">"+(L10N.htmlText("msg_3551aa9477d67dd3",{}))+"</button>\n      </div>";
+    (el.innerHTML="\n      <div style=\"display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem\">\n        <div style=\"font-size:12px;font-weight:700;color:var(--text-muted)\">"+(L10N.htmlText("msg_f4fa93af1edaa877",{p0:memStreak}))+"</div>\n        <div style=\"font-size:13px;font-weight:700;color:var(--gold)\">"+("✅ "+(memWins)+"/"+(memTotal))+"</div>\n      </div>\n      <div class=\"dish-card\" style=\"margin-bottom:.875rem\"><span class=\"dish-emoji\">"+((d.emoji))+"</span><div class=\"dish-name\">"+((L10N.display(d.name)))+"</div>"+(((!cfg.noDesc?"<div class=\"dish-desc\">"+((L10N.display(d.desc)))+"</div>":"")))+"</div>\n      <div style=\"background:"+(won?"var(--green-bg)":"rgba(240,80,80,.1)")+";border:1px solid "+(won?"var(--green)":"var(--red)")+";border-radius:var(--r-sm);padding:.75rem;text-align:center\">\n        <div style=\"font-size:15px;font-weight:700;color:var(--text);margin-bottom:.5rem\">"+(((won?L10N.raw("msg_7f6a507bd41b22bb",{p0:d.flag,p1:L10N.country(d.country)}):L10N.raw("msg_cadce0c513bc90c9",{p0:d.flag,p1:L10N.country(d.country)}))))+"</div>\n        <button class=\"play-btn\" id=\"mem-next-btn\" style=\"margin-top:.25rem\">"+(L10N.htmlText("msg_3551aa9477d67dd3",{}))+"</button>\n      </div>",L10N.decorateDishNames(el,true));
     document.getElementById("mem-next-btn").onclick=()=>{
       const pool=ALL_DISHES.filter(x=>x.name!==memDish.name);
       memDish=pool[Math.floor(Math.random()*pool.length)];
@@ -2658,60 +2639,8 @@ function openPassportModal(){
   renderPassportGrid();
   bumpMission("open_passport");
 }
-function renderPassportGrid(){
-  const el=document.getElementById("passport-grid");if(!el)return;
-  const st=passportStats();
-  const head=document.getElementById("passport-progress");
-  if(head)head.innerHTML="<div style=\"text-align:center;margin-bottom:1rem\"><div style=\"font-size:28px;font-weight:900;font-family:'Fraunces',serif;color:var(--gold)\">"+((st.unlocked)+"/"+(st.total))+"</div><div style=\"font-size:12px;color:var(--text-muted)\">"+(L10N.htmlText("msg_17222dc98db3ebcf",{}))+"</div><div style=\"background:var(--surface2);border-radius:99px;height:8px;overflow:hidden;margin-top:.6rem\"><div style=\"width:"+(st.total?Math.round(st.unlocked/st.total*100):0)+"%;height:100%;background:var(--gold);border-radius:99px\"></div></div></div>";
-  el.innerHTML=PASSPORT_COUNTRIES.map(c=>{
-    const flag=isoFlag(c.iso);
-    if(!c.active){
-      if(c.name==="Israel"){
-        return "<button class=\"passport-card locked\" disabled style=\"opacity:.75;cursor:not-allowed;position:relative;overflow:hidden\"><div style=\"position:absolute;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;z-index:2;border-radius:inherit\"><span style=\"font-size:9px;font-weight:900;color:#e63946;letter-spacing:1px\">#FreeGaza</span></div><div style=\"font-size:28px\">"+((flag))+"</div><div style=\"font-size:10px;font-weight:700;margin-top:2px\">"+((L10N.country(c.name)))+"</div></button>";
-      }
-      const _iD=(typeof SUNDAY_INTERNATIONAL_DISHES!=="undefined"?SUNDAY_INTERNATIONAL_DISHES:[]).filter(d=>d.country===c.name);
-      if(_iD.length>0){
-        const _ok=passport[c.name]&&passport[c.name].length>0;
-        return "<button class=\"passport-card"+(_ok?" unlocked":"")+"\" onclick=\"openPassportCountry('"+(c.name.replace(/'/g,"\\'"))+"',false,false)\" style=\""+(_ok?"":"filter:grayscale(1);opacity:.4")+"\"><div style=\"font-size:28px\">"+((flag))+"</div><div style=\"font-size:10px;font-weight:700;margin-top:2px\">"+((L10N.country(c.name)))+"</div><div style=\"font-size:9px;color:var(--text-muted)\">"+(((_ok?"✅":"🌍")))+"</div></button>";
-      }
-      return "<button class=\"passport-card locked\" onclick=\"openPassportCountry('"+(c.name.replace(/'/g,"\\'"))+"',false,false)\" style=\"opacity:.35;filter:grayscale(1)\"><div style=\"font-size:28px\">"+((flag))+"</div><div style=\"font-size:10px;font-weight:700;margin-top:2px\">"+((L10N.country(c.name)))+"</div><div style=\"font-size:9px;color:var(--text-muted)\">🔒</div></button>";
-    }
-    const done=passport[c.name]&&passport[c.name].length>0;
-    return "<button class=\"passport-card"+(done?" unlocked":"")+"\" onclick=\"openPassportCountry('"+(c.name.replace(/'/g,"\\'"))+"',true,"+(done)+")\" style=\""+(done?"":"opacity:.45;filter:grayscale(.7)")+"\"><div style=\"font-size:28px\">"+((flag))+"</div><div style=\"font-size:10px;font-weight:700;margin-top:2px\">"+((L10N.country(c.name)))+"</div><div style=\"font-size:9px;color:"+(done?"var(--gold)":"var(--text-muted)")+"\">"+(((done?"✅ "+(t("dish_count",{n:passport[c.name].length})):L10N.raw("msg_e57ac288cc3c3d22",{}))))+"</div></button>";
-  }).join("");
-}
-function openPassportCountry(name,active,unlocked){
-  const el=document.getElementById("passport-detail");if(!el)return;
-  const iso=ACTIVE_ISO[name]||FUTURE_ISO[name];
-  const flag=isoFlag(iso);
-  if(!active){
-    if(name==="Israel"){
-      el.innerHTML="<div style=\"text-align:center;padding:1.5rem 0\"><div style=\"font-size:48px;margin-bottom:.5rem\">"+((flag))+"</div><div style=\"font-size:18px;font-weight:700;color:var(--text);margin-bottom:.5rem\">"+((L10N.country(name)))+"</div><div style=\"background:#1a1a2e;border:2px solid #e63946;border-radius:var(--r-sm);padding:1rem;margin-top:.5rem\"><div style=\"font-size:20px;font-weight:900;color:#e63946;letter-spacing:2px\">"+(L10N.htmlText("msg_595ba961860fe5cd",{}))+"</div><div style=\"font-size:12px;color:#aaa;margin-top:.25rem\">"+(L10N.htmlText("msg_6463d6304d054e64",{}))+"</div></div></div>";
-      return;
-    }
-    const _intlD=(typeof SUNDAY_INTERNATIONAL_DISHES!=="undefined"?SUNDAY_INTERNATIONAL_DISHES:[]).filter(d=>d.country===name);
-    const _solvedD=_intlD.filter(d=>(passport[name]||[]).includes(d.name));
-    if(_solvedD.length>0){
-      el.innerHTML="<div style=\"text-align:center;margin-bottom:1rem\"><div style=\"font-size:48px\">"+((flag))+"</div><div style=\"font-size:18px;font-weight:700;color:var(--text);margin-top:.25rem\">"+((L10N.country(name)))+"</div><div style=\"font-size:12px;color:var(--text-muted);margin-top:.25rem\">"+(L10N.htmlText("msg_fc7aa9eae20ebc6c",{}))+"</div></div>"+((_solvedD.map(d=>"<div class=\"dish-card\" style=\"margin-bottom:.6rem;padding:.75rem;cursor:pointer\" onclick=\"openDishRecipe('"+(d.name.replace(/'/g,"\\'"))+"','"+(d.country)+"','"+(d.emoji)+"','"+(d.flag||"")+"')\"><span style=\"font-size:24px\">"+((d.emoji))+"</span><div style=\"font-size:13px;font-weight:600\">"+((L10N.display(d.name)))+"</div><div style=\"font-size:11px;color:var(--accent)\">"+(L10N.htmlText("msg_33ce604dfabe957b",{}))+"</div></div>").join("")));
-    }else{
-      el.innerHTML="<div style=\"text-align:center;padding:1.5rem 0\"><div style=\"font-size:48px;margin-bottom:.5rem\">"+((flag))+"</div><div style=\"font-size:18px;font-weight:700;color:var(--text);margin-bottom:.5rem\">"+((L10N.country(name)))+"</div><div style=\"font-size:13px;color:var(--text-muted)\">"+(L10N.htmlText("msg_626e1a47d39d67c6",{})+" ")+"<strong>"+(L10N.htmlText("msg_2adaf32e7cfa2328",{}))+"</strong>"+(" "+L10N.htmlText("msg_e12a9f51255b1e4b",{}))+"</div><div style=\"font-size:12px;color:var(--text-muted);margin-top:.5rem\">"+(L10N.htmlText("msg_e9efa7cb3d03855d",{}))+"</div></div>";
-    }
-    return;
-  }else if(!unlocked){
-    el.innerHTML="<div style=\"text-align:center;padding:1.5rem 0\">\n      <div style=\"font-size:48px;margin-bottom:.5rem;filter:grayscale(1);opacity:.5\">"+((flag))+"</div>\n      <div style=\"font-size:18px;font-weight:700;color:var(--text);margin-bottom:.5rem\">"+((L10N.country(name)))+"</div>\n      <div style=\"font-size:13px;color:var(--text-muted)\">"+(L10N.htmlText("msg_796ac27ab2d6f82c",{}))+"</div>\n    </div>";
-  }else{
-    const dishes=ALL_DISHES.filter(d=>d.country===name);
-    const solved=passport[name]||[];
-    const cards=dishes.map(d=>{
-      if(solved.includes(d.name)){
-        return "<div class=\"dish-card\" style=\"margin-bottom:.6rem;padding:.75rem\"><span class=\"dish-emoji\" style=\"font-size:24px\">"+((d.emoji))+"</span><div class=\"dish-name\" style=\"font-size:13px\">"+((escapeHtml(L10N.display(d.name))))+"</div></div>";
-      }
-      return "<div class=\"dish-card\" style=\"margin-bottom:.6rem;padding:.75rem;opacity:.5\"><span class=\"dish-emoji\" style=\"font-size:24px\">❓</span><div class=\"dish-name\" style=\"font-size:13px;filter:blur(1px);user-select:none\">?????????</div></div>";
-    }).join("");
-    el.innerHTML="<div style=\"text-align:center;margin-bottom:1rem\">\n      <div style=\"font-size:40px\">"+((flag))+"</div>\n      <div style=\"font-size:17px;font-weight:700;color:var(--text)\">"+((L10N.country(name)))+"</div>\n      <div style=\"font-size:12px;color:var(--gold);font-weight:700\">"+(L10N.htmlText("msg_3c2c305fa487481e",{p2:solved.length,p3:dishes.length}))+"</div>\n    </div>"+((cards));
-  }
-  openModal("passport-country-modal");
-}
+function renderPassportGrid(){return L10N.passportGrid();}
+function openPassportCountry(name,active,unlocked){return L10N.passportCountry(name);}
 // ═══ XP GIFTS (check on init) ═══
 async function checkXPGifts(){
   if(!myUser)return;
@@ -3840,12 +3769,12 @@ function renderDuelPlay(){
   const opts=shuffleWithSeed([d.country,...d.dist],duel.id.length+duel.roundIdx);
   const n=Math.min(duel.log.length+1,d.hints.length);
   const hints=Array.from({length:n},(_,i)=>"<div class=\"hint\"><strong>"+(L10N.htmlText("msg_57a3702f2058f938",{p0:i+1}))+"</strong>"+(" — "+(L10N.display(d.hints[i])))+"</div>").join("");
-  el.innerHTML="\n    <div style=\"text-align:center;margin-bottom:.5rem\">\n      <div style=\"font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em\">"+(L10N.htmlText("msg_50b2ab8a9c8c70dd",{p0:duel.roundIdx+1,p1:duel.rounds,p2:duel.log.length+1,p3:duel.attempts_max}))+"</div>\n    </div>\n    <div style=\"text-align:center;font-size:48px;margin-bottom:.5rem\">"+((d.emoji))+"</div>\n    <div style=\"text-align:center;font-size:17px;font-weight:700;color:var(--text);margin-bottom:.75rem\">"+((L10N.display(d.name)))+"</div>\n    <div id=\"duel-hints\" style=\"margin-bottom:.875rem\">"+((hints))+"</div>\n    <div id=\"duel-grid\" class=\"country-grid\"></div>\n  ";
+  (el.innerHTML="\n    <div style=\"text-align:center;margin-bottom:.5rem\">\n      <div style=\"font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em\">"+(L10N.htmlText("msg_50b2ab8a9c8c70dd",{p0:duel.roundIdx+1,p1:duel.rounds,p2:duel.log.length+1,p3:duel.attempts_max}))+"</div>\n    </div>\n    <div style=\"text-align:center;font-size:48px;margin-bottom:.5rem\">"+((d.emoji))+"</div>\n    <div class=\"dish-name\" style=\"text-align:center;font-size:17px;font-weight:700;color:var(--text);margin-bottom:.75rem\">"+((L10N.display(d.name)))+"</div>\n    <div id=\"duel-hints\" style=\"margin-bottom:.875rem\">"+((hints))+"</div>\n    <div id=\"duel-grid\" class=\"country-grid\"></div>\n  ",L10N.decorateDishNames(el,false));
   const gridEl=document.getElementById("duel-grid");
   opts.forEach(country=>{
     const btn=document.createElement("button");
     btn.className="country-btn";
-    btn.innerHTML="<span>"+((getFlag(country)))+"</span><span>"+((L10N.country(country)))+"</span>";
+    (btn.innerHTML="<span>"+((getFlag(country)))+"</span><span>"+((L10N.country(country)))+"</span>",L10N.decorateDishNames(btn,false));
     if(duel.wrong.has(country))btn.disabled=true;
     btn.onclick=()=>handleDuelGuess(country,d,btn);
     gridEl.appendChild(btn);
@@ -4485,12 +4414,12 @@ function renderGroupPlay(){
   const opts=shuffleWithSeed([d.country,...d.dist],grp.id.length+grp.roundIdx);
   const n=Math.min(grp.log.length+1,d.hints.length);
   const hints=Array.from({length:n},(_,i)=>"<div class=\"hint\"><strong>"+(L10N.htmlText("msg_57a3702f2058f938",{p0:i+1}))+"</strong>"+(" — "+(L10N.display(d.hints[i])))+"</div>").join("");
-  el.innerHTML="\n    <div style=\"text-align:center;margin-bottom:.5rem\">\n      <div style=\"font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em\">"+(L10N.htmlText("msg_1d7c8b7703188b05",{p0:grp.roundIdx+1,p1:grp.rounds,p2:grp.log.length+1,p3:grp.attempts_max}))+"</div>\n    </div>\n    <div style=\"text-align:center;font-size:48px;margin-bottom:.5rem\">"+((d.emoji))+"</div>\n    <div style=\"text-align:center;font-size:17px;font-weight:700;color:var(--text);margin-bottom:.75rem\">"+((L10N.display(d.name)))+"</div>\n    <div id=\"grp-hints\" style=\"margin-bottom:.875rem\">"+((hints))+"</div>\n    <div id=\"grp-grid\" class=\"country-grid\"></div>\n  ";
+  (el.innerHTML="\n    <div style=\"text-align:center;margin-bottom:.5rem\">\n      <div style=\"font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em\">"+(L10N.htmlText("msg_1d7c8b7703188b05",{p0:grp.roundIdx+1,p1:grp.rounds,p2:grp.log.length+1,p3:grp.attempts_max}))+"</div>\n    </div>\n    <div style=\"text-align:center;font-size:48px;margin-bottom:.5rem\">"+((d.emoji))+"</div>\n    <div class=\"dish-name\" style=\"text-align:center;font-size:17px;font-weight:700;color:var(--text);margin-bottom:.75rem\">"+((L10N.display(d.name)))+"</div>\n    <div id=\"grp-hints\" style=\"margin-bottom:.875rem\">"+((hints))+"</div>\n    <div id=\"grp-grid\" class=\"country-grid\"></div>\n  ",L10N.decorateDishNames(el,false));
   const gridEl=document.getElementById("grp-grid");
   opts.forEach(country=>{
     const btn=document.createElement("button");
     btn.className="country-btn";
-    btn.innerHTML="<span>"+((getFlag(country)))+"</span><span>"+((L10N.country(country)))+"</span>";
+    (btn.innerHTML="<span>"+((getFlag(country)))+"</span><span>"+((L10N.country(country)))+"</span>",L10N.decorateDishNames(btn,false));
     if(grp.wrong.has(country))btn.disabled=true;
     btn.onclick=()=>handleGroupGuess(country,d,btn);
     gridEl.appendChild(btn);

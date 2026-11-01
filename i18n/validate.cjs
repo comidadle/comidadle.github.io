@@ -23,6 +23,7 @@ function validateCatalog(source, catalog) {
     const target = catalog.dishes?.[id];
     if (!target) { add('dishes.' + id, 'plato sin traducir'); continue; }
     check(dish.name, target.name, 'dishes.' + id + '.name');
+    if(target.displayName!==undefined)check(dish.name,target.displayName,'dishes.'+id+'.displayName');
     check(dish.desc, target.desc, 'dishes.' + id + '.desc');
     if (!Array.isArray(target.hints) || target.hints.length !== dish.hints.length) add('dishes.' + id + '.hints', 'número de pistas incorrecto');
     dish.hints.forEach((hint, i) => check(hint, target.hints?.[i], `dishes.${id}.hints.${i}`));

@@ -38,7 +38,7 @@ const root=path.resolve(__dirname,'..');
     const keys=await page.evaluate(()=>caches.keys());assert.ok(keys.includes('comidadle-public-sentinel'));
     const languages=await page.evaluate(async()=>{
       const names=await caches.keys(),cache=await caches.open(names.find(name=>name.startsWith('comidadle-preview-')));
-      return Promise.all(['es','en','fr','de','pt-BR','pt-PT'].map(async locale=>!!await cache.match(new URL('../locales/catalogs/'+locale+'.json',location.href).href)));
+      const entries=await cache.keys();return ['es','en','fr','de','pt-BR','pt-PT'].map(locale=>entries.some(request=>new URL(request.url).pathname.endsWith('/locales/catalogs/'+locale+'.json')));
     });
     assert.ok(languages.every(Boolean));assert.deepEqual(errors,[]);
     console.log('Sin conexión: arranque completo, seis catálogos guardados, demostración restaurada, partida y XP intactos, caché pública conservada.');

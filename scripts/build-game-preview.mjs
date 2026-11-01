@@ -8,6 +8,8 @@ const root=path.resolve('.');
 const source=fs.readFileSync('index.html','utf8');
 const sourceCatalog=JSON.parse(fs.readFileSync('locales/catalogs/es.json','utf8'));
 const gameMessages=createRequire(import.meta.url)('../i18n/game-messages.cjs');
+const changelogTranslations=createRequire(import.meta.url)('../i18n/changelog-translations.cjs');
+const changelogMessages={};
 const messages={};
 const lookup={};
 const normalize=s=>s.replace(/\s+/g,' ').trim();
@@ -36,6 +38,12 @@ function human(value){
 const skip=new Set(['ALL_DISHES','SUNDAY_INTERNATIONAL_DISHES','FLAGS','DEMONYMS','T','SB','SK','SH']);
 const start=source.lastIndexOf('<script>')+8,end=source.indexOf('</script>',start);
 let code=source.slice(start,end);
+code=code.replace('async function logOut(){','async function logOut(){L10N.leaveDemo();');
+// El país personal se cambia desde el perfil; ambos rankings muestran solo la identidad.
+code=code.replace(/\s*<select id="my-country-select"[\s\S]*?<\/select>/,'');
+code=code.replace('document.getElementById("my-country-select").onchange=(e)=>{saveMyCountry(e.target.value);populateCountryFilterSelects();};','');
+code=code.replaceAll('<div style="text-align:center;font-size:17px;font-weight:700;color:var(--text);margin-bottom:.75rem">${d.name}</div>','<div class="dish-name" style="text-align:center;font-size:17px;font-weight:700;color:var(--text);margin-bottom:.75rem">${d.name}</div>');
+code=code.replaceAll('<div style="font-size:13px;font-weight:600">${d.name}</div>','<div class="dish-name" style="font-size:13px;font-weight:600">${d.name}</div>');
 code=code.replace(/\b(dish|d)\.name\.replace\(buildBlurRegex\(/g,'L10N.display($1.name).replace(buildBlurRegex(');
 code=code.replace('const t=[c,...(DEMONYMS[c]||[])];','const t=L10N.countryTerms(c,[c,...(DEMONYMS[c]||[])]);');
 code=code.replace('let currentLang=localStorage.getItem(LANG_KEY)||"es";','let currentLang=L10N.locale;');
@@ -66,6 +74,17 @@ function rememberParents(node){for(const child of children(node)){parents.set(ch
 rememberParents(ast);
 function scope(node){const names=[];for(let parent=node;parent;parent=parents.get(parent))if(parent.type==='FunctionDeclaration'&&parent.id)names.push(parent.id.name);return names;}
 for(const declaration of ast.body.filter(node=>node.type==='VariableDeclaration'))for(const variable of declaration.declarations){
+  if(variable.id.name==='CHANGELOG'&&variable.init?.type==='ArrayExpression')for(const entry of variable.init.elements){
+    const changes=entry.properties.find(field=>(field.key.name||field.key.value)==='changes');
+    const version=entry.properties.find(field=>(field.key.name||field.key.value)==='v').value.value;
+    for(const [index,text] of (changes?.value.elements||[]).entries())if(text.type==='Literal'&&typeof text.value==='string'){
+      const key=register(text.value);
+      for(const [locale,versions] of Object.entries(changelogTranslations))if(versions[version]){
+        if(versions[version].length!==changes.value.elements.length)throw Error('Historial desincronizado: '+version);
+        (changelogMessages[locale]||={})[key]=versions[version][index];
+      }
+    }
+  }
   if(['ACH_LIST','MISSION_POOL'].includes(variable.id.name)&&variable.init?.type==='ArrayExpression')for(const entry of variable.init.elements||[]){
     for(const field of entry.properties||[]){
       if(!['name','desc','cat'].includes(field.key.name||field.key.value))continue;
@@ -98,6 +117,7 @@ function display(node){
   // Solo datos de presentación conocidos; nunca nombres o mensajes de jugadores.
   if(/^(?:dish|d|dd|infDish|memDish)\.(?:name|desc|hints(?:\[.*\])?)$/.test(text)||/^(?:a|m|lv|item)\.(?:name|desc|description)$/.test(text)||/^(?:myEquip|eq|equip)\.(?:title|badge)$/.test(text)||['opt','cat','h.dish'].includes(text))return `L10N.display(${text})`;
   if(text==='c'&&scope(node).includes('renderChangelog'))return `L10N.display(${text})`;
+  if(text==='entry.date'&&scope(node).includes('renderChangelog'))return `L10N.changelogDate(${text})`;
   if(['c','country','myCountry'].includes(text)||/\.country$/.test(text)||text==='c.name')return `L10N.country(${text})`;
   return compile(node,false);
 }
@@ -170,6 +190,13 @@ function compile(node,visible){
 const visibleCalls=new Set(['alert','confirm','prompt','showToast','showLoginError','setErr','showAuthPrompt','showDuelError','fillText','strokeText','_showAuthErr']);
 function walk(node,edits,root=true){
   if(node.type==='VariableDeclarator'&&skip.has(node.id?.name))return;
+  if(node.type==='FunctionDeclaration'&&['renderPassportGrid','openPassportCountry','openDishRecipe'].includes(node.id.name)){
+    const replacements={renderPassportGrid:'function renderPassportGrid(){return L10N.passportGrid();}',openPassportCountry:'function openPassportCountry(name,active,unlocked){return L10N.passportCountry(name);}',openDishRecipe:'async function openDishRecipe(name,country,emoji,flag){return L10N.dishRecipe(name,country,emoji,flag);}'};
+    edits.push({start:node.start,end:node.end,text:replacements[node.id.name]});return;
+  }
+  if(node.type==='AssignmentExpression'&&sourceText(node.left)==='descEl.style.display'&&scope(node).includes('renderAll')){
+    edits.push({start:node.start,end:node.end,text:`(${sourceText(node)},L10N.decorateDishNames(descEl,done))`});return;
+  }
   if(node.type==='FunctionDeclaration'&&['t','applyLang','setLang'].includes(node.id.name)){
     if(node.id.name==='t')edits.push({start:node.start,end:node.end,text:'function t(key,vars={}){return L10N.text(key,vars);}'});
     if(node.id.name==='applyLang')edits.push({start:node.start,end:node.end,text:'function applyLang(){L10N.applyStatic();}'});
@@ -185,7 +212,12 @@ function walk(node,edits,root=true){
     edits.push({start:node.start,end:node.end,text:value});return;
   }
   if(node.type==='AssignmentExpression'&&node.left.type==='MemberExpression'&&['innerHTML','textContent','innerText','title','placeholder'].includes(node.left.property?.name)){
-    const value=compile(node.right,true);if(value!==sourceText(node.right))edits.push({start:node.right.start,end:node.right.end,text:value});
+    const value=compile(node.right,true);
+    const contexts=scope(node),gameContext=contexts.some(name=>['renderAll','renderInfiniteGame','loadInfinite','startMemoryRound','renderDuelPlay','renderGroupPlay'].includes(name));
+    if(parents.get(node)?.type==='ExpressionStatement'&&(['innerHTML','textContent','innerText'].includes(node.left.property.name))&&(gameContext||sourceText(node.right).includes('dish-name'))){
+      const reveal=contexts.includes('showMemResult')||contexts.includes('openPassportCountry')||contexts.includes('renderYesterday')?'true':contexts.includes('renderAll')?'done':contexts.includes('renderInfiniteGame')||contexts.includes('loadInfinite')?'iDone':'false';
+      edits.push({start:node.start,end:node.end,text:`(${sourceText(node.left)}=${value},L10N.decorateDishNames(${sourceText(node.left.object)},${reveal}))`});
+    }else if(value!==sourceText(node.right))edits.push({start:node.right.start,end:node.right.end,text:value});
     // No visitar la derecha dos veces.
     for(const child of children(node.left))walk(child,edits);return;
   }
@@ -251,7 +283,7 @@ const selector='<div class="setting-row" style="display:block"><div><label class
 output=output.replace('<div class="settings-section-label">🔥 Modo difícil</div>',selector+'<div class="settings-section-label">🔥 Modo difícil</div>');
 // Insertar el selector antes de la sección marcada por el compilador.
 if(!output.includes('id="language-select"'))output=output.replace(/(<div class="settings-section-label"[^>]*>🔥 Modo difícil<\/div>)/,selector+'$1');
-output=output.replace('</head>','<style>.country-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.country-btn{min-width:0}.country-btn>span:last-child{min-width:0;overflow-wrap:anywhere;hyphens:auto}.setting-info{min-width:0;flex:1}.setting-desc{overflow-wrap:anywhere}</style><script src="../i18n/runtime.js"></script>\n</head>').replace('</body>','<script src="../i18n/game-boot.js"></script>\n</body>');
+output=output.replace('</head>','<style>.country-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.country-btn{min-width:0}.country-btn>span:last-child{min-width:0;overflow-wrap:anywhere;hyphens:auto}.setting-info{min-width:0;flex:1}.setting-desc{overflow-wrap:anywhere}</style><script src="../i18n/runtime.js"></script><script src="../i18n/geography.js"></script>\n</head>').replace('</body>','<script src="../i18n/game-boot.js"></script>\n</body>');
 output=output.replace(/<script[^>]*src="https:\/\/www\.googletagmanager\.com[^>]*><\/script>/g,'').replace(/<script>window\.dataLayer[\s\S]*?<\/script>/g,'');
 code='const L10N=window.ComidadleLocalization;\n'+code;
 const outputDir=path.join(root,'preview');fs.mkdirSync(outputDir,{recursive:true});
@@ -277,16 +309,21 @@ fs.writeFileSync('locales/catalogs/es.json',JSON.stringify(catalog,null,2)+'\n')
 for(const [locale,values] of Object.entries(gameMessages)){
   if(locale==='es')continue;
   const file=`locales/catalogs/${locale}.json`,draft=JSON.parse(fs.readFileSync(file,'utf8'));
-  draft.ui={...draft.ui,...values};fs.writeFileSync(file,JSON.stringify(draft,null,2)+'\n');
+  // Al sustituir renderizadores solo se pueden retirar mensajes: los textos compartidos deben ser idénticos.
+  const onlyRemoved=Object.entries(ui).every(([key,value])=>JSON.stringify(sourceCatalog.ui[key])===JSON.stringify(value)||Object.hasOwn(changelogMessages[locale]||{},key));
+  if(onlyRemoved&&draft.sourceRevision===sourceCatalog.sourceRevision){draft.sourceRevision=revision;draft.ui=Object.fromEntries(Object.entries(draft.ui).filter(([key])=>Object.hasOwn(ui,key)));}
+  draft.ui={...draft.ui,...values,...changelogMessages[locale]};fs.writeFileSync(file,JSON.stringify(draft,null,2)+'\n');
 }
 fs.writeFileSync('locales/source/bindings.json',JSON.stringify({messages:Object.keys(messages).length,sinks:changes.length,staticBindings:htmlEdits.length},null,2)+'\n');
 const manifest=JSON.parse(fs.readFileSync('manifest.json','utf8'));manifest.start_url='./index.html';manifest.scope='./';fs.writeFileSync(path.join(outputDir,'manifest.json'),JSON.stringify(manifest,null,2)+'\n');
-const assets=['./app.js','../i18n/runtime.js','../i18n/game-boot.js',...['es','en','fr','de','pt-BR','pt-PT'].map(locale=>'../locales/catalogs/'+locale+'.json')];
+const assets=['./app.js','../i18n/runtime.js','../i18n/geography.js','../i18n/passport.js','../i18n/game-boot.js',...['es','en','fr','de','pt-BR','pt-PT'].map(locale=>'../locales/catalogs/'+locale+'.json')];
 const catalogContent=['es','en','fr','de','pt-BR','pt-PT'].map(locale=>fs.readFileSync(`locales/catalogs/${locale}.json`,'utf8')).join('');
-const shellVersion=crypto.createHash('sha256').update(output+code+fs.readFileSync('i18n/game-boot.js','utf8')+fs.readFileSync('i18n/runtime.js','utf8')+catalogContent).digest('hex').slice(0,12);
+const shellVersion=crypto.createHash('sha256').update(output+code+fs.readFileSync('i18n/game-boot.js','utf8')+fs.readFileSync('i18n/passport.js','utf8')+fs.readFileSync('i18n/runtime.js','utf8')+fs.readFileSync('i18n/geography.js','utf8')+catalogContent).digest('hex').slice(0,12);
+output=output.replace(/(src="\.\.\/i18n\/(?:runtime|geography|game-boot)\.js)"/g,'$1?v='+shellVersion+'"');
+fs.writeFileSync(path.join(outputDir,'index.html'),output);
 let sw=fs.readFileSync('sw.js','utf8').replace('"-shell-1"',JSON.stringify('-preview-'+shellVersion));
 sw=sw.replaceAll('"comidadle-"','"comidadle-preview-"');
-sw=sw.replace('const APP_SHELL = [','const APP_SHELL = [\n'+assets.map(asset=>'  '+JSON.stringify(asset)+',').join('\n'));
+sw=sw.replace('const APP_SHELL = [','const APP_SHELL = [\n'+assets.map(asset=>'  '+JSON.stringify(asset+'?v='+shellVersion)+',').join('\n'));
 const offline=JSON.parse(fs.readFileSync('i18n/offline-messages.json','utf8'));
 sw=sw.replace(JSON.stringify(offline.es),'offlineMessage(request)');
 sw='const OFFLINE_MESSAGES='+JSON.stringify(offline)+';\nfunction offlineMessage(request){const requested=(request.headers.get("Accept-Language")||self.navigator.language||"es").split(",")[0].toLowerCase();const locale=requested.startsWith("pt-pt")?"pt-PT":requested.startsWith("pt")?"pt-BR":requested.split("-")[0];return OFFLINE_MESSAGES[locale]||OFFLINE_MESSAGES.es;}\n'+sw;

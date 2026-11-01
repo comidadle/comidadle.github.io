@@ -1,5 +1,11 @@
 // Redacción de controles y conceptos del juego. Orden: en, fr, de, pt-BR, pt-PT.
 module.exports={
+  '{p3} Plato {p4}':['{p3} Dish {p4}','{p3} Plat {p4}','{p3} Gericht {p4}','{p3} Prato {p4}','{p3} Prato {p4}'],
+  '{p1} — 3 platos':['{p1} — 3 dishes','{p1} — 3 plats','{p1} — 3 Gerichte','{p1} — 3 pratos','{p1} — 3 pratos'],
+  'Plato':['Dish','Plat','Gericht','Prato','Prato'],
+  'Platos':['Dishes','Plats','Gerichte','Pratos','Pratos'],
+  'Plato de ayer':['Yesterday’s dish','Plat d’hier','Gestriges Gericht','Prato de ontem','Prato de ontem'],
+  '🔥 Racha: {p0}':['🔥 Streak: {p0}','🔥 Série : {p0}','🔥 Serie: {p0}','🔥 Sequência: {p0}','🔥 Sequência: {p0}'],
   '🟩 Acierto · 🟥 Fallo':['🟩 Correct · 🟥 Wrong','🟩 Bonne réponse · 🟥 Mauvaise réponse','🟩 Richtig · 🟥 Falsch','🟩 Acerto · 🟥 Erro','🟩 Acerto · 🟥 Erro'],
   'Idioma':['Language','Langue','Sprache','Idioma','Idioma'],
   'El cambio recarga la página. Tu progreso diario se conserva.':['Changing the language reloads the page. Your daily progress is saved.','Le changement de langue recharge la page. Votre progression quotidienne est conservée.','Beim Sprachwechsel wird die Seite neu geladen. Dein täglicher Fortschritt bleibt gespeichert.','A mudança de idioma recarrega a página. Seu progresso diário é mantido.','A mudança de idioma recarrega a página. O teu progresso diário é guardado.'],
