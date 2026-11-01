@@ -1234,26 +1234,7 @@ async function fetchRanking(){
 
 // (La generación de recetas ahora pasa por la Edge Function dish-recipe; ya no se
 // obtiene ni se expone la clave de Anthropic en el cliente — ver openDishRecipe.)
-async function openDishRecipe(name,country,emoji,flag){
-  closeModal("passport-country-modal");closeModal("passport-modal");
-  const titleEl=document.getElementById("recipe-modal-title");if(titleEl)titleEl.textContent=(emoji)+" "+(L10N.display(name))+" "+((flag||""));
-  openModal("recipe-modal");
-  const el=document.getElementById("recipe-content");
-  if(el)el.innerHTML="<div style='text-align:center;padding:2rem;color:var(--text-muted)'>"+(L10N.htmlText("msg_ec5d328905a92758",{}))+"</div>";
-  // La receta se pide a una Edge Function de Supabase (dish-recipe), que es quien llama a
-  // la API de Anthropic con la clave guardada en secretos del servidor. La versión anterior
-  // llamaba a api.anthropic.com directamente desde el navegador con la clave expuesta en
-  // app_secrets: eso nunca podía funcionar (la API de Anthropic bloquea peticiones CORS
-  // desde el navegador) y además filtraba la clave a cualquiera que abriera las herramientas
-  // de desarrollador. Ver el bloque de despliegue de la función al final de esta respuesta.
-  try{
-    const res=await fetch(SB+"/functions/v1/dish-recipe",{method:"POST",headers:SH,body:JSON.stringify({name,country,emoji,language:L10N.locale})});
-    if(!res.ok)throw new Error(await res.text().catch(()=>String(res.status)));
-    const data=await res.json();
-    const text=(data&&data.text)||L10N.display("Sin respuesta.");
-    if(el)el.innerHTML="<div style='padding:.5rem;line-height:1.8;font-size:14px;color:var(--text);white-space:pre-wrap'>"+((escapeHtml(text)))+"</div>";
-  }catch(e){if(el)el.innerHTML="<div style='text-align:center;padding:2rem;color:var(--red)'>"+(L10N.htmlText("msg_d4c2958265218c59",{}))+"</div>";}
-}
+async function openDishRecipe(name,country,emoji,flag){return L10N.dishRecipe(name,country,emoji,flag);}
 function syncRanking(){if(!myUser||isBanned)return Promise.resolve();return upsertRanking().catch(()=>{});}
 
 const RENAME_COST=100;
@@ -1914,7 +1895,7 @@ function renderAll(){
   (document.getElementById("dish-emoji").textContent=dish.emoji,L10N.decorateDishNames(document.getElementById("dish-emoji"),done));
   const nameEl=document.getElementById("dish-name");
   if(done)(nameEl.textContent=L10N.display(dish.name),L10N.decorateDishNames(nameEl,done));else (nameEl.innerHTML=L10N.display(dish.name).replace(buildBlurRegex(dish.country),m=>"<span style=\"filter:blur(5px);user-select:none;pointer-events:none\">"+((m))+"</span>"),L10N.decorateDishNames(nameEl,done));
-  const descEl=document.getElementById("dish-desc");(descEl.textContent=L10N.display(dish.desc),L10N.decorateDishNames(descEl,done));descEl.style.display=cfg.noDesc?"none":"";
+  const descEl=document.getElementById("dish-desc");(descEl.textContent=L10N.display(dish.desc),L10N.decorateDishNames(descEl,done));(descEl.style.display=cfg.noDesc?"none":"",L10N.decorateDishNames(descEl,done));
   const dotsEl=document.getElementById("dots");(dotsEl.innerHTML="",L10N.decorateDishNames(dotsEl,done));
   for(let i=0;i<MAX;i++){const d=document.createElement("div");d.className="dot"+(i<log.length?(log[i]?" correct":" wrong"):"");dotsEl.appendChild(d);}
   const hintsEl=document.getElementById("hints");(hintsEl.innerHTML="",L10N.decorateDishNames(hintsEl,done));
@@ -2658,60 +2639,8 @@ function openPassportModal(){
   renderPassportGrid();
   bumpMission("open_passport");
 }
-function renderPassportGrid(){
-  const el=document.getElementById("passport-grid");if(!el)return;
-  const st=passportStats();
-  const head=document.getElementById("passport-progress");
-  if(head)head.innerHTML="<div style=\"text-align:center;margin-bottom:1rem\"><div style=\"font-size:28px;font-weight:900;font-family:'Fraunces',serif;color:var(--gold)\">"+((st.unlocked)+"/"+(st.total))+"</div><div style=\"font-size:12px;color:var(--text-muted)\">"+(L10N.htmlText("msg_17222dc98db3ebcf",{}))+"</div><div style=\"background:var(--surface2);border-radius:99px;height:8px;overflow:hidden;margin-top:.6rem\"><div style=\"width:"+(st.total?Math.round(st.unlocked/st.total*100):0)+"%;height:100%;background:var(--gold);border-radius:99px\"></div></div></div>";
-  el.innerHTML=PASSPORT_COUNTRIES.map(c=>{
-    const flag=isoFlag(c.iso);
-    if(!c.active){
-      if(c.name==="Israel"){
-        return "<button class=\"passport-card locked\" disabled style=\"opacity:.75;cursor:not-allowed;position:relative;overflow:hidden\"><div style=\"position:absolute;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;z-index:2;border-radius:inherit\"><span style=\"font-size:9px;font-weight:900;color:#e63946;letter-spacing:1px\">#FreeGaza</span></div><div style=\"font-size:28px\">"+((flag))+"</div><div style=\"font-size:10px;font-weight:700;margin-top:2px\">"+((L10N.country(c.name)))+"</div></button>";
-      }
-      const _iD=(typeof SUNDAY_INTERNATIONAL_DISHES!=="undefined"?SUNDAY_INTERNATIONAL_DISHES:[]).filter(d=>d.country===c.name);
-      if(_iD.length>0){
-        const _ok=passport[c.name]&&passport[c.name].length>0;
-        return "<button class=\"passport-card"+(_ok?" unlocked":"")+"\" onclick=\"openPassportCountry('"+(c.name.replace(/'/g,"\\'"))+"',false,false)\" style=\""+(_ok?"":"filter:grayscale(1);opacity:.4")+"\"><div style=\"font-size:28px\">"+((flag))+"</div><div style=\"font-size:10px;font-weight:700;margin-top:2px\">"+((L10N.country(c.name)))+"</div><div style=\"font-size:9px;color:var(--text-muted)\">"+(((_ok?"✅":"🌍")))+"</div></button>";
-      }
-      return "<button class=\"passport-card locked\" onclick=\"openPassportCountry('"+(c.name.replace(/'/g,"\\'"))+"',false,false)\" style=\"opacity:.35;filter:grayscale(1)\"><div style=\"font-size:28px\">"+((flag))+"</div><div style=\"font-size:10px;font-weight:700;margin-top:2px\">"+((L10N.country(c.name)))+"</div><div style=\"font-size:9px;color:var(--text-muted)\">🔒</div></button>";
-    }
-    const done=passport[c.name]&&passport[c.name].length>0;
-    return "<button class=\"passport-card"+(done?" unlocked":"")+"\" onclick=\"openPassportCountry('"+(c.name.replace(/'/g,"\\'"))+"',true,"+(done)+")\" style=\""+(done?"":"opacity:.45;filter:grayscale(.7)")+"\"><div style=\"font-size:28px\">"+((flag))+"</div><div style=\"font-size:10px;font-weight:700;margin-top:2px\">"+((L10N.country(c.name)))+"</div><div style=\"font-size:9px;color:"+(done?"var(--gold)":"var(--text-muted)")+"\">"+(((done?"✅ "+(t("dish_count",{n:passport[c.name].length})):L10N.raw("msg_e57ac288cc3c3d22",{}))))+"</div></button>";
-  }).join("");
-}
-function openPassportCountry(name,active,unlocked){
-  const el=document.getElementById("passport-detail");if(!el)return;
-  const iso=ACTIVE_ISO[name]||FUTURE_ISO[name];
-  const flag=isoFlag(iso);
-  if(!active){
-    if(name==="Israel"){
-      el.innerHTML="<div style=\"text-align:center;padding:1.5rem 0\"><div style=\"font-size:48px;margin-bottom:.5rem\">"+((flag))+"</div><div style=\"font-size:18px;font-weight:700;color:var(--text);margin-bottom:.5rem\">"+((L10N.country(name)))+"</div><div style=\"background:#1a1a2e;border:2px solid #e63946;border-radius:var(--r-sm);padding:1rem;margin-top:.5rem\"><div style=\"font-size:20px;font-weight:900;color:#e63946;letter-spacing:2px\">"+(L10N.htmlText("msg_595ba961860fe5cd",{}))+"</div><div style=\"font-size:12px;color:#aaa;margin-top:.25rem\">"+(L10N.htmlText("msg_6463d6304d054e64",{}))+"</div></div></div>";
-      return;
-    }
-    const _intlD=(typeof SUNDAY_INTERNATIONAL_DISHES!=="undefined"?SUNDAY_INTERNATIONAL_DISHES:[]).filter(d=>d.country===name);
-    const _solvedD=_intlD.filter(d=>(passport[name]||[]).includes(d.name));
-    if(_solvedD.length>0){
-      (el.innerHTML="<div style=\"text-align:center;margin-bottom:1rem\"><div style=\"font-size:48px\">"+((flag))+"</div><div style=\"font-size:18px;font-weight:700;color:var(--text);margin-top:.25rem\">"+((L10N.country(name)))+"</div><div style=\"font-size:12px;color:var(--text-muted);margin-top:.25rem\">"+(L10N.htmlText("msg_fc7aa9eae20ebc6c",{}))+"</div></div>"+((_solvedD.map(d=>"<div class=\"dish-card\" style=\"margin-bottom:.6rem;padding:.75rem;cursor:pointer\" onclick=\"openDishRecipe('"+(d.name.replace(/'/g,"\\'"))+"','"+(d.country)+"','"+(d.emoji)+"','"+(d.flag||"")+"')\"><span style=\"font-size:24px\">"+((d.emoji))+"</span><div class=\"dish-name\" style=\"font-size:13px;font-weight:600\">"+((L10N.display(d.name)))+"</div><div style=\"font-size:11px;color:var(--accent)\">"+(L10N.htmlText("msg_33ce604dfabe957b",{}))+"</div></div>").join(""))),L10N.decorateDishNames(el,true));
-    }else{
-      el.innerHTML="<div style=\"text-align:center;padding:1.5rem 0\"><div style=\"font-size:48px;margin-bottom:.5rem\">"+((flag))+"</div><div style=\"font-size:18px;font-weight:700;color:var(--text);margin-bottom:.5rem\">"+((L10N.country(name)))+"</div><div style=\"font-size:13px;color:var(--text-muted)\">"+(L10N.htmlText("msg_626e1a47d39d67c6",{})+" ")+"<strong>"+(L10N.htmlText("msg_2adaf32e7cfa2328",{}))+"</strong>"+(" "+L10N.htmlText("msg_e12a9f51255b1e4b",{}))+"</div><div style=\"font-size:12px;color:var(--text-muted);margin-top:.5rem\">"+(L10N.htmlText("msg_e9efa7cb3d03855d",{}))+"</div></div>";
-    }
-    return;
-  }else if(!unlocked){
-    el.innerHTML="<div style=\"text-align:center;padding:1.5rem 0\">\n      <div style=\"font-size:48px;margin-bottom:.5rem;filter:grayscale(1);opacity:.5\">"+((flag))+"</div>\n      <div style=\"font-size:18px;font-weight:700;color:var(--text);margin-bottom:.5rem\">"+((L10N.country(name)))+"</div>\n      <div style=\"font-size:13px;color:var(--text-muted)\">"+(L10N.htmlText("msg_796ac27ab2d6f82c",{}))+"</div>\n    </div>";
-  }else{
-    const dishes=ALL_DISHES.filter(d=>d.country===name);
-    const solved=passport[name]||[];
-    const cards=dishes.map(d=>{
-      if(solved.includes(d.name)){
-        return "<div class=\"dish-card\" style=\"margin-bottom:.6rem;padding:.75rem\"><span class=\"dish-emoji\" style=\"font-size:24px\">"+((d.emoji))+"</span><div class=\"dish-name\" style=\"font-size:13px\">"+((escapeHtml(L10N.display(d.name))))+"</div></div>";
-      }
-      return "<div class=\"dish-card\" style=\"margin-bottom:.6rem;padding:.75rem;opacity:.5\"><span class=\"dish-emoji\" style=\"font-size:24px\">❓</span><div class=\"dish-name\" style=\"font-size:13px;filter:blur(1px);user-select:none\">?????????</div></div>";
-    }).join("");
-    el.innerHTML="<div style=\"text-align:center;margin-bottom:1rem\">\n      <div style=\"font-size:40px\">"+((flag))+"</div>\n      <div style=\"font-size:17px;font-weight:700;color:var(--text)\">"+((L10N.country(name)))+"</div>\n      <div style=\"font-size:12px;color:var(--gold);font-weight:700\">"+(L10N.htmlText("msg_3c2c305fa487481e",{p2:solved.length,p3:dishes.length}))+"</div>\n    </div>"+((cards));
-  }
-  openModal("passport-country-modal");
-}
+function renderPassportGrid(){return L10N.passportGrid();}
+function openPassportCountry(name,active,unlocked){return L10N.passportCountry(name);}
 // ═══ XP GIFTS (check on init) ═══
 async function checkXPGifts(){
   if(!myUser)return;

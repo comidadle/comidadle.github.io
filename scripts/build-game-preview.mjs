@@ -172,6 +172,13 @@ function compile(node,visible){
 const visibleCalls=new Set(['alert','confirm','prompt','showToast','showLoginError','setErr','showAuthPrompt','showDuelError','fillText','strokeText','_showAuthErr']);
 function walk(node,edits,root=true){
   if(node.type==='VariableDeclarator'&&skip.has(node.id?.name))return;
+  if(node.type==='FunctionDeclaration'&&['renderPassportGrid','openPassportCountry','openDishRecipe'].includes(node.id.name)){
+    const replacements={renderPassportGrid:'function renderPassportGrid(){return L10N.passportGrid();}',openPassportCountry:'function openPassportCountry(name,active,unlocked){return L10N.passportCountry(name);}',openDishRecipe:'async function openDishRecipe(name,country,emoji,flag){return L10N.dishRecipe(name,country,emoji,flag);}'};
+    edits.push({start:node.start,end:node.end,text:replacements[node.id.name]});return;
+  }
+  if(node.type==='AssignmentExpression'&&sourceText(node.left)==='descEl.style.display'&&scope(node).includes('renderAll')){
+    edits.push({start:node.start,end:node.end,text:`(${sourceText(node)},L10N.decorateDishNames(descEl,done))`});return;
+  }
   if(node.type==='FunctionDeclaration'&&['t','applyLang','setLang'].includes(node.id.name)){
     if(node.id.name==='t')edits.push({start:node.start,end:node.end,text:'function t(key,vars={}){return L10N.text(key,vars);}'});
     if(node.id.name==='applyLang')edits.push({start:node.start,end:node.end,text:'function applyLang(){L10N.applyStatic();}'});
@@ -284,13 +291,16 @@ fs.writeFileSync('locales/catalogs/es.json',JSON.stringify(catalog,null,2)+'\n')
 for(const [locale,values] of Object.entries(gameMessages)){
   if(locale==='es')continue;
   const file=`locales/catalogs/${locale}.json`,draft=JSON.parse(fs.readFileSync(file,'utf8'));
+  // Al sustituir renderizadores solo se pueden retirar mensajes: los textos compartidos deben ser idénticos.
+  const onlyRemoved=Object.entries(ui).every(([key,value])=>JSON.stringify(sourceCatalog.ui[key])===JSON.stringify(value));
+  if(onlyRemoved&&draft.sourceRevision===sourceCatalog.sourceRevision){draft.sourceRevision=revision;draft.ui=Object.fromEntries(Object.entries(draft.ui).filter(([key])=>Object.hasOwn(ui,key)));}
   draft.ui={...draft.ui,...values};fs.writeFileSync(file,JSON.stringify(draft,null,2)+'\n');
 }
 fs.writeFileSync('locales/source/bindings.json',JSON.stringify({messages:Object.keys(messages).length,sinks:changes.length,staticBindings:htmlEdits.length},null,2)+'\n');
 const manifest=JSON.parse(fs.readFileSync('manifest.json','utf8'));manifest.start_url='./index.html';manifest.scope='./';fs.writeFileSync(path.join(outputDir,'manifest.json'),JSON.stringify(manifest,null,2)+'\n');
-const assets=['./app.js','../i18n/runtime.js','../i18n/geography.js','../i18n/game-boot.js',...['es','en','fr','de','pt-BR','pt-PT'].map(locale=>'../locales/catalogs/'+locale+'.json')];
+const assets=['./app.js','../i18n/runtime.js','../i18n/geography.js','../i18n/passport.js','../i18n/game-boot.js',...['es','en','fr','de','pt-BR','pt-PT'].map(locale=>'../locales/catalogs/'+locale+'.json')];
 const catalogContent=['es','en','fr','de','pt-BR','pt-PT'].map(locale=>fs.readFileSync(`locales/catalogs/${locale}.json`,'utf8')).join('');
-const shellVersion=crypto.createHash('sha256').update(output+code+fs.readFileSync('i18n/game-boot.js','utf8')+fs.readFileSync('i18n/runtime.js','utf8')+fs.readFileSync('i18n/geography.js','utf8')+catalogContent).digest('hex').slice(0,12);
+const shellVersion=crypto.createHash('sha256').update(output+code+fs.readFileSync('i18n/game-boot.js','utf8')+fs.readFileSync('i18n/passport.js','utf8')+fs.readFileSync('i18n/runtime.js','utf8')+fs.readFileSync('i18n/geography.js','utf8')+catalogContent).digest('hex').slice(0,12);
 output=output.replace(/(src="\.\.\/i18n\/(?:runtime|geography|game-boot)\.js)"/g,'$1?v='+shellVersion+'"');
 fs.writeFileSync(path.join(outputDir,'index.html'),output);
 let sw=fs.readFileSync('sw.js','utf8').replace('"-shell-1"',JSON.stringify('-preview-'+shellVersion));

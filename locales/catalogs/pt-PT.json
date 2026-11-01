@@ -1,6 +1,6 @@
 {
   "locale": "pt-PT",
-  "sourceRevision": "548f188666d59d8017db7329a486538f21aaa9602a309f6d02129d6c1f56ce32",
+  "sourceRevision": "f457d82ee464a26163085a0408a1e67e23e267438cc78f3004c24ec3e9f562c5",
   "status": "draft",
   "applicationCoverageReviewed": false,
   "ui": {
@@ -277,7 +277,7 @@
     "msg_1084d0cc2f2672c5": "Seja o primeiro esta semana! 📅",
     "msg_cb3bcd1fed3cf985": "Semana de {p0} a {p1} · Seu XP: {p2}",
     "msg_f585a9fff01c323e": "Faça login para aparecer no ranking semanal",
-    "msg_f2952a9c95cd6d58": "{p3} placa {p4}",
+    "msg_f2952a9c95cd6d58": "{p3} Prato {p4}",
     "msg_ca83d4ad9e3b58fb": "👀 Jogando como um convidado — Você não receberá XP",
     "msg_32246062f47d48a1": "🎉 Especial de domingo",
     "msg_c0cfcfc8e6c4de42": "Um prato de férias disponível apenas aos domingos",
@@ -311,7 +311,7 @@
     "msg_3aa25862efe6365b": "Erro na geração da imagem 😔",
     "msg_6ab1756c945c6c3e": "Copiar para a área de transferência",
     "msg_90d325badf172704": "Ontem",
-    "msg_08b8f7e686aee75e": "{p1} — 3 placas",
+    "msg_08b8f7e686aee75e": "{p1} — 3 pratos",
     "msg_b2a3cafdf2ceb3c5": "♾️ Modo infinito",
     "msg_47bd5c9cb760a8e5": "Direita:",
     "msg_3551aa9477d67dd3": "Próxima placa ➜",
@@ -354,16 +354,13 @@
     "msg_dc5c1c9b1046bba5": "🎁 Presente enviado!",
     "msg_17222dc98db3ebcf": "Países desbloqueados",
     "msg_e57ac288cc3c3d22": "🔒 não está certo",
-    "msg_595ba961860fe5cd": "# FreeGaza 🇵🇸",
     "msg_6463d6304d054e64": "Este país não está disponível em Comidadle.",
     "msg_fc7aa9eae20ebc6c": "🌍 Domingo Especial desbloqueado",
     "msg_33ce604dfabe957b": "🍳 Ver receita",
     "msg_626e1a47d39d67c6": "🌍 Este país aparece no",
-    "msg_2adaf32e7cfa2328": "Domingos",
     "msg_e12a9f51255b1e4b": "como domingo especial",
     "msg_e9efa7cb3d03855d": "Defina seu prato no domingo para desbloquear a receita 🔒",
     "msg_796ac27ab2d6f82c": "🔒 Você ainda não acertou em nenhum prato neste país. Continue jogando para desbloqueá-lo!",
-    "msg_3c2c305fa487481e": "{p2} / {p3} pratos descobertos",
     "msg_b12f9863ab1684e6": "Presente do proprietário!",
     "msg_5c33ff596508d59a": "Sanção do Proprietário",
     "msg_f0d3d86eda5919e0": "Anúncio do proprietário {p3}",
@@ -563,13 +560,13 @@
     "msg_0e13aa7a3e6f6112": "O meu progresso é exportado (.json)",
     "msg_0e9a1d171f714783": ". No final, o país certo é destacado em verde.",
     "msg_0ed00e1779aeb045": "Efeitos sonoros quando corretos ou falhados, independentemente da vibração.",
-    "msg_0f4d204db94aba20": "Placa de ontem",
+    "msg_0f4d204db94aba20": "Prato de ontem",
     "msg_0f55198bc4272047": "Adivinha o país de origem — 6 tentativas",
     "msg_10ff258711b238cb": "🔔 Notificações",
     "msg_1120a7d3baf5a61b": "🍽️ 1082 pratos hispânicos — 365 dias × 3 pratos sem apenas repetir.",
     "msg_131e187360208ad0": "🤖 Receitas com IA: os aplicativos passam agora por um Edge-Fit do Supabase, mantendo a chave Antrópica fora do cliente.",
     "msg_137ee98b36075434": "nova faixa",
-    "msg_1554fc76c25040f8": "Platão, p., p",
+    "msg_1554fc76c25040f8": "Prato",
     "msg_169842fb2ed12da6": "📸 Utilizador atualizado do Instagram para @aanxs404.",
     "msg_174d917f6044f252": "XP em '",
     "msg_174ec5ab900b0cb4": "Comidadle nasceu em",
@@ -732,7 +729,7 @@
     "msg_86bd5274f8c26bbe": "Histórico de versões",
     "msg_8741e57ba9f09b4d": "Recarregar o aplicativo",
     "msg_87dfe494c66d713a": "Nenhuma conta · Sem XP · Jogo apenas",
-    "msg_87e4571bc7b47363": "placa",
+    "msg_87e4571bc7b47363": "Prato",
     "msg_8846b965108c86f9": "Comprar '",
     "msg_88c97b16d27069bd": "O Proprietário deu-lhe o fora",
     "msg_88fee3ef3c7985d0": "🧠 Trivia redesenhado: primeiro pergunte se você deseja reproduzi- lo (Sim/ Não), vários modelos de perguntas (não apenas \"Qual deles é uma faixa?\"), e esconda as pistas e opções de país enquanto durar para evitar trapaças.",
@@ -898,7 +895,7 @@
     "msg_e31d55f89ab5646e": "como um jogo diário de gastronomia hispana. Todos os dias eles aparecem",
     "msg_e40fab455089e857": "Pistas Progressivas",
     "msg_e46196d203f9f4d6": "Modo de cor",
-    "msg_e49ab55991a69bb9": "Placas",
+    "msg_e49ab55991a69bb9": "Pratos",
     "msg_e516e306787a1428": "(13 de agosto de 2026) 🐛 Excluído \"Fechar a sessão\" e \"Eliminar\" do ranking global.",
     "msg_e557eb85f051af01": "✅ Pedido aceito",
     "msg_e7085e39a4116600": "Memorize a placa antes de desaparecer",
@@ -1922,7 +1919,7 @@
         "São as tapas mais ordenadas nos bares das cidades do país",
         "A batata é frita duas vezes para torná-la crocante no exterior"
       ],
-      "displayName": "Batatas"
+      "displayName": "Batatas com molho brava"
     },
     "regular:56": {
       "name": "Jamón Ibérico",
@@ -2786,7 +2783,7 @@
         "Assar no forno de lenha por duas horas com apenas água e sal",
         "Cándido de Segovia pousada tornou-se popular internacionalmente"
       ],
-      "displayName": "Porco assado"
+      "displayName": "Leitão assado"
     },
     "regular:128": {
       "name": "Caldereta de Cordero",
@@ -8250,15 +8247,15 @@
     },
     "regular:583": {
       "name": "Moqueca de Camarão",
-      "desc": "Camarões frescos em molho de leite de coco, dendê, tomate e pimenta, versão baiana.",
+      "desc": "Camarões frescos num molho de leite de coco, dendê, tomate e pimento, na versão baiana.",
       "hints": [
         "Difere da moqueca Baian em que o protagonista é camarão",
         "Camarão são adicionados nos últimos cinco minutos para evitar endurecimento",
         "Leite de coco e dendê são a base aromática inseparável",
         "Servido com arroz branco e peixe pirão em Salvador de Bahia",
-        "É a entrada mais procurada para os restaurantes bahreiníes do país"
+        "É uma das entradas mais pedidas nos restaurantes de cozinha baiana do país."
       ],
-      "displayName": "Moqueca Camarão"
+      "displayName": "Moqueca de camarão"
     },
     "regular:584": {
       "name": "Pirão Brasileiro",
@@ -9794,7 +9791,7 @@
         "Os domingos são o dia sagrado da assada familiar no país",
         "A carne paraguaia de pastos naturais é muito apreciada regionalmente"
       ],
-      "displayName": "Asado Paraguaio"
+      "displayName": "Churrasco paraguaio"
     },
     "regular:712": {
       "name": "Vorí Vorí",
@@ -10950,15 +10947,15 @@
     },
     "regular:808": {
       "name": "Carapulcra Chinchana",
-      "desc": "Ensopado de batata seca com porco, pimenta vermelha e amendoim assado, prato colonial de Chincha.",
+      "desc": "Guisado de batata seca com carne de porco, malagueta vermelha e amendoim torrado, prato colonial de Chincha.",
       "hints": [
         "O papa liofilizado da batata seca é a base desidratada do ensopado",
         "Chincha, ao sul de Lima, é a cidade que mais reivindica este ensopado",
         "O amendoim torrado molhado dá-lhe cremosidade e sabor que o distingue",
-        "O carapulcra é servido ao lado da sopa seca nas celebrações chinesas",
+        "A carapulcra é servida com sopa seca nas celebrações de Chincha.",
         "É um dos pratos mais antigos da cozinha de Lima com batata desidratada"
       ],
-      "displayName": "Carapulcra Chinchana"
+      "displayName": "Guisado de batata seca de Chincha"
     },
     "regular:809": {
       "name": "Cau Cau de Mariscos",
@@ -14622,7 +14619,7 @@
     },
     "sunday:32": {
       "name": "Shepherd's Pie",
-      "desc": "Ensopado de carne de cordeiro assada com legumes, coberto com puré de batata e gratin assado.",
+      "desc": "Guisado de borrego picado com legumes, coberto de puré de batata e gratinado no forno.",
       "hints": [
         "O pé do Pastor só pode ser chamado assim se carregar cordeiro, nunca carne de vaca",
         "A versão de beef é chamada de pé de cabana e é diferente por definição",
@@ -14630,7 +14627,7 @@
         "É o prato de uso dominical em casas inglesas",
         "O molho Worcestershire dá-lhe o umami profundo que o torna tão saboroso"
       ],
-      "displayName": "Shepherd's Pie"
+      "displayName": "Empadão de borrego"
     },
     "sunday:33": {
       "name": "Hamburguesa Clásica",
@@ -15107,7 +15104,7 @@
     "controlsReviewed": true,
     "fullEditorialReview": false,
     "regionalVocabularyAdapted": true,
-    "manualControlOverrides": 49
+    "manualControlOverrides": 55
   },
   "regionalAdaptation": {
     "sourceLocale": "pt-BR",

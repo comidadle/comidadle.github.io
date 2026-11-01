@@ -29,7 +29,7 @@ test('todos los mensajes referenciados por el código generado existen en la fue
 });
 test('la caché de prueba incluye el arranque y los seis catálogos',()=>{
   const sw=fs.readFileSync(path.join(root,'preview/sw.js'),'utf8');
-  for(const asset of ['app.js','runtime.js','geography.js','game-boot.js','es.json','en.json','fr.json','de.json','pt-BR.json','pt-PT.json'])assert.ok(sw.includes(asset),asset);
+  for(const asset of ['app.js','runtime.js','geography.js','passport.js','game-boot.js','es.json','en.json','fr.json','de.json','pt-BR.json','pt-PT.json'])assert.ok(sw.includes(asset),asset);
   assert.ok(sw.includes('offlineMessage(request)'));
   assert.ok(sw.includes('n.startsWith("comidadle-preview-")'));
 });

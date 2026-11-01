@@ -15,8 +15,9 @@
       if(url.hostname.endsWith('.supabase.co')){
         const mutating=!['GET','HEAD','OPTIONS'].includes(method);
         const safeLogin=url.pathname==='/auth/v1/token'||url.pathname==='/rest/v1/rpc/email_for_username';
+        const recipeRead=url.pathname==='/functions/v1/dish-recipe'&&method==='POST';
         if(url.pathname==='/auth/v1/logout')return new Response('{}',{status:200,headers:{'Content-Type':'application/json'}});
-        if(mutating&&!safeLogin)return new Response(JSON.stringify({error:'preview_read_only'}),{status:409,headers:{'Content-Type':'application/json'}});
+        if(mutating&&!safeLogin&&!recipeRead)return new Response(JSON.stringify({error:'preview_read_only'}),{status:409,headers:{'Content-Type':'application/json'}});
         const publicTables=['ranking','weekly_ranking','shop_items','reviews','review_replies','announcements','announcement_reactions'];
         const table=url.pathname.split('/')[3];
         if(demoActive&&table==='user_inventory'&&method==='GET')return new Response(JSON.stringify(demoInventory),{status:200,headers:{'Content-Type':'application/json'}});
@@ -32,6 +33,7 @@
   };
   try{
     if(!window.ComidadleGeography)await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=assetUrl('../i18n/geography.js');script.onload=resolve;script.onerror=reject;document.head.append(script);});
+    if(!window.ComidadlePassport)await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=assetUrl('../i18n/passport.js');script.onload=resolve;script.onerror=reject;document.head.append(script);});
     const source=await fetchCatalog('es'),engine=new I18n(source,{fetchCatalog,preview:true});
     demoInventory=(source.publicShop||[]).map(item=>({item_id:item.id}));
     let selected='es';try{selected=normalizeLocale(localStorage.getItem('comidadle_preview_lang')||localStorage.getItem('comidadle_lang'));}catch(_){}
@@ -104,17 +106,25 @@
         return value;
       },
       decorateDishNames(root=document,reveal=false){
+        root=root.closest?.('.dish-card')||root;
         for(const element of [...(root.matches?.('.dish-name')?[root]:[]),...root.querySelectorAll('.dish-name')]){
           element.querySelector('.dish-name-translation')?.remove();
           const native=element.textContent.trim(),entry=dishLookup.get(native);
-          if(!entry||entry.field!=='name'||engine.locale==='es')continue;
-          const translated=engine.dish(entry.id).displayName;
+          if(!entry||entry.field!=='name')continue;
+          const view=engine.dish(entry.id);let translated=view.displayName;
           const same=text=>text.normalize('NFKC').toLocaleLowerCase(engine.locale).replace(/[\s\p{P}]+/gu,'');
+          const foreignSpanish=engine.locale==='es'&&["Shepherd's Pie",'Fish and Chips','Mac and Cheese','Irish Stew','Groundnut Soup','Hainanese Chicken Rice'].includes(native);
+          let explanation=false;
+          if((!translated||same(translated)===same(native))&&(engine.locale!=='es'||foreignSpanish)&&native.includes(' ')&&!(typeof cfg!=='undefined'&&cfg.noDesc)){translated=view.desc;explanation=true;}
           if(!translated||same(translated)===same(native))continue;
           const label=document.createElement('span');label.className='dish-name-translation';label.lang=engine.locale;
           label.style.cssText='display:block;font:600 13px/1.5 system-ui;color:var(--text-muted);margin-top:5px;overflow-wrap:anywhere';
           label.textContent=translated;
+          if(explanation)label.dataset.explanation='true';
           element.append(label);
+          const desc=element.closest('.dish-card')?.querySelector('.dish-desc,#dish-desc');
+          if(desc&&explanation&&desc.textContent===translated){desc.style.display='none';desc.dataset.explanationDuplicate='true';}
+          else if(desc?.dataset.explanationDuplicate){desc.style.display=typeof cfg!=='undefined'&&cfg.noDesc?'none':'';delete desc.dataset.explanationDuplicate;}
         }
         protectFoodText(root,reveal);
       },
@@ -161,6 +171,15 @@
       },
     };
     window.ComidadleLocalization=localization;
+    Object.assign(localization,ComidadlePassport.create({
+      locale:()=>engine.locale,
+      state:()=>({normal:ALL_DISHES,international:SUNDAY_INTERNATIONAL_DISHES,countries:PASSPORT_COUNTRIES,progress:passport}),
+      country:value=>localization.country(value),
+      nameLabel:value=>{const entry=dishLookup.get(value);return entry?engine.dish(entry.id).displayName:value;},
+      decorate:(root,reveal)=>localization.decorateDishNames(root,reveal),
+      open:id=>openModal(id),close:id=>closeModal(id),
+      requestRecipe:body=>fetch(SB+'/functions/v1/dish-recipe',{method:'POST',headers:SH,body:JSON.stringify(body)}),
+    }));
     localization.applyStatic();
     const select=document.getElementById('language-select');
     if(select){

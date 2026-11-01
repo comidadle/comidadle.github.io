@@ -22,6 +22,12 @@ const bases={sopa:['Soup','Soupe','Suppe','Sopa','Sopa'],caldo:['Broth','Bouillo
   cazuela:['Casserole','Cocotte','Eintopf','Ensopado','Ensopado'],estofado:['Stew','Ragoût','Eintopf','Ensopado','Estufado'],
   guiso:['Stew','Ragoût','Eintopf','Ensopado','Guisado'],pan:['Bread','Pain','Brot','Pão','Pão'],ensalada:['Salad','Salade','Salat','Salada','Salada']};
 const patterns=[
+  [/^Patatas Bravas$/i,['Potatoes with brava sauce','Pommes de terre à la sauce brava','Kartoffeln mit Brava-Sauce','Batatas ao molho brava','Batatas com molho brava']],
+  [/^Cochinillo Asado$/i,['Roast suckling pig','Cochon de lait rôti','Gebratenes Spanferkel','Leitão assado','Leitão assado']],
+  [/^Asado Paraguayo$/i,['Paraguayan barbecue','Grillades paraguayennes','Paraguayisches Grillfleisch','Churrasco paraguaio','Churrasco paraguaio']],
+  [/^Carapulcra Chinchana$/i,['Chincha-style dried-potato stew','Ragoût de pommes de terre séchées de Chincha','Kartoffeleintopf nach Chincha-Art','Guisado de batata seca de Chincha','Guisado de batata seca de Chincha']],
+  [/^Shepherd's Pie$/i,["Shepherd’s pie",'Hachis d’agneau à la purée de pommes de terre','Lammhackfleischauflauf mit Kartoffelpüree','Escondidinho de cordeiro','Empadão de borrego']],
+  [/^Moqueca de Camarão$/i,['Shrimp moqueca','Moqueca aux crevettes','Moqueca mit Garnelen','Moqueca de camarão','Moqueca de camarão']],
   [/^Pepitoria de Gallina\b/i,['Hen in pepitoria sauce','Poule en sauce pepitoria','Huhn in Pepitoria-Sauce','Galinha ao molho de pepitoria','Galinha em molho de pepitoria']],
   [/^Pollo en Pepitoria\b/i,['Chicken in pepitoria sauce','Poulet en sauce pepitoria','Hähnchen in Pepitoria-Sauce','Frango ao molho de pepitoria','Frango em molho de pepitoria']],
   [/^Hojaldras Panameñas$/i,['Panamanian fried bread','Pain frit panaméen','Panamaisches frittiertes Brot','Pão frito panamenho','Pão frito panamiano']],

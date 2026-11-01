@@ -1,6 +1,6 @@
 # Idiomas: versión jugable para revisión
 
-Hay catálogos completos para español, inglés, francés, alemán, portugués de Brasil y portugués de Portugal. Cada catálogo contiene 1.231 claves de interfaz, 1.154 descripciones y 5.770 pistas. Los nombres originales se mantienen y los títulos descriptivos traducidos aparecen debajo, sin duplicar nombres tradicionales que se mantienen iguales. El campo displayName está separado del nombre canónico name y no cambia respuestas, semillas ni progreso. **Completo significa que existen todos los textos; no significa que cada traducción haya superado una revisión editorial.** Ningún idioma nuevo está aprobado para producción.
+Hay catálogos completos para español, inglés, francés, alemán, portugués de Brasil y portugués de Portugal. Cada catálogo contiene 1.228 claves de interfaz, 1.154 descripciones y 5.770 pistas. Los nombres originales se mantienen y los títulos descriptivos traducidos aparecen debajo, sin duplicar nombres tradicionales que se mantienen iguales. El campo displayName está separado del nombre canónico name y no cambia respuestas, semillas ni progreso. **Completo significa que existen todos los textos; no significa que cada traducción haya superado una revisión editorial.** Ningún idioma nuevo está aprobado para producción.
 
 ## Uso
 
@@ -46,8 +46,14 @@ Las 29 pruebas unitarias cubren datos canónicos, semillas, almacenamiento, clav
 
 `i18n:check-preview` exige textos, pistas, variables, marcado y versión completos. `i18n:check` añade las aprobaciones de publicación y debe seguir fallando mientras `applicationCoverageReviewed` y la revisión editorial completa sigan pendientes. Las pruebas técnicas no sustituyen la revisión lingüística.
 
-Antes de publicar quedan: revisar cada frase en contexto y corregir los borradores; comprobar flujos con cuentas de prueba y datos reales autorizados; cerrar la política de avisos nuevos; preparar la migración de almacenamiento y caché al origen público; integrar la versión aprobada en la raíz y desplegar la función de recetas si se desea habilitarla. `supabase/functions/dish-recipe/index.ts` solicita el idioma elegido al proveedor, valida la sesión y mantiene su clave en el servidor. Está probada localmente y **no se ha desplegado**; la demo bloquea sus llamadas.
+Antes de publicar quedan: revisar cada frase en contexto y corregir los borradores; comprobar flujos con cuentas de prueba y datos reales autorizados; cerrar la política de avisos nuevos; preparar la migración de almacenamiento y caché al origen público; integrar la versión aprobada en la raíz y desplegar la función de recetas si se desea habilitarla. `supabase/functions/dish-recipe/index.ts` solicita el idioma elegido al proveedor, valida la sesión y mantiene su clave en el servidor. Está probada localmente y **no se ha desplegado**; la demo permite las solicitudes de recetas, que requieren el servicio activo.
 
 Se conserva la versión pública 3.3.0 y su changelog. La rama y la PR permanecen en borrador hasta terminar la revisión acordada.
 
 La auditoría de navegador recorre los 1.154 platos en cada uno de los seis idiomas (6.924 combinaciones) y comprueba que los términos detectados quedan ocultos en los campos de juego, conservando las traducciones originales. Reproduce las capturas de Hojaldras Panameñas, Pollo en Pepitoria Cubana y Pepitoria de Gallina. Los selectores de idiomas muestran banderas. Esta auditoría técnica no equivale a una revisión lingüística humana de todas las frases.
+
+## Correcciones del pasaporte y del ocultamiento
+
+El pasaporte se representa con nodos DOM y eventos propios, con países localizados, cuadrícula sin huecos y platos descubiertos como botones de receta. Los platos pendientes se agrupan en un resumen y al abrir un país se cierra la ventana anterior. Las recetas se solicitan en el idioma activo; la demo permite esta operación de lectura, conservando el bloqueo de escrituras en las tablas. Actualmente el servicio devuelve 404 y requiere activación: ver [RECETAS.md](RECETAS.md).
+
+Se conserva el azúcar francés (sucre), la lima de las recetas y otros alimentos ambiguos. Las referencias geográficas amplias, como los Andes y el Caribe, se conservan como pistas; los países, sus gentilicios y regiones específicas siguen ocultos. Si no existe un título traducido distinto, se muestra una explicación traducida sin duplicar la descripción ni saltarse el modo sin descripción. Se revisaron también los platos señalados en las capturas, sus pistas y las etiquetas francesas de las pestañas.

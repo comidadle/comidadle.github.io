@@ -1,6 +1,6 @@
 {
   "locale": "en",
-  "sourceRevision": "548f188666d59d8017db7329a486538f21aaa9602a309f6d02129d6c1f56ce32",
+  "sourceRevision": "f457d82ee464a26163085a0408a1e67e23e267438cc78f3004c24ec3e9f562c5",
   "status": "draft",
   "applicationCoverageReviewed": false,
   "ui": {
@@ -121,7 +121,7 @@
     "msg_0d6b062a6fcb77b7": "I've checked, go on.:.??.?",
     "msg_0e13aa7a3e6f6112": "⬇️ Export my progress (.json)",
     "msg_0ed00e1779aeb045": "Sound effects when correct or failed, independent of vibration.",
-    "msg_0f4d204db94aba20": "Yesterday's dish",
+    "msg_0f4d204db94aba20": "Yesterday’s dish",
     "msg_0f55198bc4272047": "Guess the country of origin — 6 attempts.",
     "msg_0fa912b811394b9a": "Waiting for the others to finish.s.s.",
     "msg_1084d0cc2f2672c5": "Be the first this week! 📅.",
@@ -136,7 +136,7 @@
     "msg_131e187360208ad0": "🤖 Recipes with AI: applications now go through a Supabase's Edge-Fit, keeping Antropic key out of the customer.",
     "msg_137ee98b36075434": "new track",
     "msg_1523324a219e047f": "Could not access camera 😔",
-    "msg_1554fc76c25040f8": "Plato, p., p..",
+    "msg_1554fc76c25040f8": "Dish",
     "msg_169842fb2ed12da6": "📸 Updated Instagram user to @aanxs404.",
     "msg_16cfd9619ca3cd40": "Initiating camera.",
     "msg_16eb880b62492b54": "Magnate_BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR___BAR__BAR__BAR__BAR__BAR_",
@@ -690,7 +690,7 @@
     "msg_e40fab455089e857": "Progressive Tracks",
     "msg_e46196d203f9f4d6": "Colour mode",
     "msg_e466e7bee6cb9487": "Play your first game",
-    "msg_e49ab55991a69bb9": "Plates",
+    "msg_e49ab55991a69bb9": "Dishes",
     "msg_e516e306787a1428": "(13 Aug 2026) 🐛 Deleted \"Close Session\" and \"Delete\" from Global Ranking.",
     "msg_e545b02d8dee9544": "Unspecified",
     "msg_e557eb85f051af01": "✅ Request accepted",
@@ -733,7 +733,7 @@
     "msg_f1cf7df4bbac2e37": "The votes didn't match, let him decide luck!",
     "msg_f24847a0b6c496d9": "📢 New warning system for the Owner: they appear as floating notifications below (they do not cover the header). If there are several, the most recent one looks sharp below and the previous ones with a soft blur above.",
     "msg_f24b4e1cf27efc2b": "checkLoginOnLoad error:",
-    "msg_f2952a9c95cd6d58": "{p3} Plate {p4}",
+    "msg_f2952a9c95cd6d58": "{p3} Dish {p4}",
     "msg_f3986c03e2f16125": "That username is not available.",
     "msg_f48a1c3c43628b92": "Error checking password 😔",
     "msg_f4b566b04049ad46": "Unlocked achievement!",
@@ -1098,7 +1098,7 @@
     "msg_5b340914b2d19462": "⚖️ Consequences",
     "msg_8048b69bd5b33a4e": "extras",
     "msg_83ad6512db112132": "Badges",
-    "msg_87e4571bc7b47363": "dish",
+    "msg_87e4571bc7b47363": "Dish",
     "msg_95d758303422ec7a": "🕹️ Modes",
     "msg_982432b056bee293": "📢 Announcement",
     "msg_9a804a1d2c8c1dd9": "😊 Emojis",
@@ -1220,9 +1220,6 @@
     "msg_f4fa93af1edaa877": "🔥 Streak: {p0}",
     "msg_add9e461307340ac": "🎁 + {p0} XP",
     "msg_dfd6c755261e5854": "Message (optional).",
-    "msg_595ba961860fe5cd": "#FreeGaza 🇵🇸",
-    "msg_2adaf32e7cfa2328": "Sundays",
-    "msg_3c2c305fa487481e": "{p2} / {p3} dishes discovered",
     "msg_150f5d892090a38a": "· new",
     "msg_5f6088efba7a35f0": "{p0} Emoji",
     "msg_3f1b4111c6b50341": "🏅 Achievements ( {p6} / {p7} )",
@@ -1922,7 +1919,7 @@
         "They are the most ordered tapas in the bars of the cities of the country",
         "The potato is fried twice to make it crispy on the outside"
       ],
-      "displayName": "Potatoes"
+      "displayName": "Potatoes with brava sauce"
     },
     "regular:56": {
       "name": "Jamón Ibérico",
@@ -2786,7 +2783,7 @@
         "Roast in wood oven for two hours with only water and salt",
         "Cándido de Segovia inn made it popular internationally"
       ],
-      "displayName": "Roasted pig"
+      "displayName": "Roast suckling pig"
     },
     "regular:128": {
       "name": "Caldereta de Cordero",
@@ -8250,15 +8247,15 @@
     },
     "regular:583": {
       "name": "Moqueca de Camarão",
-      "desc": "Fresh shrimps in coconut milk sauce, dendê, tomato and pepper, Bahian version.",
+      "desc": "Fresh shrimp in a sauce of coconut milk, dendê oil, tomato and bell pepper, in the style of Bahia.",
       "hints": [
         "It differs from the Baian moqueca in that the protagonist is shrimp",
         "Shrimp are added within the last five minutes to avoid hardening",
         "Coconut milk and dendê are the inseparable aromatic basis",
         "Served with white rice and fish pirão in Salvador de Bahia",
-        "It is the most sought-after entrance to Bahraini restaurants in the country"
+        "It is one of the most popular starters in the country’s restaurants serving food from Bahia."
       ],
-      "displayName": "Moqueca Camarão"
+      "displayName": "Shrimp moqueca"
     },
     "regular:584": {
       "name": "Pirão Brasileiro",
@@ -9794,7 +9791,7 @@
         "Sundays are the sacred day of family roasting in the country",
         "Paraguayan meat of natural pastures is highly appreciated regionally"
       ],
-      "displayName": "Asado Paraguayo"
+      "displayName": "Paraguayan barbecue"
     },
     "regular:712": {
       "name": "Vorí Vorí",
@@ -10950,15 +10947,15 @@
     },
     "regular:808": {
       "name": "Carapulcra Chinchana",
-      "desc": "Dried potato stew with pork, red pepper and roasted peanuts, colonial plate of Chincha.",
+      "desc": "A stew of dried potatoes, pork, red chilli and roasted peanuts, a colonial-era dish from Chincha.",
       "hints": [
         "The dried potato—andean lyophilized papa—is the dehydrated base of the stew",
         "Chincha, south of Lima, is the city that claims the most this stew",
         "The ground roasted peanut gives it the creaminess and flavor that distinguishes it",
-        "The carapulcra is served next to the dry soup in the Chinese celebrations",
+        "Carapulcra is served alongside sopa seca at celebrations in Chincha.",
         "It is one of the oldest dishes in Lima cuisine with dehydrated potato"
       ],
-      "displayName": "Carapulcra Chinchana"
+      "displayName": "Chincha-style dried-potato stew"
     },
     "regular:809": {
       "name": "Cau Cau de Mariscos",
@@ -14622,7 +14619,7 @@
     },
     "sunday:32": {
       "name": "Shepherd's Pie",
-      "desc": "Roasted lamb meat stew with vegetables, covered in mashed potatoes and baked gratin.",
+      "desc": "Minced lamb stew with vegetables, topped with mashed potatoes and browned in the oven.",
       "hints": [
         "The Shepherd's foot can only be called that if it carries lamb, never beef",
         "The beef version is called cottage foot and is different by definition",
@@ -14630,7 +14627,7 @@
         "It's the Sunday-use dish in English homes",
         "Worcestershire sauce gives you the deep umami that makes it so tasty"
       ],
-      "displayName": "Shepherd's Pie"
+      "displayName": "Shepherd’s pie"
     },
     "sunday:33": {
       "name": "Hamburguesa Clásica",
@@ -15105,7 +15102,7 @@
   "generationComplete": true,
   "review": {
     "controlsReviewed": true,
-    "manualControlOverrides": 49,
+    "manualControlOverrides": 55,
     "fullEditorialReview": false
   }
 }

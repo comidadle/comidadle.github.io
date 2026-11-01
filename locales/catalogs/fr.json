@@ -1,6 +1,6 @@
 {
   "locale": "fr",
-  "sourceRevision": "548f188666d59d8017db7329a486538f21aaa9602a309f6d02129d6c1f56ce32",
+  "sourceRevision": "f457d82ee464a26163085a0408a1e67e23e267438cc78f3004c24ec3e9f562c5",
   "status": "draft",
   "applicationCoverageReviewed": false,
   "ui": {
@@ -134,7 +134,7 @@
     "msg_0d6b062a6fcb77b7": "J'ai vérifié, continuez.:",
     "msg_0e13aa7a3e6f6112": "Exporter mes progrès (.json)",
     "msg_0ed00e1779aeb045": "Effets sonores lorsqu'ils sont corrects ou échoués, indépendamment des vibrations.",
-    "msg_0f4d204db94aba20": "La plaque d'hier",
+    "msg_0f4d204db94aba20": "Plat d’hier",
     "msg_0f55198bc4272047": "Deviner le pays d'origine — 6 tentatives",
     "msg_0fa912b811394b9a": "Attendre que les autres terminent.s.s.",
     "msg_1084d0cc2f2672c5": "Soyez le premier cette semaine! 📅",
@@ -149,7 +149,7 @@
     "msg_131e187360208ad0": "🤖 Recettes avec IA : les applications passent maintenant par l'Edge-Fit de Supabase, gardant la clé Antropique hors du client.",
     "msg_137ee98b36075434": "nouvelle piste",
     "msg_1523324a219e047f": "Impossible d'accéder à la caméra 😔",
-    "msg_1554fc76c25040f8": "Platon, p., p",
+    "msg_1554fc76c25040f8": "Plat",
     "msg_169842fb2ed12da6": "📸 Mis à jour Instagram utilisateur à @aanxs404.",
     "msg_16cfd9619ca3cd40": "Lancement de la caméra.",
     "msg_16eb880b62492b54": "Magnate_BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR___BAR___BAR___BAR___BAR__BAR__BAR__",
@@ -218,7 +218,7 @@
     "msg_3402b0f7758ea9da": "Déverrouiller 15 pays dans le passeport",
     "msg_341d7662a3e080f5": "🗺️ drapeaux de droite pour les 48 pays non hispaniques sur le passeport.",
     "msg_3492af8695092bf3": "Vous n'avez pas encore d'amis. 👋",
-    "msg_3551aa9477d67dd3": "Assiette suivante ➜",
+    "msg_3551aa9477d67dd3": "plat suivante ➜",
     "msg_3576ec30e0b596ac": "Aucun article disponible",
     "msg_35bda07a7d374141": "Ce jeu a déjà commencé. Vous ne pouvez pas rejoindre 😔",
     "msg_35d355d3f033a9da": "Passeport",
@@ -313,7 +313,7 @@
     "msg_5c40d570852de9df": "Enregistrer et jouer 🎮",
     "msg_5ca78a08611a19e9": "Tous les pays dans le tableau, pas seulement 8.",
     "msg_5cd4fc1aabf79800": "Juste sur",
-    "msg_5d1d7c23081eae0e": "Vous voyez la plaque pendant quelques secondes, puis il disparaît. Deviner par mémoire, pas d'indices et juste un essai. Droit de gagner +10 XP fixé!",
+    "msg_5d1d7c23081eae0e": "Vous voyez la plat pendant quelques secondes, puis il disparaît. Deviner par mémoire, pas d'indices et juste un essai. Droit de gagner +10 XP fixé!",
     "msg_5d4288f8904c5368": "de la gastronomie hispanique.",
     "msg_5d56f600e83b3e8a": "Utiliser des noms offensants, insultes ou jurements",
     "msg_5dc1b24157fb1dd9": "Chat en direct dans le système de duel et de remède.",
@@ -446,7 +446,7 @@
     "msg_8d7676fc3299236a": "Sois le premier! 🌶️",
     "msg_8d898d165a8f0c48": "🎯 missions quotidiennes",
     "msg_8e3e9b3a7efca1b2": "J'attends votre rival dans ce tour.",
-    "msg_8eb23deae679e1df": "Régler une plaque en 2 tentatives ou moins",
+    "msg_8eb23deae679e1df": "Régler une plat en 2 tentatives ou moins",
     "msg_8ebde58df13d482b": "Motif:",
     "msg_8f51180a8d835922": "Impossible",
     "msg_8f799a3776012986": "Deviner le pays d'origine —",
@@ -461,7 +461,7 @@
     "msg_925170eadb601503": "Bon appétit!",
     "msg_933fabc2fe0a77a5": "Les mots de passe ne correspondent pas.",
     "msg_93427fa9f82a279d": "Partagez votre résultat 2 fois",
-    "msg_9347250bf30de853": "📖 Passeport: Cliquez sur les plaques déverrouillées pour voir des recettes d'IA.",
+    "msg_9347250bf30de853": "📖 Passeport: Cliquez sur les plats déverrouillées pour voir des recettes d'IA.",
     "msg_95509883fb03de27": "Triomphe",
     "msg_95a5f64a2367b41b": "Le classement est un espace",
     "msg_95ebb691274524a6": "Votre XP",
@@ -701,7 +701,7 @@
     "msg_e40fab455089e857": "Pistes progressives",
     "msg_e46196d203f9f4d6": "Mode couleur",
     "msg_e466e7bee6cb9487": "Jouez à votre premier jeu",
-    "msg_e49ab55991a69bb9": "Plaques",
+    "msg_e49ab55991a69bb9": "Plats",
     "msg_e516e306787a1428": "(13 août 2026) 🐛 Supprimé «Fermer session» et «Supprimer» du classement mondial.",
     "msg_e545b02d8dee9544": "Non spécifié",
     "msg_e557eb85f051af01": "✅ Demande acceptée",
@@ -744,7 +744,7 @@
     "msg_f1cf7df4bbac2e37": "Les votes ne correspondaient pas, qu'il décide de la chance!",
     "msg_f24847a0b6c496d9": "📢 Nouveau système d'avertissement pour le propriétaire : ils apparaissent comme des notifications flottantes ci-dessous (elles ne couvrent pas l'en-tête). S'il y en a plusieurs, la plus récente apparaît nette ci-dessous et les précédentes avec un flou doux ci-dessus.",
     "msg_f24b4e1cf27efc2b": "Erreur de checkLoginOnLoad :",
-    "msg_f2952a9c95cd6d58": "{p3} tôle {p4}",
+    "msg_f2952a9c95cd6d58": "{p3} Plat {p4}",
     "msg_f3986c03e2f16125": "Ce nom d'utilisateur n'est pas disponible.",
     "msg_f48a1c3c43628b92": "Erreur lors de la vérification du mot de passe 😔",
     "msg_f4b566b04049ad46": "Des réalisations débloquées!",
@@ -753,10 +753,10 @@
     "msg_f585a9fff01c323e": "Connectez-vous pour apparaître dans le classement hebdomadaire",
     "msg_f5866c2dd2268d69": "🗺️ Nouveau Passeport Culinaire : Déverrouillez chaque pays en faisant bien vos plats. Il comprend une carte des pays à découvrir ( 🔒 bientôt) pour ceux qui n'ont toujours pas d'plats en Comidadle.",
     "msg_f620f0331df880f1": "Créer un compte",
-    "msg_f736678e7232b741": "(13 août 2026) 🧠 Trivia bonus: version initiale après frapper une plaque, +10 XP pour enregistré et sans XP pour les invités.",
+    "msg_f736678e7232b741": "(13 août 2026) 🧠 Trivia bonus: version initiale après frapper une plat, +10 XP pour enregistré et sans XP pour les invités.",
     "msg_f73d728981defddb": "Combien de joueurs?",
     "msg_f75691bbb6f05d35": "Votre vote:",
-    "msg_f795995be027f267": "Il montre le résultat d'hier sur la plaque aujourd'hui.",
+    "msg_f795995be027f267": "Il montre le résultat d'hier sur la plat aujourd'hui.",
     "msg_f8601d315fa4dbcb": "Nouvelle annonce",
     "msg_f904431ca287d9a3": "Choisissez votre pays.",
     "msg_f910ebd8877485c3": "Répartition des tentatives",
@@ -862,7 +862,7 @@
     "msg_3636065cc72b7aa6": "Lequel d'entre eux est un vrai indice sur {p0}?",
     "msg_1222d9ace0c46d7f": "De quel pays {p0} proviennent-ils?",
     "msg_af8e3fb7fbe935c1": "Lequel de ces plats est aussi typique de {p0}?",
-    "msg_238cfa915e83e4d2": "🌶️ Comidadle — Plaques {p0} /3 {p1} {p2} {p3} {p4} {p5} {p6} 👉 comidadle.github.io",
+    "msg_238cfa915e83e4d2": "🌶️ Comidadle — plats {p0} /3 {p1} {p2} {p3} {p4} {p5} {p6} 👉 comidadle.github.io",
     "msg_e9624495adea1acb": "{p0} · Niveau {p1}",
     "msg_0732743af327c6a0": "Vous avez déjà utilisé votre limite quotidienne de {p0} XP sur les cadeaux",
     "msg_5958a3d53dbfdcd9": "Vous n'avez que {p0} XP à donner aujourd'hui",
@@ -911,7 +911,7 @@
     "msg_5b340914b2d19462": "⚖️ Conséquences",
     "msg_8048b69bd5b33a4e": "Autres",
     "msg_83ad6512db112132": "Badges",
-    "msg_87e4571bc7b47363": "plaque",
+    "msg_87e4571bc7b47363": "Plat",
     "msg_95d758303422ec7a": "🕹️ Modes",
     "msg_982432b056bee293": "📢 Annonce",
     "msg_9a804a1d2c8c1dd9": "😊 Emojis",
@@ -1210,7 +1210,7 @@
     "msg_de4c70d131d0e103": "- {p0} XP 😤",
     "msg_7bc4883cabe41f25": "🌶️ COMIDADLE",
     "msg_8dac93bea8fffc91": "👉 comidadle.github.io",
-    "msg_08b8f7e686aee75e": "{p1} — 3 plaques",
+    "msg_08b8f7e686aee75e": "{p1} — 3 plats",
     "msg_d9d2059df74f3cc0": "✅ Atteint",
     "msg_8619c923e6bd238d": "{p0} XP",
     "msg_ecb0753749693b5f": "{p1} XP",
@@ -1220,9 +1220,6 @@
     "msg_f4fa93af1edaa877": "🔥 Série : {p0}",
     "msg_add9e461307340ac": "🎁 + {p0} XP",
     "msg_dfd6c755261e5854": "Message (facultatif).",
-    "msg_595ba961860fe5cd": "#FreeGaza 🇵🇸",
-    "msg_2adaf32e7cfa2328": "Dimanche",
-    "msg_3c2c305fa487481e": "{p2} / {p3} plats découverts",
     "msg_150f5d892090a38a": "· nouveau",
     "msg_5f6088efba7a35f0": "{p0} Emoji",
     "msg_3f1b4111c6b50341": "🏅 Réalisations ( {p6} / {p7} )",
@@ -1922,7 +1919,7 @@
         "Ce sont les tapas les plus commandés dans les bars des villes du pays",
         "La patate est frite deux fois pour la rendre croustillante à l'extérieur"
       ],
-      "displayName": "Pommes de terre"
+      "displayName": "Pommes de terre à la sauce brava"
     },
     "regular:56": {
       "name": "Jamón Ibérico",
@@ -2798,7 +2795,7 @@
         "Rôtir au four à bois pendant deux heures avec seulement de l'eau et du sel",
         "L'auberge de Ségovie est devenue populaire à l'échelle internationale"
       ],
-      "displayName": "Porcs rôtis"
+      "displayName": "Cochon de lait rôti"
     },
     "regular:128": {
       "name": "Caldereta de Cordero",
@@ -8514,15 +8511,15 @@
     },
     "regular:583": {
       "name": "Moqueca de Camarão",
-      "desc": "Crevettes fraîches dans la sauce au lait de coco, dendê, tomate et poivre, version bahienne.",
+      "desc": "Crevettes fraîches en sauce au lait de coco, à l’huile de dendê, à la tomate et au poivron, à la manière de Bahia.",
       "hints": [
-        "Il diffère de la moqueca Baian en ce que le protagoniste est des crevettes",
-        "Les crevettes sont ajoutées au cours des cinq dernières minutes pour éviter le durcissement",
-        "Lait de coco et dendê sont la base aromatique inséparable",
-        "Servi avec du riz blanc et du poisson pirão à Salvador de Bahia",
-        "C'est l'entrée la plus recherchée des restaurants bahreïnites dans le pays"
+        "Elle se distingue de la moqueca de Bahia par sa garniture principale : les crevettes.",
+        "Les crevettes sont ajoutées pendant les cinq dernières minutes pour éviter qu’elles durcissent.",
+        "Le lait de coco et l’huile de dendê forment sa base aromatique.",
+        "Elle est servie avec du riz blanc et du pirão de poisson à Salvador de Bahia.",
+        "C’est l’une des entrées les plus demandées dans les restaurants de cuisine de Bahia du pays."
       ],
-      "displayName": "Moqueca Camarão"
+      "displayName": "Moqueca aux crevettes"
     },
     "regular:584": {
       "name": "Pirão Brasileiro",
@@ -9806,7 +9803,7 @@
         "Les dimanches sont le jour sacré du rôti familial dans le pays",
         "La viande paraguayenne de pâturages naturels est très appréciée à l'échelle régionale"
       ],
-      "displayName": "Asado Paraguayo"
+      "displayName": "Grillades paraguayennes"
     },
     "regular:712": {
       "name": "Vorí Vorí",
@@ -10950,15 +10947,15 @@
     },
     "regular:808": {
       "name": "Carapulcra Chinchana",
-      "desc": "Ragoût de pomme de terre séchée avec du porc, du poivre rouge et des arachides rôties, assiette coloniale de Chincha.",
+      "desc": "Ragoût de pommes de terre séchées au porc, au piment rouge et aux cacahuètes grillées, plat de l’époque coloniale originaire de Chincha.",
       "hints": [
-        "La pomme de terre séchée — papa lyophilisé andéen — est la base déshydratée du ragoût",
-        "Chincha, au sud de Lima, est la ville qui revendique le plus ce ragoût",
-        "La cacahuète grillée hachée lui donne la crémosité et la saveur qui la distingue",
-        "Le carapulcre est servi à côté de la soupe sèche dans les célébrations chinoises",
-        "C'est l'un des plats les plus anciens de Lima cuisine avec des pommes de terre déshydraté"
+        "La papa seca, pomme de terre séchée des Andes, constitue la base du ragoût.",
+        "Chincha, au sud de Lima, est la ville qui revendique particulièrement ce ragoût.",
+        "Les cacahuètes grillées et moulues lui donnent son onctuosité et sa saveur caractéristique.",
+        "La carapulcra accompagne la sopa seca lors des fêtes de Chincha.",
+        "C’est l’un des plus anciens plats de la cuisine de Lima à base de pommes de terre séchées."
       ],
-      "displayName": "Carapulcra Chinchana"
+      "displayName": "Ragoût de pommes de terre séchées de Chincha"
     },
     "regular:809": {
       "name": "Cau Cau de Mariscos",
@@ -14622,15 +14619,15 @@
     },
     "sunday:32": {
       "name": "Shepherd's Pie",
-      "desc": "Ragoût d'agneau rôti avec des légumes, couvert de purée de pommes de terre et de gratin cuit.",
+      "desc": "Hachis d’agneau aux légumes, recouvert de purée de pommes de terre et gratiné au four.",
       "hints": [
-        "Le pied du pasteur ne peut être appelé que s'il porte de l'agneau, jamais de bœuf",
-        "La version bœuf est appelée pied de chalet et est différente par définition",
-        "La purée de pommes de terre qui couvre le ragoût forme une croûte dorée lors du grillage",
-        "C'est le plat du dimanche dans les maisons anglaises",
-        "La sauce Worcestershire vous donne l'umami profond qui le rend si savoureux"
+        "Le nom shepherd’s pie désigne la version à l’agneau, et non celle au bœuf.",
+        "La version au bœuf porte le nom de cottage pie.",
+        "La purée qui recouvre la viande forme une croûte dorée au four.",
+        "C’est un plat du dimanche préparé avec les restes dans les foyers anglais.",
+        "La sauce Worcestershire lui apporte sa profonde saveur umami."
       ],
-      "displayName": "Shepherd's Pie"
+      "displayName": "Hachis d’agneau à la purée de pommes de terre"
     },
     "sunday:33": {
       "name": "Hamburguesa Clásica",
@@ -15105,7 +15102,7 @@
   "generationComplete": true,
   "review": {
     "controlsReviewed": true,
-    "manualControlOverrides": 49,
+    "manualControlOverrides": 55,
     "fullEditorialReview": false
   }
 }

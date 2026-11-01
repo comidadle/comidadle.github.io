@@ -1,6 +1,6 @@
 {
   "locale": "de",
-  "sourceRevision": "548f188666d59d8017db7329a486538f21aaa9602a309f6d02129d6c1f56ce32",
+  "sourceRevision": "f457d82ee464a26163085a0408a1e67e23e267438cc78f3004c24ec3e9f562c5",
   "status": "draft",
   "applicationCoverageReviewed": false,
   "ui": {
@@ -134,7 +134,7 @@
     "msg_0d6b062a6fcb77b7": "Ich habe nachgesehen, weiter.:",
     "msg_0e13aa7a3e6f6112": "Exportieren Sie meine Fortschritte (.json)",
     "msg_0ed00e1779aeb045": "Geräuscheffekte, wenn korrekt oder fehlgeschlagen, unabhängig von Vibrationen.",
-    "msg_0f4d204db94aba20": "Gestern ist der Gerichte",
+    "msg_0f4d204db94aba20": "Gestriges Gericht",
     "msg_0f55198bc4272047": "Schätze das Herkunftsland — 6 Versuche",
     "msg_0fa912b811394b9a": "Ich warte darauf, dass die anderen zu Ende gehen.",
     "msg_1084d0cc2f2672c5": "Sei der Erste in dieser Woche! 📅",
@@ -149,7 +149,7 @@
     "msg_131e187360208ad0": "🤖 Rezepte mit KI: Anwendungen gehen jetzt durch das Edge-Fit einer Supabase und halten den antropischen Schlüssel aus dem Kunden heraus.",
     "msg_137ee98b36075434": "Neue Strecke",
     "msg_1523324a219e047f": "Kamera 😔 konnte nicht aufgerufen werden",
-    "msg_1554fc76c25040f8": "== Einzelnachweise ==",
+    "msg_1554fc76c25040f8": "Gericht",
     "msg_169842fb2ed12da6": "📸 Aktualisiert Instagram Benutzer auf @aanxs404.",
     "msg_16cfd9619ca3cd40": "Kamera starten.",
     "msg_16eb880b62492b54": "Magnate_BAR__BAR__BAR__BAR__BAR__BAR__BAR_BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR___BAR___BAR__BAR__BAR__BAR__BAR__BAR_",
@@ -701,7 +701,7 @@
     "msg_e40fab455089e857": "Progressive Gleise",
     "msg_e46196d203f9f4d6": "Farbmodus",
     "msg_e466e7bee6cb9487": "Spielen Sie Ihr erstes Spiel",
-    "msg_e49ab55991a69bb9": "Tafeln",
+    "msg_e49ab55991a69bb9": "Gerichte",
     "msg_e516e306787a1428": "(13 Aug 2026) 🐛 Gelöscht \"Session schließen\" und \"Löschen\" aus dem globalen Ranking.",
     "msg_e545b02d8dee9544": "Nicht spezifiziert",
     "msg_e557eb85f051af01": "✅ Antrag angenommen",
@@ -744,7 +744,7 @@
     "msg_f1cf7df4bbac2e37": "Die Stimmen stimmten nicht überein, lassen Sie ihn Glück entscheiden!",
     "msg_f24847a0b6c496d9": "📢 Neues Warnsystem für den Eigentümer: Sie erscheinen als schwimmende Benachrichtigungen unten (sie decken nicht den Kopf ab). Wenn es mehrere gibt, sieht das letzte scharf unten und die vorherigen mit einem weichen Unschärfe oben aus.",
     "msg_f24b4e1cf27efc2b": "checkLoginOnLoad Fehler:",
-    "msg_f2952a9c95cd6d58": "{p3} Platte {p4}",
+    "msg_f2952a9c95cd6d58": "{p3} Gericht {p4}",
     "msg_f3986c03e2f16125": "Dieser Benutzername ist nicht verfügbar.",
     "msg_f48a1c3c43628b92": "Fehler bei der Überprüfung des Passworts 😔",
     "msg_f4b566b04049ad46": "Ungebundene Leistung!",
@@ -911,7 +911,7 @@
     "msg_5b340914b2d19462": "⚖️ Konsequenzen",
     "msg_8048b69bd5b33a4e": "Extras",
     "msg_83ad6512db112132": "Abzeichen",
-    "msg_87e4571bc7b47363": "Platte",
+    "msg_87e4571bc7b47363": "Gericht",
     "msg_95d758303422ec7a": "🕹️ Spielmodi",
     "msg_982432b056bee293": "📢 Mitteilung",
     "msg_9a804a1d2c8c1dd9": "😊 Emojis",
@@ -1210,7 +1210,7 @@
     "msg_de4c70d131d0e103": "- {p0} XP 😤",
     "msg_7bc4883cabe41f25": "🌶️ COMIDADLE",
     "msg_8dac93bea8fffc91": "👉 comidadle.github.io",
-    "msg_08b8f7e686aee75e": "{p1} — 3 Platten",
+    "msg_08b8f7e686aee75e": "{p1} — 3 Gerichte",
     "msg_d9d2059df74f3cc0": "✅ Erreicht",
     "msg_8619c923e6bd238d": "{p0} XP",
     "msg_ecb0753749693b5f": "{p1} XP",
@@ -1220,9 +1220,6 @@
     "msg_f4fa93af1edaa877": "🔥 Serie: {p0}",
     "msg_add9e461307340ac": "🎁 + {p0} XP",
     "msg_dfd6c755261e5854": "Nachricht (optional).",
-    "msg_595ba961860fe5cd": "# FreeGaza🇵🇸",
-    "msg_2adaf32e7cfa2328": "Sonntag",
-    "msg_3c2c305fa487481e": "{p2} / {p3} Gerichte entdeckt",
     "msg_150f5d892090a38a": "· neu",
     "msg_5f6088efba7a35f0": "{p0} Emoji",
     "msg_3f1b4111c6b50341": "🏅 Errungenschaften ( {p6} / {p7} )",
@@ -1922,7 +1919,7 @@
         "Sie sind die am meisten bestellten Tapas in den Bars der Städte des Landes",
         "Die Kartoffel wird zweimal gebraten, um sie außen knusprig zu machen"
       ],
-      "displayName": "Kartoffeln"
+      "displayName": "Kartoffeln mit Brava-Sauce"
     },
     "regular:56": {
       "name": "Jamón Ibérico",
@@ -2798,7 +2795,7 @@
         "Zwei Stunden lang im Holzofen mit nur Wasser und Salz braten",
         "Cándido de Segovia Gasthaus machte es international beliebt"
       ],
-      "displayName": "Geröstetes Schwein"
+      "displayName": "Gebratenes Spanferkel"
     },
     "regular:128": {
       "name": "Caldereta de Cordero",
@@ -8514,15 +8511,15 @@
     },
     "regular:583": {
       "name": "Moqueca de Camarão",
-      "desc": "Frische Garnelen in Kokosmilchsauce, Dendê, Tomate und Pfeffer, Bahian Version.",
+      "desc": "Frische Garnelen in einer Sauce aus Kokosmilch, Dendê-Öl, Tomaten und Paprika nach Art von Bahia.",
       "hints": [
         "Es unterscheidet sich von der Baian Moqueca in, dass die Protagonistin ist Garnelen",
         "Garnelen werden innerhalb der letzten fünf Minuten hinzugefügt, um eine Verhärtung zu vermeiden",
         "Kokosmilch und dendê sind die untrennbare aromatische Basis",
         "Serviert mit weißem Reis und Fisch Pirão in Salvador de Bahia",
-        "Es ist der begehrteste Eingang zu Bahrainischen Restaurants im Land"
+        "Es gehört zu den beliebtesten Vorspeisen in den Restaurants des Landes mit Küche aus Bahia."
       ],
-      "displayName": "Moqueca Camarão"
+      "displayName": "Moqueca mit Garnelen"
     },
     "regular:584": {
       "name": "Pirão Brasileiro",
@@ -9806,7 +9803,7 @@
         "Sonntage sind der heilige Tag des Familienröstens im Land",
         "Paraguayisches Fleisch von natürlichen Weiden wird regional sehr geschätzt"
       ],
-      "displayName": "Asado Paraguayo"
+      "displayName": "Paraguayisches Grillfleisch"
     },
     "regular:712": {
       "name": "Vorí Vorí",
@@ -10950,15 +10947,15 @@
     },
     "regular:808": {
       "name": "Carapulcra Chinchana",
-      "desc": "Getrockneter Kartoffeleintopf mit Schweinefleisch, rotem Pfeffer und gerösteten Erdnüssen, Kolonialteller von Chincha.",
+      "desc": "Eintopf aus getrockneten Kartoffeln, Schweinefleisch, roter Chili und gerösteten Erdnüssen, ein Gericht aus der Kolonialzeit aus Chincha.",
       "hints": [
         "Die getrocknete Kartoffel – und der lyophilisierte Papa – ist die dehydrierte Basis des Eintopfes",
         "Chincha, südlich von Lima, ist die Stadt, die am meisten behauptet, diese Eintopf",
         "Die gemahlene geröstete Erdnuss verleiht ihr die Cremigkeit und den Geschmack, der sie auszeichnet",
-        "Das Carapulcra wird neben der Trockensuppe in den chinesischen Feiern serviert",
+        "Bei Festen in Chincha wird Carapulcra zusammen mit Sopa seca serviert.",
         "Es ist eines der ältesten Gerichte in Lima Küche mit dehydrierten Kartoffeln"
       ],
-      "displayName": "Carapulcra Chinchana"
+      "displayName": "Kartoffeleintopf nach Chincha-Art"
     },
     "regular:809": {
       "name": "Cau Cau de Mariscos",
@@ -14622,7 +14619,7 @@
     },
     "sunday:32": {
       "name": "Shepherd's Pie",
-      "desc": "Gebratenes Lammfleisch Eintopf mit Gemüse, mit Kartoffelpüree und gebackenem Gratin bedeckt.",
+      "desc": "Lammhackfleisch mit Gemüse, mit Kartoffelpüree bedeckt und im Ofen überbacken.",
       "hints": [
         "Der Fuß des Hirten kann nur so genannt werden, wenn er Lamm trägt, nie Rindfleisch",
         "Die Rindfleisch-Version wird Cottage Foot genannt und ist per Definition anders",
@@ -14630,7 +14627,7 @@
         "Es ist das Sonntagsgericht in englischen Häusern",
         "Worcestershire Soße gibt Ihnen die tiefe Umami, die es so lecker macht"
       ],
-      "displayName": "Shepherd's Pie"
+      "displayName": "Lammhackfleischauflauf mit Kartoffelpüree"
     },
     "sunday:33": {
       "name": "Hamburguesa Clásica",
@@ -15105,7 +15102,7 @@
   "generationComplete": true,
   "review": {
     "controlsReviewed": true,
-    "manualControlOverrides": 49,
+    "manualControlOverrides": 55,
     "fullEditorialReview": false
   }
 }

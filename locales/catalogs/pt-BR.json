@@ -1,6 +1,6 @@
 {
   "locale": "pt-BR",
-  "sourceRevision": "548f188666d59d8017db7329a486538f21aaa9602a309f6d02129d6c1f56ce32",
+  "sourceRevision": "f457d82ee464a26163085a0408a1e67e23e267438cc78f3004c24ec3e9f562c5",
   "status": "draft",
   "applicationCoverageReviewed": false,
   "ui": {
@@ -134,7 +134,7 @@
     "msg_0d6b062a6fcb77b7": "Já verifiquei, continue.:",
     "msg_0e13aa7a3e6f6112": "O meu progresso é exportado (.json)",
     "msg_0ed00e1779aeb045": "Efeitos sonoros quando corretos ou falhados, independentemente da vibração.",
-    "msg_0f4d204db94aba20": "Placa de ontem",
+    "msg_0f4d204db94aba20": "Prato de ontem",
     "msg_0f55198bc4272047": "Adivinha o país de origem — 6 tentativas",
     "msg_0fa912b811394b9a": "Esperando que os outros terminem.s.s.",
     "msg_1084d0cc2f2672c5": "Seja o primeiro esta semana! 📅",
@@ -149,7 +149,7 @@
     "msg_131e187360208ad0": "🤖 Receitas com IA: os aplicativos passam agora por um Edge-Fit do Supabase, mantendo a chave Antrópica fora do cliente.",
     "msg_137ee98b36075434": "nova faixa",
     "msg_1523324a219e047f": "Não foi possível aceder à câmera 😔",
-    "msg_1554fc76c25040f8": "Platão, p., p",
+    "msg_1554fc76c25040f8": "Prato",
     "msg_169842fb2ed12da6": "📸 Usuário atualizado do Instagram para @aanxs404.",
     "msg_16cfd9619ca3cd40": "Iniciando a câmera.",
     "msg_16eb880b62492b54": "Magnate_BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR__BAR___BAR___BAR__BAR__BAR__BAR__BAR_",
@@ -701,7 +701,7 @@
     "msg_e40fab455089e857": "Pistas Progressivas",
     "msg_e46196d203f9f4d6": "Modo de cor",
     "msg_e466e7bee6cb9487": "Jogar o seu primeiro jogo",
-    "msg_e49ab55991a69bb9": "Placas",
+    "msg_e49ab55991a69bb9": "Pratos",
     "msg_e516e306787a1428": "(13 de agosto de 2026) 🐛 Excluído \"Fechar a sessão\" e \"Eliminar\" do ranking global.",
     "msg_e545b02d8dee9544": "Não especificado",
     "msg_e557eb85f051af01": "✅ Pedido aceito",
@@ -744,7 +744,7 @@
     "msg_f1cf7df4bbac2e37": "Os votos não correspondiam, deixe-o decidir sorte!",
     "msg_f24847a0b6c496d9": "📢 Novo sistema de alerta para o Proprietário: eles aparecem como notificações flutuantes abaixo (eles não cobrem o cabeçalho). Se houver vários, a mais recente fica afiada abaixo e as anteriores com um borrão suave acima.",
     "msg_f24b4e1cf27efc2b": "Erro do checkLoginOnLoad:",
-    "msg_f2952a9c95cd6d58": "{p3} placa {p4}",
+    "msg_f2952a9c95cd6d58": "{p3} Prato {p4}",
     "msg_f3986c03e2f16125": "Esse nome de usuário não está disponível.",
     "msg_f48a1c3c43628b92": "Erro na verificação da senha 😔",
     "msg_f4b566b04049ad46": "Desbloqueado!",
@@ -911,7 +911,7 @@
     "msg_5b340914b2d19462": "⚖️ Consequências",
     "msg_8048b69bd5b33a4e": "extras",
     "msg_83ad6512db112132": "Insígnias",
-    "msg_87e4571bc7b47363": "placa",
+    "msg_87e4571bc7b47363": "Prato",
     "msg_95d758303422ec7a": "🕹️ Modos",
     "msg_982432b056bee293": "📢 Aviso",
     "msg_9a804a1d2c8c1dd9": "😊 Emojis",
@@ -1210,7 +1210,7 @@
     "msg_de4c70d131d0e103": "- {p0} XP 😤",
     "msg_7bc4883cabe41f25": "🌶️ COMIDADLE",
     "msg_8dac93bea8fffc91": "👉 comidadle.github.io",
-    "msg_08b8f7e686aee75e": "{p1} — 3 placas",
+    "msg_08b8f7e686aee75e": "{p1} — 3 pratos",
     "msg_d9d2059df74f3cc0": "✅ Alcançada",
     "msg_8619c923e6bd238d": "{p0} XP",
     "msg_ecb0753749693b5f": "{p1} XP",
@@ -1220,9 +1220,6 @@
     "msg_f4fa93af1edaa877": "🔥 Sequência: {p0}",
     "msg_add9e461307340ac": "🎁 + {p0} XP",
     "msg_dfd6c755261e5854": "Mensagem (opcional).",
-    "msg_595ba961860fe5cd": "# FreeGaza 🇵🇸",
-    "msg_2adaf32e7cfa2328": "Domingos",
-    "msg_3c2c305fa487481e": "{p2} / {p3} pratos descobertos",
     "msg_150f5d892090a38a": "· novo",
     "msg_5f6088efba7a35f0": "{p0} Emoji",
     "msg_3f1b4111c6b50341": "🏅 Progressos ( {p6} / {p7} )",
@@ -1922,7 +1919,7 @@
         "São as tapas mais ordenadas nos bares das cidades do país",
         "A batata é frita duas vezes para torná-la crocante no exterior"
       ],
-      "displayName": "Batatas"
+      "displayName": "Batatas ao molho brava"
     },
     "regular:56": {
       "name": "Jamón Ibérico",
@@ -2798,7 +2795,7 @@
         "Assar no forno de lenha por duas horas com apenas água e sal",
         "Cándido de Segovia pousada tornou-se popular internacionalmente"
       ],
-      "displayName": "Porco assado"
+      "displayName": "Leitão assado"
     },
     "regular:128": {
       "name": "Caldereta de Cordero",
@@ -8514,15 +8511,15 @@
     },
     "regular:583": {
       "name": "Moqueca de Camarão",
-      "desc": "Camarões frescos em molho de leite de coco, dendê, tomate e pimenta, versão baiana.",
+      "desc": "Camarões frescos em molho de leite de coco, dendê, tomate e pimentão, na versão baiana.",
       "hints": [
         "Difere da moqueca Baian em que o protagonista é camarão",
         "Camarão são adicionados nos últimos cinco minutos para evitar endurecimento",
         "Leite de coco e dendê são a base aromática inseparável",
         "Servido com arroz branco e peixe pirão em Salvador de Bahia",
-        "É a entrada mais procurada para os restaurantes bahreiníes do país"
+        "É uma das entradas mais pedidas nos restaurantes de cozinha baiana do país."
       ],
-      "displayName": "Moqueca Camarão"
+      "displayName": "Moqueca de camarão"
     },
     "regular:584": {
       "name": "Pirão Brasileiro",
@@ -9806,7 +9803,7 @@
         "Os domingos são o dia sagrado da assada familiar no país",
         "A carne paraguaia de pastos naturais é muito apreciada regionalmente"
       ],
-      "displayName": "Asado Paraguaio"
+      "displayName": "Churrasco paraguaio"
     },
     "regular:712": {
       "name": "Vorí Vorí",
@@ -10950,15 +10947,15 @@
     },
     "regular:808": {
       "name": "Carapulcra Chinchana",
-      "desc": "Ensopado de batata seca com porco, pimenta vermelha e amendoim assado, prato colonial de Chincha.",
+      "desc": "Ensopado de batata seca com carne de porco, pimenta vermelha e amendoim torrado, prato colonial de Chincha.",
       "hints": [
         "O papa liofilizado da batata seca é a base desidratada do ensopado",
         "Chincha, ao sul de Lima, é a cidade que mais reivindica este ensopado",
         "O amendoim torrado molhado dá-lhe cremosidade e sabor que o distingue",
-        "O carapulcra é servido ao lado da sopa seca nas celebrações chinesas",
+        "A carapulcra é servida com sopa seca nas celebrações de Chincha.",
         "É um dos pratos mais antigos da cozinha de Lima com batata desidratada"
       ],
-      "displayName": "Carapulcra Chinchana"
+      "displayName": "Guisado de batata seca de Chincha"
     },
     "regular:809": {
       "name": "Cau Cau de Mariscos",
@@ -14622,7 +14619,7 @@
     },
     "sunday:32": {
       "name": "Shepherd's Pie",
-      "desc": "Ensopado de carne de cordeiro assada com legumes, coberto com purê de batata e gratin assado.",
+      "desc": "Ensopado de carne de cordeiro moída com legumes, coberto de purê de batata e gratinado no forno.",
       "hints": [
         "O pé do Pastor só pode ser chamado assim se carregar cordeiro, nunca carne de vaca",
         "A versão de beef é chamada de pé de cabana e é diferente por definição",
@@ -14630,7 +14627,7 @@
         "É o prato de uso dominical em casas inglesas",
         "O molho Worcestershire dá-lhe o umami profundo que o torna tão saboroso"
       ],
-      "displayName": "Shepherd's Pie"
+      "displayName": "Escondidinho de cordeiro"
     },
     "sunday:33": {
       "name": "Hamburguesa Clásica",
@@ -15105,7 +15102,7 @@
   "generationComplete": true,
   "review": {
     "controlsReviewed": true,
-    "manualControlOverrides": 49,
+    "manualControlOverrides": 55,
     "fullEditorialReview": false
   }
 }

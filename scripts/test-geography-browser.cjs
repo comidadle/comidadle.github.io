@@ -19,9 +19,12 @@ const sdk='window.supabase={createClient(){return {auth:{onAuthStateChange(){ret
         enterGuestMode();closeModal('how-modal');cfg.progressive=false;cfg.noDesc=false;cfg.noHints=false;cfg.soundOn=false;cfg.hapticsOn=false;
         const geo=ComidadleGeography.createMatcher({countries:(await fetch('../locales/catalogs/es.json').then(r=>r.json())).flags});
         const visibleLeaks=element=>{
-          const walker=document.createTreeWalker(element,NodeFilter.SHOW_TEXT),leaks=[];
-          while(walker.nextNode())if(!walker.currentNode.parentElement.closest('.geography-blur'))leaks.push(...geo.ranges(walker.currentNode.nodeValue).map(x=>x.text));
-          return leaks;
+          const walker=document.createTreeWalker(element,NodeFilter.SHOW_TEXT);let text='',visible=[];
+          while(walker.nextNode()){
+            const node=walker.currentNode,shown=!node.parentElement.closest('.geography-blur');
+            text+=' ';visible.push(false);text+=node.nodeValue;for(let i=0;i<node.nodeValue.length;i++)visible.push(shown&&!/\s/.test(node.nodeValue[i]));
+          }
+          return geo.ranges(text).filter(range=>visible.slice(range.start,range.end).some(Boolean)).map(range=>range.text);
         };
         let checked=0,hidden=0;const failures=[];
         const esc=ComidadleI18n.escapeHtml;

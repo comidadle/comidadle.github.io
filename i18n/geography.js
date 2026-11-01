@@ -7,7 +7,8 @@
   const fold=text=>text.normalize('NFD').replace(/\p{M}/gu,'').toLowerCase().replace(/ß/g,'ss');
   const escape=text=>text.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
   function createMatcher({countries={},demonyms={}}={}){
-    const literals=new Set(places);
+    const broadPlaces=new Set(['Andes','Los Andes','Anden','Caribe','Caribbean','Caraïbes','Karibik','Antillas','Antilles','Antillen']);
+    const literals=new Set([...places.filter(name=>!broadPlaces.has(name)),'Chincha','Paisa','Paisas','Rolo']);
     const allCountries='AD AE AF AG AI AL AM AO AQ AR AS AT AU AW AX AZ BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS BT BV BW BY BZ CA CC CD CF CG CH CI CK CL CM CN CO CR CU CV CW CX CY CZ DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ FK FM FO FR GA GB GD GE GF GG GH GI GL GM GN GP GQ GR GS GT GU GW GY HK HM HN HR HT HU ID IE IL IM IN IO IQ IR IS IT JE JM JO JP KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MF MG MH MK ML MM MN MO MP MQ MR MS MT MU MV MW MX MY MZ NA NC NE NF NG NI NL NO NP NR NU NZ OM PA PE PF PG PH PK PL PM PN PR PS PT PW PY QA RE RO RS RU RW SA SB SC SD SE SG SH SI SJ SK SL SM SN SO SR SS ST SV SX SY SZ TC TD TF TG TH TJ TK TL TM TN TO TR TT TV TW TZ UA UG UM US UY UZ VA VC VE VG VI VN VU WF WS YE YT ZA ZM ZW'.split(' ');
     for(const code of allCountries)for(const locale of ['es','en','fr','de','pt-BR','pt-PT'])try{literals.add(new Intl.DisplayNames([locale],{type:'region'}).of(code));}catch(_){}
     for(const [name,code] of Object.entries(countries)){
@@ -18,7 +19,8 @@
     for(const alias of ['USA','U.S.A.','U.S.','EE.UU.','UK','U.K.','República Dominicana','Dominican Republic','République dominicaine','Republik Dominikanische','Czechia','Czech Republic','Sudáfrica','South Africa','Afrique du Sud','Südafrika','África do Sul','Netherlands','Holland','Myanmar','Burma','Birmanie','Birmânia','Congo','Hong Kong','Taiwan'])literals.add(alias);
     const alternatives=[...new Set([...literals].filter(Boolean).map(fold))].sort((a,b)=>b.length-a.length).map(escape);
     const extraStems=['panam','indian','indio','chino','alema','frances','belg','autrich','agypt','greg','jamaik','ruso','polac','tunes','saoud','guian','paquistan','quenian','bengal','dinamar','suico','czech','tchec','romeno','briton','neuseeland','neo-zeland','new zealand','costa rican','costa-rican','costa ricien','puerto rican','puerto-ric','porto rican','porto-ric','portoric','sudkorean','south korean','sud-coreen','sul-corean','south african','sud-africain','sul-afric','syrian','syrien','syrisch','sirian','sirio','ottoman','otoman'];
-    alternatives.push(...[...new Set([...stems,...regionalStems,...extraStems,'vienes','vienn','wiener','vienens'].map(fold))].filter(Boolean).sort((a,b)=>b.length-a.length).map(stem=>escape(stem)+'[\\p{L}]*'));
+    const broad=new Set(['argent','rolo','paisa','proven','iran','andin','andean','andisch','andeen','cariben','caribbean','caraib','karib','mediterran','mediterrane','arab']);
+    alternatives.push(...[...new Set([...stems,...regionalStems,...extraStems,'irani','chinchan','andeen','vienes','vienn','wiener','vienens'].map(fold))].filter(stem=>stem&&!broad.has(stem)).sort((a,b)=>b.length-a.length).map(stem=>escape(stem)+'[\\p{L}]*'));
     const regex=new RegExp('(?<![\\p{L}\\p{N}])(?:'+alternatives.join('|')+')(?![\\p{L}\\p{N}])','gu');
     function ranges(text){
       text=String(text);let normalized='',starts=[],ends=[];
@@ -26,6 +28,19 @@
       const result=[];regex.lastIndex=0;
       for(const match of normalized.matchAll(regex)){
         const start=starts[match.index],end=ends[match.index+match[0].length-1],value=text.slice(start,end);
+        const before=normalized.slice(Math.max(0,match.index-45),match.index),after=normalized.slice(match.index+match[0].length);
+        if(/^poblan/.test(match[0])&&(/(?:chile|chili|pepper|piment|pimenta|pimento|pimentao)\s+$/.test(before)||/^\s+(?:peppers?|chill?is?|piments?)\b/.test(after)))continue;
+        if(match[0]==='para'&&!/pará/i.test(value)&&!/(?:estado de|state of|etat de|region de)\s+$/.test(before))continue;
+        // Nombres de ciudades que también designan alimentos, verbos o sustancias.
+        if(['sucre','lima','grenade','malta','porto','rolo','salta','corrientes','iran','jerez','xeres'].includes(match[0])){
+          if(value===value.toLowerCase())continue;
+          const ingredient=/(?:suco|sumo|jus|juice|sopa|soup|soupe|tarta|tarte|zumo|vinho|vino|wine|vin|bolo)\s+(?:(?:de|del|do|du|of|au)\s+)?$/i.test(before);
+          const geoContext=/(?:\b(?:a|en|in|from|desde|vers|nach|ville de|ciudad de|city of|capitale de|capital de)\s+)$/i.test(before)||/^\s+(?:est|es|is)\s+(?:la |the )?(?:capitale|capital|ville|ciudad|city)\b/i.test(after);
+          const sugar=match[0]==='sucre'&&/^\s*(?:(?:[,;]\s*(?:beurre|farine|lait))|(?:en poudre|roux|blanc|brun|semoule|de canne)\b)/i.test(after);
+          if(ingredient||sugar)continue;
+        }
+        if(['chile','chili'].includes(match[0])&&/^\s+(?:guajillo|poblano|ancho|serrano|relleno|verde|rojo|colorado|dulce|picante|powder|oil|pepper|flakes|con carne)\b/.test(after))continue;
+        if(match[0]==='turkey'&&/^\s+(?:with|breast|thigh|meat|stuffing|pieces|mince|legs)\b/.test(after))continue;
         // Chile/chili y turkey también son ingredientes; sus formas minúsculas no son nombres propios.
         if(['chile','chili','turkey'].includes(match[0])&&value===value.toLowerCase()&&!/(?:\b(?:en|in|from|au|nach|desde|originaire|nacido|nacio)\s+)$/i.test(normalized.slice(Math.max(0,match.index-22),match.index)))continue;
         result.push({start,end,text:value});

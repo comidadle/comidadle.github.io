@@ -6,7 +6,7 @@ test('se ocultan los países y gentilicios de las capturas, incluso con acentos 
   for(const text of ['panaméens','panaméennes','Panameñas','panamenho','panamiano','Panamanian','panamaisches','Cuba','cubains','kubanischen','Espagnol','españoles','Spanish','spanisches'])assert.equal(matcher.redact(text),'…',text);
 });
 test('vasco y sus equivalentes se ocultan en los seis idiomas junto con ciudades y regiones',()=>{
-  for(const text of ['vasco','vascas','basque','Basques','baskischen','basco','basca','Euskadi','Bilbao','País Vasco','Pays basque','Baskenland','Oaxaca','Québec','São Paulo','La Habana','Andalousie','La Paz','Arequipa','Viennese','viennois','Wiener','vienense'])assert.equal(matcher.redact(text),'…',text);
+  for(const text of ['vasco','vascas','basque','Basques','baskischen','basco','basca','Euskadi','Bilbao','País Vasco','Pays basque','Baskenland','Oaxaca','Québec','São Paulo','La Habana','Andalousie','La Paz','Arequipa','Lima','Sucre','Viennese','viennois','Wiener','vienense'])assert.equal(matcher.redact(text),'…',text);
 });
 test('cada país disponible se oculta en sus seis nombres localizados',()=>{
   for(const code of new Set(Object.values(countries)))for(const locale of ['es','en','fr','de','pt-BR','pt-PT']){
@@ -22,5 +22,5 @@ test('las coordenadas de texto conservan emojis y Unicode fuera del dato oculto'
   assert.equal(matcher.redact('paname\u0301ens'),'…');
 });
 test('no se ocultan ingredientes comunes por coincidir parcialmente con un país',()=>{
-  for(const text of ['chile guajillo con tomate','turkey with rice','cubierto de chocolate','arroz con pollo','mantequilla y harina'])assert.equal(matcher.redact(text),text);
+  for(const text of ['chile guajillo con tomate','Chile relleno','Chili powder','turkey with rice','Turkey with rice','cubierto de chocolate','arroz con pollo','mantequilla y harina','orange et sucre','figurines en sucre','Sucre, beurre et lait.','sopa de Lima','jus de lima','bolo de rolo','malta tostada','para cocinar y para servir','Para servir caliente','receta probada y de origen proveniente','a proven method','un paisaje lleno de colores','los ingredientes irán al horno'])assert.equal(matcher.redact(text),text);
 });
