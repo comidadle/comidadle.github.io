@@ -6,6 +6,11 @@
   const isPreview=location.pathname.includes('/preview/');
   let demoActive=false;
   let demoInventory=[];
+  // El enlace de acceso permite salir de una demo guardada sin borrar el progreso.
+  if(isPreview&&new URLSearchParams(location.search).get('login')==='1'){
+    try{localStorage.removeItem('comidadle_preview_demo');}catch(_){}
+    const url=new URL(location.href);url.searchParams.delete('login');history.replaceState(null,'',url);
+  }
   if(isPreview){
     const realFetch=window.fetch.bind(window);
     window.fetch=async(input,options={})=>{
@@ -91,6 +96,10 @@
     }
     const localization={
       get locale(){return engine.locale;},
+      leaveDemo(){
+        demoActive=false;
+        try{localStorage.removeItem('comidadle_preview_demo');}catch(_){}
+      },
       text:(key,vars={})=>engine.text(key,vars),
       raw(key,vars={}){return this.text(key,vars);},
       htmlText(key,vars={}){

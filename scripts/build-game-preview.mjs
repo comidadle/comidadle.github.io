@@ -38,6 +38,7 @@ function human(value){
 const skip=new Set(['ALL_DISHES','SUNDAY_INTERNATIONAL_DISHES','FLAGS','DEMONYMS','T','SB','SK','SH']);
 const start=source.lastIndexOf('<script>')+8,end=source.indexOf('</script>',start);
 let code=source.slice(start,end);
+code=code.replace('async function logOut(){','async function logOut(){L10N.leaveDemo();');
 // El país personal se cambia desde el perfil; ambos rankings muestran solo la identidad.
 code=code.replace(/\s*<select id="my-country-select"[\s\S]*?<\/select>/,'');
 code=code.replace('document.getElementById("my-country-select").onchange=(e)=>{saveMyCountry(e.target.value);populateCountryFilterSelects();};','');

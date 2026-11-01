@@ -1024,7 +1024,7 @@ function setupGuestLockDelegation(){
 }
 function enterGuestMode(){isGuest=true;const ov=document.getElementById("login-overlay");if(ov)ov.style.display="none";applyGuestLocks();try{renderAll();}catch(e){}}
 function _closeLoginOverlay(){const ov=document.getElementById("login-overlay");if(ov)ov.style.display="none";}
-async function logOut(){_initSBClient();if(sbClient)await sbClient.auth.signOut().catch(()=>{});localStorage.removeItem(UK);localStorage.removeItem(UDK);localStorage.removeItem(SESSK);location.reload();}
+async function logOut(){L10N.leaveDemo();_initSBClient();if(sbClient)await sbClient.auth.signOut().catch(()=>{});localStorage.removeItem(UK);localStorage.removeItem(UDK);localStorage.removeItem(SESSK);location.reload();}
 async function saveGoogleUsername(){
   const input=document.getElementById("username-setup-input");const user=(input?.value||"").trim();
   const countrySel=document.getElementById("username-setup-country");const country=(countrySel?.value||"").trim();
