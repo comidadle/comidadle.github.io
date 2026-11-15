@@ -1,6 +1,6 @@
 {
   "locale": "en",
-  "sourceRevision": "d75722ab429fd3253e33d60292117be6a61e09bc607372eddc1ff8008774289d",
+  "sourceRevision": "ca6a7f2050917c969d3a48b90c72fa1a546c7bffb00243117d2147641a60e1d8",
   "status": "draft",
   "applicationCoverageReviewed": false,
   "ui": {
@@ -1248,7 +1248,14 @@
     "msg_3fc5f90b27f1acbc": "Minimize",
     "msg_fa846ee3576b4a8d": "Info",
     "msg_7f3da61914d59db8": "🌍 A country is required at sign-up; change it for free at any time from your profile.",
-    "msg_1c619abff244aff1": "🐛 Fixed the passport: Sunday Special countries were not unlocked because of an incorrect field and a history limited to 42 games. It now uses the passport’s permanent record."
+    "msg_1c619abff244aff1": "🐛 Fixed the passport: Sunday Special countries were not unlocked because of an incorrect field and a history limited to 42 games. It now uses the passport’s permanent record.",
+    "msg_faf4754397706687": "🎉 International Dishes",
+    "msg_2d97689563064255": "An international dish available on Saturdays and Sundays",
+    "msg_12b42d9651f1cbf6": "Saturdays and Sundays",
+    "msg_1763fd81f1af4671": "as part of International Dishes",
+    "msg_70ed044448e79158": "🌍 International Dishes unlocked",
+    "msg_7fc441e59ada1c10": "🎉 International Dishes ·",
+    "msg_c73c95a6b321403e": "Guess its dish on Saturday or Sunday to unlock the recipe 🔒"
   },
   "dishes": {
     "regular:0": {

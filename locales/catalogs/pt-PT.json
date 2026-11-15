@@ -1,6 +1,6 @@
 {
   "locale": "pt-PT",
-  "sourceRevision": "d75722ab429fd3253e33d60292117be6a61e09bc607372eddc1ff8008774289d",
+  "sourceRevision": "ca6a7f2050917c969d3a48b90c72fa1a546c7bffb00243117d2147641a60e1d8",
   "status": "draft",
   "applicationCoverageReviewed": false,
   "ui": {
@@ -1248,7 +1248,14 @@
     "msg_7ae9d418353b399f": "Idioma",
     "msg_49144156921dfc2f": "A mudança de idioma recarrega a página. O teu progresso diário é guardado.",
     "msg_7f3da61914d59db8": "🌍 É obrigatório escolher um país na inscrição; podes alterá-lo gratuitamente a qualquer momento no perfil.",
-    "msg_1c619abff244aff1": "🐛 Passaporte corrigido: os países do Especial de Domingo não eram desbloqueados devido a um campo incorreto e a um histórico limitado a 42 partidas. Agora é usado o registo permanente do passaporte."
+    "msg_1c619abff244aff1": "🐛 Passaporte corrigido: os países do Especial de Domingo não eram desbloqueados devido a um campo incorreto e a um histórico limitado a 42 partidas. Agora é usado o registo permanente do passaporte.",
+    "msg_faf4754397706687": "🎉 Pratos internacionais",
+    "msg_2d97689563064255": "Um prato internacional disponível aos sábados e domingos",
+    "msg_12b42d9651f1cbf6": "sábados e domingos",
+    "msg_1763fd81f1af4671": "em Pratos internacionais",
+    "msg_70ed044448e79158": "🌍 Pratos internacionais descobertos",
+    "msg_7fc441e59ada1c10": "🎉 Pratos internacionais ·",
+    "msg_c73c95a6b321403e": "Acerte no prato ao sábado ou ao domingo para desbloquear a receita 🔒"
   },
   "dishes": {
     "regular:0": {

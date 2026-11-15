@@ -1,6 +1,6 @@
 {
   "locale": "de",
-  "sourceRevision": "d75722ab429fd3253e33d60292117be6a61e09bc607372eddc1ff8008774289d",
+  "sourceRevision": "ca6a7f2050917c969d3a48b90c72fa1a546c7bffb00243117d2147641a60e1d8",
   "status": "draft",
   "applicationCoverageReviewed": false,
   "ui": {
@@ -1248,7 +1248,14 @@
     "msg_3fc5f90b27f1acbc": "Minimieren",
     "msg_fa846ee3576b4a8d": "Info",
     "msg_7f3da61914d59db8": "🌍 Bei der Registrierung ist ein Land erforderlich; du kannst es jederzeit kostenlos im Profil ändern.",
-    "msg_1c619abff244aff1": "🐛 Reisepass korrigiert: Länder des Sonntagsspezials wurden wegen eines falschen Datenfelds und eines auf 42 Spiele begrenzten Verlaufs nicht freigeschaltet. Jetzt wird der dauerhafte Reisepasseintrag verwendet."
+    "msg_1c619abff244aff1": "🐛 Reisepass korrigiert: Länder des Sonntagsspezials wurden wegen eines falschen Datenfelds und eines auf 42 Spiele begrenzten Verlaufs nicht freigeschaltet. Jetzt wird der dauerhafte Reisepasseintrag verwendet.",
+    "msg_faf4754397706687": "🎉 Internationale Gerichte",
+    "msg_2d97689563064255": "Ein internationales Gericht, samstags und sonntags verfügbar",
+    "msg_12b42d9651f1cbf6": "samstags und sonntags",
+    "msg_1763fd81f1af4671": "bei den internationalen Gerichten",
+    "msg_70ed044448e79158": "🌍 Internationale Gerichte freigeschaltet",
+    "msg_7fc441e59ada1c10": "🎉 Internationale Gerichte ·",
+    "msg_c73c95a6b321403e": "Errate das Gericht am Samstag oder Sonntag, um das Rezept freizuschalten 🔒"
   },
   "dishes": {
     "regular:0": {

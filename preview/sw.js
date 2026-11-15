@@ -4,7 +4,7 @@ function offlineMessage(request){const requested=(request.headers.get("Accept-La
 // Bump CACHE_VERSION whenever you release a new version of index.html so
 // clients pick up the fresh copy instead of serving a stale cached one.
 const CACHE_VERSION = "v3.3.0";
-const CACHE_NAME = "comidadle-preview-" + CACHE_VERSION + "-preview-6334bf9c3d73";
+const CACHE_NAME = "comidadle-preview-" + CACHE_VERSION + "-preview-2f194e44cf91";
 
 // The app shell: index.html is a single self-contained file with ALL game
 // data embedded inline (dish list, hints, everything). Today's dish is
@@ -12,17 +12,17 @@ const CACHE_NAME = "comidadle-preview-" + CACHE_VERSION + "-preview-6334bf9c3d73
 // one file is enough to let the daily game, Infinito and Memoria all work
 // fully offline — no separate data file to worry about.
 const APP_SHELL = [
-  "./app.js?v=6334bf9c3d73",
-  "../i18n/runtime.js?v=6334bf9c3d73",
-  "../i18n/geography.js?v=6334bf9c3d73",
-  "../i18n/passport.js?v=6334bf9c3d73",
-  "../i18n/game-boot.js?v=6334bf9c3d73",
-  "../locales/catalogs/es.json?v=6334bf9c3d73",
-  "../locales/catalogs/en.json?v=6334bf9c3d73",
-  "../locales/catalogs/fr.json?v=6334bf9c3d73",
-  "../locales/catalogs/de.json?v=6334bf9c3d73",
-  "../locales/catalogs/pt-BR.json?v=6334bf9c3d73",
-  "../locales/catalogs/pt-PT.json?v=6334bf9c3d73",
+  "./app.js?v=2f194e44cf91",
+  "../i18n/runtime.js?v=2f194e44cf91",
+  "../i18n/geography.js?v=2f194e44cf91",
+  "../i18n/passport.js?v=2f194e44cf91",
+  "../i18n/game-boot.js?v=2f194e44cf91",
+  "../locales/catalogs/es.json?v=2f194e44cf91",
+  "../locales/catalogs/en.json?v=2f194e44cf91",
+  "../locales/catalogs/fr.json?v=2f194e44cf91",
+  "../locales/catalogs/de.json?v=2f194e44cf91",
+  "../locales/catalogs/pt-BR.json?v=2f194e44cf91",
+  "../locales/catalogs/pt-PT.json?v=2f194e44cf91",
   "./",
   "./index.html",
   "./manifest.json",

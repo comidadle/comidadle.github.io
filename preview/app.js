@@ -891,19 +891,19 @@ const SUNDAY_INTERNATIONAL_DISHES=[
 ];
 const SUNDAY_SPECIAL_NAMES=[];
 function getWeekNumber(d){const onejan=new Date(d.getFullYear(),0,1);return Math.ceil((((d-onejan)/86400000)+onejan.getDay()+1)/7);}
-const isSundaySpecial=_now.getDay()===0||new URLSearchParams(location.search).get("special")==="1";
+const isInternationalDay=_now.getDay()===0||_now.getDay()===6||new URLSearchParams(location.search).get("special")==="1";
 const SUNDAY_POOL=SUNDAY_INTERNATIONAL_DISHES;
 
 
-function pickSundaySpecialDish(){
+function pickInternationalDish(){
   if(!SUNDAY_POOL.length)return null;
   const wk=getWeekNumber(_now);
   const shuffled=shuffleWithSeed(SUNDAY_POOL,_year*7777+wk*131);
   return shuffled[wk%shuffled.length];
 }
-const SUNDAY_SPECIAL_DISH=isSundaySpecial?pickSundaySpecialDish():null;
+const INTERNATIONAL_DISH_OF_DAY=isInternationalDay?pickInternationalDish():null;
 
-const DAILY=[YEARLY[dayOfYear*3%1095],YEARLY[(dayOfYear*3+1)%1095],SUNDAY_SPECIAL_DISH||YEARLY[(dayOfYear*3+2)%1095]];
+const DAILY=[YEARLY[dayOfYear*3%1095],YEARLY[(dayOfYear*3+1)%1095],INTERNATIONAL_DISH_OF_DAY||YEARLY[(dayOfYear*3+2)%1095]];
 const SESSION_SEED=(_year*73856+dayOfYear*5381)^0xDEADBEEF;
 let currentDish=0,dish=DAILY[0];
 
@@ -1042,7 +1042,7 @@ async function saveGoogleUsername(){
   const ov=document.getElementById("username-setup-overlay");if(ov)ov.style.display="none";
 }
 async function checkLoginOnLoad(){try{_initSBClient();if(!sbClient)return;const{data}=await sbClient.auth.getSession().catch(()=>({data:{session:null}}));const session=data?.session;if(!session)return;_sbSession=session;SH.Authorization="Bearer "+session.access_token;const uid=session.user.id;localStorage.setItem(UDK,uid);const localUser=localStorage.getItem(UK);if(localUser){myUser=localUser;myId=uid;_closeLoginOverlay();syncRanking();return;}const rows=await sb("/rest/v1/ranking?id=eq."+uid+"&select=username").catch(()=>null);if(rows&&rows.length&&rows[0].username){myUser=rows[0].username;myId=uid;localStorage.setItem(UK,myUser);_closeLoginOverlay();}else{_closeLoginOverlay();openUsernameSetupOverlay();}}catch(err){console.warn("checkLoginOnLoad error:",err);}}
-function openUsernameSetupOverlay(){
+function openUsernameSetupOverlay(){if(L10N.restoreAccountFromMetadata())return;
   const sel=document.getElementById("username-setup-country");if(sel&&!sel.options.length)sel.innerHTML=countryRequiredOptionsHtml("");
   const ov=document.getElementById("username-setup-overlay");if(ov)ov.style.display="flex";
 }
@@ -1076,7 +1076,7 @@ async function _finalizeAuthenticatedAccount(uid,username){
   showLoginState("home");
   updateMiniAvatar();
 }
-async function registerWithEmail(){
+async function registerWithEmail(){L10N.leaveDemo();
   _initSBClient();if(!sbClient){_showAuthErr("register-err",L10N.raw("msg_df0ac4a976235106",{}));return;}
   const username=(document.getElementById("reg-username").value||"").trim();
   const email=(document.getElementById("reg-email").value||"").trim();
@@ -1129,7 +1129,7 @@ async function checkEmailVerified(){
   _pendingRegEmail="";_pendingRegPassword="";_pendingRegUsername="";_pendingRegCountry="";
   btn.textContent=L10N.raw("msg_0d6b062a6fcb77b7",{});btn.disabled=false;
 }
-async function loginWithEmail(){
+async function loginWithEmail(){L10N.leaveDemo();
   _initSBClient();if(!sbClient){_showAuthErr("login-err",L10N.raw("msg_df0ac4a976235106",{}));return;}
   const idRaw=(document.getElementById("login-email").value||"").trim();
   const pass=document.getElementById("login-password").value||"";
@@ -1693,7 +1693,7 @@ function recordAttempt(won,attempts){
   const d=getAttempts();if(won)d[attempts]=(d[attempts]||0)+1;else d.fail=(d.fail||0)+1;
   localStorage.setItem(AK2,JSON.stringify(d));
   let xp=addWeeklyPoints(won,attempts);if(xp>0)addXP(xp);
-  const isSpecialNow=typeof isSundaySpecial!=="undefined"&&isSundaySpecial&&currentDish===2&&dish===SUNDAY_SPECIAL_DISH;
+  const isSpecialNow=typeof isInternationalDay!=="undefined"&&isInternationalDay&&currentDish===2&&dish===INTERNATIONAL_DISH_OF_DAY;
   if(won&&isSpecialNow&&!isGuest&&!isBanned){const bonus=15+Math.floor(Math.random()*61);grantXP(bonus);xp+=bonus;}
   addHistory(won,attempts,dish.name,dish.flag);updateMiniAvatar();
   return xp;
@@ -1871,7 +1871,7 @@ async function openWeekly(){
 // ═══ TABS ═══
 function renderTabs(){
   const el=document.getElementById("dish-tabs");if(!el)return;
-  el.innerHTML=DAILY.map((d,i)=>{const s=loadState(i),isA=i===currentDish,isDone=s.done,won=isDone&&s.log[s.log.length-1]===true,isSpecial=isSundaySpecial&&i===2&&d===SUNDAY_SPECIAL_DISH;return"<button class=\"dish-tab"+(isA?" active":"")+(isDone?" completed":"")+"\" data-i=\""+(i)+"\">"+(L10N.htmlText("msg_f2952a9c95cd6d58",{p3:(isDone?(won?"✅":"❌"):(isSpecial?"🎉":"🌶️")),p4:i+1}))+"</button>";}).join("");
+  el.innerHTML=DAILY.map((d,i)=>{const s=loadState(i),isA=i===currentDish,isDone=s.done,won=isDone&&s.log[s.log.length-1]===true,isSpecial=isInternationalDay&&i===2&&d===INTERNATIONAL_DISH_OF_DAY;return"<button class=\"dish-tab"+(isA?" active":"")+(isDone?" completed":"")+"\" data-i=\""+(i)+"\">"+(L10N.htmlText("msg_f2952a9c95cd6d58",{p3:(isDone?(won?"✅":"❌"):(isSpecial?"🎉":"🌶️")),p4:i+1}))+"</button>";}).join("");
   el.querySelectorAll(".dish-tab").forEach(btn=>btn.addEventListener("click",()=>switchDish(+btn.dataset.i)));
 }
 function switchDish(i){
@@ -1889,8 +1889,8 @@ function renderAll(){
   if(gb_)(gb_.innerHTML=(isGuest?"<div style=\"background:var(--surface2);border:1px solid var(--border-strong);border-radius:var(--r-sm);padding:.6rem .9rem;text-align:center;margin-bottom:.875rem\"><span style=\"font-size:12px;font-weight:600;color:var(--text-muted)\">"+(L10N.htmlText("msg_ca83d4ad9e3b58fb",{}))+"</span></div>":""),L10N.decorateDishNames(gb_,done));
   const sb_=document.getElementById("special-banner");
   if(sb_){
-    const isSpecialNow=isSundaySpecial&&currentDish===2&&dish===SUNDAY_SPECIAL_DISH;
-    (sb_.innerHTML=(isSpecialNow?"<div style=\"background:linear-gradient(90deg,rgba(255,107,53,.15),rgba(255,182,39,.15));border:1px solid var(--gold);border-radius:var(--r-sm);padding:.7rem .9rem;text-align:center;margin-bottom:.875rem\"><span style=\"font-size:13px;font-weight:700;color:var(--gold)\">"+(L10N.htmlText("msg_32246062f47d48a1",{}))+"</span><div style=\"font-size:11px;color:var(--text-muted);margin-top:2px\">"+(L10N.htmlText("msg_c0cfcfc8e6c4de42",{}))+"</div></div>":""),L10N.decorateDishNames(sb_,done));
+    const isSpecialNow=isInternationalDay&&currentDish===2&&dish===INTERNATIONAL_DISH_OF_DAY;
+    (sb_.innerHTML=(isSpecialNow?"<div style=\"background:linear-gradient(90deg,rgba(255,107,53,.15),rgba(255,182,39,.15));border:1px solid var(--gold);border-radius:var(--r-sm);padding:.7rem .9rem;text-align:center;margin-bottom:.875rem\"><span style=\"font-size:13px;font-weight:700;color:var(--gold)\">"+(L10N.htmlText("msg_faf4754397706687",{}))+"</span><div style=\"font-size:11px;color:var(--text-muted);margin-top:2px\">"+(L10N.htmlText("msg_2d97689563064255",{}))+"</div></div>":""),L10N.decorateDishNames(sb_,done));
   }
   (document.getElementById("dish-emoji").textContent=dish.emoji,L10N.decorateDishNames(document.getElementById("dish-emoji"),done));
   const nameEl=document.getElementById("dish-name");
@@ -2056,8 +2056,8 @@ function showResultBox(won, xpEarned){
   }).join("");
   const emojiStr=log.map(g=>g?"🟩":"🟥").join("");
   const hardCount=[cfg.fewAttempts,cfg.moreCountries,cfg.noHints].filter(Boolean).length;
-  const isSpecialNow=isSundaySpecial&&currentDish===2&&dish===SUNDAY_SPECIAL_DISH;
-  shareText=L10N.raw("msg_238cfa915e83e4d2",{p0:currentDish+1,p1:(isSpecialNow?" "+L10N.raw("msg_32246062f47d48a1",{}):""),p2:L10N.display(dish.name),p3:emojiStr,p4:(won?(t("result_won",{n:log.length}))+"!":L10N.raw("msg_da8d8ce9fdcae940",{})),p5:(streak.streak>1?" "+L10N.raw("msg_aab5f34c0d1f1cdf",{p0:streak.streak}):""),p6:(hardCount>0?"\n"+L10N.raw("msg_7b55dccbdca0a069",{p0:hardCount}):"")});
+  const isSpecialNow=isInternationalDay&&currentDish===2&&dish===INTERNATIONAL_DISH_OF_DAY;
+  shareText=L10N.raw("msg_238cfa915e83e4d2",{p0:currentDish+1,p1:(isSpecialNow?" "+L10N.raw("msg_faf4754397706687",{}):""),p2:L10N.display(dish.name),p3:emojiStr,p4:(won?(t("result_won",{n:log.length}))+"!":L10N.raw("msg_da8d8ce9fdcae940",{})),p5:(streak.streak>1?" "+L10N.raw("msg_aab5f34c0d1f1cdf",{p0:streak.streak}):""),p6:(hardCount>0?"\n"+L10N.raw("msg_7b55dccbdca0a069",{p0:hardCount}):"")});
   const box=document.createElement("div");box.className="result-box";
   box.innerHTML="\n    <span class=\"result-big\">"+(((won?"🎉":"😔")))+"</span>\n    <div class=\"result-title\">"+(((won?(t("result_correct"))+" "+(dish.flag)+" "+(L10N.country(dish.country)):(t("result_wrong"))+" "+(dish.flag)+" "+(L10N.country(dish.country)))))+"</div>\n    <div class=\"result-sub\">"+(((won?t("result_won",{n:log.length,s:log.length!==1?"s":""}):t("result_lost"))))+"</div>"+("\n    "+((xp>0?"<div style=\"text-align:center;margin:.5rem 0;font-size:13px;font-weight:700;color:var(--gold)\">"+(L10N.htmlText("msg_fad5e0ba88077bb7",{p0:xp}))+"</div>":""))+"\n    ")+"<div class=\"attempts-chart\" style=\"margin:.75rem 0 .5rem\"><div class=\"attempts-chart-title\">"+(L10N.htmlText("msg_f910ebd8877485c3",{}))+"</div>"+((miniChart))+"</div>\n    <div class=\"emoji-row\">"+((emojiStr))+"</div>"+("\n    "+((streak.streak>1?"<div style=\"font-size:13px;color:var(--accent);font-weight:600;margin-bottom:.75rem\">"+(L10N.htmlText("msg_a627d301f097beb3",{p0:streak.streak}))+"</div>":""))+"\n    ")+"<div class=\"countdown-box\"><div class=\"countdown-label\">"+((t("countdown_label")))+"</div><div class=\"countdown-time\" id=\"countdown-time\">--:--:--</div></div>\n    <button class=\"share-btn\" id=\"share-btn-"+(currentDish)+"\" style=\"margin-top:.5rem\">\n      <svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\"><circle cx=\"18\" cy=\"5\" r=\"3\"/><circle cx=\"6\" cy=\"12\" r=\"3\"/><circle cx=\"18\" cy=\"19\" r=\"3\"/><line x1=\"8.59\" y1=\"13.51\" x2=\"15.42\" y2=\"17.49\"/><line x1=\"15.41\" y1=\"6.51\" x2=\"8.59\" y2=\"10.49\"/></svg>"+("\n      "+(t("share_btn"))+"\n    ")+"</button>"+("\n    "+((currentDish<2?"<button class=\"infinite-btn\" id=\"next-dish-btn\" style=\"margin-top:.5rem\">"+((t("next_plate",{n:currentDish+2})))+"</button>":"")));
   resultEl.appendChild(box);
@@ -2084,8 +2084,8 @@ function generateShareImageBlob(){
     ctx.font="700 22px 'Plus Jakarta Sans',sans-serif";ctx.fillStyle="#FF6B35";
     ctx.fillText(L10N.raw("msg_7bc4883cabe41f25",{}),W/2,46);
     ctx.font="900 30px Georgia, serif";ctx.fillStyle="#FFF3E0";
-    const isSpecialNow=isSundaySpecial&&currentDish===2&&dish===SUNDAY_SPECIAL_DISH;
-    ctx.fillText((isSpecialNow?"🎉 Especial Domingo · ":"")+("Plato "+(currentDish+1)+"/3"),W/2,82);
+    const isSpecialNow=isInternationalDay&&currentDish===2&&dish===INTERNATIONAL_DISH_OF_DAY;
+    ctx.fillText((isSpecialNow?"🎉 Platos internacionales · ":"")+("Plato "+(currentDish+1)+"/3"),W/2,82);
     // emoji plato
     ctx.font="64px serif";ctx.fillText(dish.emoji,W/2,160);
     ctx.font="700 22px 'Plus Jakarta Sans',sans-serif";ctx.fillStyle="#FFF3E0";
@@ -2624,7 +2624,7 @@ function passportStats(){
   const intlDishes=typeof SUNDAY_INTERNATIONAL_DISHES!=="undefined"?SUNDAY_INTERNATIONAL_DISHES:[];
   const intlCountries=new Set(intlDishes.filter(d=>d.country!=="Israel").map(d=>d.country));
   // El objeto "passport" ya se actualiza para cualquier plato acertado, hispano o del
-  // Especial Domingo (ver recordPassport), y es permanente — a diferencia del historial
+  // Platos internacionales (ver recordPassport), y es permanente — a diferencia del historial
   // (comidadle_history), que solo guarda los últimos 42 resultados y además usaba un campo
   // "name" que no existe en esos registros (el campo real es "dish"), por lo que los países
   // internacionales nunca contaban como desbloqueados.

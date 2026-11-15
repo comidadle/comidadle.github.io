@@ -6,6 +6,7 @@
   const isPreview=location.pathname.includes('/preview/');
   let demoActive=false;
   let demoInventory=[];
+  let passwordRecoveryActive=false;
   // El enlace de acceso permite salir de una demo guardada sin borrar el progreso.
   if(isPreview&&new URLSearchParams(location.search).get('login')==='1'){
     try{localStorage.removeItem('comidadle_preview_demo');}catch(_){}
@@ -19,10 +20,11 @@
       const method=String(options.method||input.method||'GET').toUpperCase();
       if(url.hostname.endsWith('.supabase.co')){
         const mutating=!['GET','HEAD','OPTIONS'].includes(method);
-        const safeLogin=url.pathname==='/auth/v1/token'||url.pathname==='/rest/v1/rpc/email_for_username';
+        const accountRequest=method==='POST'&&['/auth/v1/token','/auth/v1/signup','/auth/v1/resend','/auth/v1/recover','/rest/v1/rpc/email_for_username'].includes(url.pathname);
+        const passwordUpdate=method==='PUT'&&url.pathname==='/auth/v1/user'&&passwordRecoveryActive;
         const recipeRead=url.pathname==='/functions/v1/dish-recipe'&&method==='POST';
         if(url.pathname==='/auth/v1/logout')return new Response('{}',{status:200,headers:{'Content-Type':'application/json'}});
-        if(mutating&&!safeLogin&&!recipeRead)return new Response(JSON.stringify({error:'preview_read_only'}),{status:409,headers:{'Content-Type':'application/json'}});
+        if(mutating&&!accountRequest&&!passwordUpdate&&!recipeRead)return new Response(JSON.stringify({error:'preview_read_only'}),{status:409,headers:{'Content-Type':'application/json'}});
         const publicTables=['ranking','weekly_ranking','shop_items','reviews','review_replies','announcements','announcement_reactions'];
         const table=url.pathname.split('/')[3];
         if(demoActive&&table==='user_inventory'&&method==='GET')return new Response(JSON.stringify(demoInventory),{status:200,headers:{'Content-Type':'application/json'}});
@@ -99,6 +101,15 @@
       leaveDemo(){
         demoActive=false;
         try{localStorage.removeItem('comidadle_preview_demo');}catch(_){}
+      },
+      restoreAccountFromMetadata(){
+        if(!isPreview)return false;
+        const user=_sbSession?.user,username=user?.user_metadata?.username;
+        if(!user?.id||typeof username!=='string'||username.trim().length<3||username.length>20)return false;
+        this.leaveDemo();
+        // Solo identidad visible. Los permisos siguen dependiendo de Supabase Auth.
+        _finalizeAuthenticatedAccount(user.id,username.trim());
+        return true;
       },
       text:(key,vars={})=>engine.text(key,vars),
       raw(key,vars={}){return this.text(key,vars);},
@@ -212,12 +223,12 @@
       }
     }
     const previewText={
-      es:['Versión de prueba: tu cuenta real no se modifica.','Probar sin cuenta (demostración)'],
-      en:['Preview: your real account will not be changed.','Try without an account (demo)'],
-      fr:['Version de test : votre compte réel ne sera pas modifié.','Essayer sans compte (démonstration)'],
-      de:['Testversion: Dein echtes Konto wird nicht verändert.','Ohne Konto ausprobieren (Demo)'],
-      'pt-BR':['Versão de teste: sua conta real não será alterada.','Testar sem conta (demonstração)'],
-      'pt-PT':['Versão de teste: a tua conta real não será alterada.','Experimentar sem conta (demonstração)'],
+      es:['Prueba: progreso local. El registro y el acceso usan una cuenta real.','Probar sin cuenta (demostración)','¿Olvidaste tu contraseña?','Escribe el correo de tu cuenta para recibir un enlace de recuperación.','Enviar enlace','Cancelar','Nueva contraseña','Guardar contraseña','Se envió un enlace si existe una cuenta con ese correo. Revisa también el spam.','Escribe un correo electrónico, no un nombre de usuario.','La contraseña se actualizó. Ya puedes iniciar sesión.','No se pudo actualizar la contraseña. Vuelve a solicitar el enlace.'],
+      en:['Preview: local game progress. Registration and sign-in use a real account.','Try without an account (demo)','Forgot your password?','Enter your account email to receive a recovery link.','Send link','Cancel','New password','Save password','If an account exists for that email, a recovery link was sent. Check spam too.','Enter an email address, not a username.','Password updated. You can sign in now.','Could not update the password. Request a new link.'],
+      fr:['Version de test : progression locale. L’inscription et la connexion utilisent un compte réel.','Essayer sans compte (démonstration)','Mot de passe oublié ?','Saisissez l’adresse e-mail de votre compte pour recevoir un lien de récupération.','Envoyer le lien','Annuler','Nouveau mot de passe','Enregistrer le mot de passe','Si un compte existe pour cette adresse, un lien a été envoyé. Vérifiez aussi les indésirables.','Saisissez une adresse e-mail, pas un nom d’utilisateur.','Mot de passe mis à jour. Vous pouvez vous connecter.','Impossible de modifier le mot de passe. Demandez un nouveau lien.'],
+      de:['Testversion: lokaler Spielfortschritt. Registrierung und Anmeldung verwenden ein echtes Konto.','Ohne Konto ausprobieren (Demo)','Passwort vergessen?','Gib die E-Mail-Adresse deines Kontos ein, um einen Wiederherstellungslink zu erhalten.','Link senden','Abbrechen','Neues Passwort','Passwort speichern','Falls ein Konto für diese E-Mail besteht, wurde ein Link gesendet. Prüfe auch den Spamordner.','Gib eine E-Mail-Adresse ein, keinen Benutzernamen.','Passwort aktualisiert. Du kannst dich jetzt anmelden.','Passwort konnte nicht geändert werden. Fordere einen neuen Link an.'],
+      'pt-BR':['Teste: progresso local. O cadastro e o acesso usam uma conta real.','Testar sem conta (demonstração)','Esqueceu a senha?','Digite o e-mail da sua conta para receber um link de recuperação.','Enviar link','Cancelar','Nova senha','Salvar senha','Se existir uma conta com esse e-mail, um link foi enviado. Confira também o spam.','Digite um e-mail, não um nome de usuário.','Senha atualizada. Você já pode entrar.','Não foi possível atualizar a senha. Solicite um novo link.'],
+      'pt-PT':['Teste: progresso local. A inscrição e o início de sessão usam uma conta real.','Experimentar sem conta (demonstração)','Esqueceu-se da palavra-passe?','Introduza o e-mail da sua conta para receber uma ligação de recuperação.','Enviar ligação','Cancelar','Nova palavra-passe','Guardar palavra-passe','Se existir uma conta com esse e-mail, foi enviada uma ligação. Verifique também o spam.','Introduza um e-mail, não um nome de utilizador.','Palavra-passe atualizada. Já pode iniciar sessão.','Não foi possível atualizar a palavra-passe. Peça uma nova ligação.'],
     };
     const script=document.createElement('script');script.src=assetUrl('app.js');script.onload=()=>{
       localization.decorateDishNames();
@@ -233,8 +244,37 @@
         };
         const authNotice=document.createElement('p');authNotice.textContent=text[0];authNotice.style.cssText='font:12px/1.5 system-ui;color:var(--text-muted);text-align:center;margin-top:16px';
         button.addEventListener('click',startDemo);document.querySelector('#login-overlay>div')?.append(authNotice,button);
+        const recoveryText={
+          es:{sent:text[8],email:text[9],saved:text[10],failed:text[11]},en:{sent:text[8],email:text[9],saved:text[10],failed:text[11]},fr:{sent:text[8],email:text[9],saved:text[10],failed:text[11]},de:{sent:text[8],email:text[9],saved:text[10],failed:text[11]},'pt-BR':{sent:text[8],email:text[9],saved:text[10],failed:text[11]},'pt-PT':{sent:text[8],email:text[9],saved:text[10],failed:text[11]}
+        }[engine.locale];
+        const forgot=document.createElement('button');forgot.id='preview-forgot-password';forgot.type='button';forgot.textContent=text[2];forgot.style.cssText='display:block;margin:10px auto 0;background:none;border:0;color:var(--accent);text-decoration:underline;font:13px system-ui;cursor:pointer';
+        document.querySelector('#auth-state-login #login-submit-btn')?.after(forgot);
+        const recover=async()=>{
+          const id=document.getElementById('login-email'),email=(id?.value||'').trim();
+          if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){_showAuthErr('login-err',recoveryText.email);return;}
+          forgot.disabled=true;
+          try{const result=await sbClient.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});if(result.error)throw result.error;_showAuthErr('login-err',recoveryText.sent);}
+          catch(error){_showAuthErr('login-err',/redirect.*(allowed|url)/i.test(error.message||'')?recoveryText.failed:_friendlyAuthError(error.message));}
+          finally{forgot.disabled=false;}
+        };
+        forgot.addEventListener('click',recover);
+        const showPasswordForm=()=>{
+          passwordRecoveryActive=true;
+          const overlay=document.createElement('div');overlay.id='preview-password-recovery';overlay.style.cssText='position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,.85);display:grid;place-items:center;padding:20px';
+          const box=document.createElement('div');box.style.cssText='width:min(100%,360px);padding:24px;background:var(--surface);border:1px solid var(--border-strong);border-radius:18px';
+          const title=document.createElement('h2');title.textContent=text[6];
+          const input=document.createElement('input');input.type='password';input.autocomplete='new-password';input.minLength=6;input.placeholder=text[6];input.setAttribute('aria-label',text[6]);input.style.cssText='width:100%;box-sizing:border-box;padding:12px;margin:10px 0;background:var(--surface2);color:var(--text);border:1px solid var(--border-strong);border-radius:8px;font:16px system-ui';
+          const status=document.createElement('p');status.setAttribute('role','status');
+          const save=document.createElement('button');save.type='button';save.textContent=text[7];save.className='play-btn';save.style.width='100%';
+          const cancel=document.createElement('button');cancel.type='button';cancel.textContent=text[5];cancel.style.cssText='display:block;margin:10px auto;background:none;border:0;color:var(--text-muted);font:14px system-ui';
+          save.addEventListener('click',async()=>{if(input.value.length<6){input.focus();return;}save.disabled=true;const{error}=await sbClient.auth.updateUser({password:input.value});if(error){status.textContent=recoveryText.failed;save.disabled=false;return;}passwordRecoveryActive=false;overlay.remove();_closeLoginOverlay();});
+          cancel.addEventListener('click',()=>{passwordRecoveryActive=false;overlay.remove();});box.append(title,input,status,save,cancel);overlay.append(box);document.body.append(overlay);input.focus();
+        };
+        if(sbClient){
+          sbClient.auth.onAuthStateChange((event,session)=>{passwordRecoveryActive=event==='PASSWORD_RECOVERY';if(event==='PASSWORD_RECOVERY'&&session)showPasswordForm();if(session){demoActive=false;try{localStorage.removeItem('comidadle_preview_demo');}catch(_){}}});
+          if(location.hash.includes('type=recovery')||new URLSearchParams(location.search).get('type')==='recovery')sbClient.auth.getSession().then(({data})=>{if(data?.session)showPasswordForm();}).catch(()=>{});
+        }
         try{if(localStorage.getItem('comidadle_preview_demo')==='1'&&!_sbSession)startDemo();}catch(_){}
-        if(sbClient)sbClient.auth.onAuthStateChange((_event,session)=>{if(session){demoActive=false;try{localStorage.removeItem('comidadle_preview_demo');}catch(_){}}});
       }
     };script.onerror=()=>{loading.textContent='No se pudo cargar Comidadle. Recarga la página.';};document.body.append(script);
   }catch(error){loading.textContent='No se pudo preparar el juego. Recarga la página con conexión.';console.error(error);}

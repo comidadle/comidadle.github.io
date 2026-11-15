@@ -1,6 +1,6 @@
 {
   "locale": "fr",
-  "sourceRevision": "d75722ab429fd3253e33d60292117be6a61e09bc607372eddc1ff8008774289d",
+  "sourceRevision": "ca6a7f2050917c969d3a48b90c72fa1a546c7bffb00243117d2147641a60e1d8",
   "status": "draft",
   "applicationCoverageReviewed": false,
   "ui": {
@@ -1248,7 +1248,14 @@
     "msg_3fc5f90b27f1acbc": "Réduire au minimum",
     "msg_fa846ee3576b4a8d": "Informations",
     "msg_7f3da61914d59db8": "🌍 Le pays est obligatoire à l’inscription ; vous pouvez le modifier gratuitement à tout moment depuis votre profil.",
-    "msg_1c619abff244aff1": "🐛 Correction du passeport : les pays du Spécial du dimanche n’étaient pas débloqués à cause d’un champ incorrect et d’un historique limité à 42 parties. Le passeport utilise désormais son propre registre permanent."
+    "msg_1c619abff244aff1": "🐛 Correction du passeport : les pays du Spécial du dimanche n’étaient pas débloqués à cause d’un champ incorrect et d’un historique limité à 42 parties. Le passeport utilise désormais son propre registre permanent.",
+    "msg_faf4754397706687": "🎉 Plats internationaux",
+    "msg_2d97689563064255": "Un plat international disponible le samedi et le dimanche",
+    "msg_12b42d9651f1cbf6": "les samedis et dimanches",
+    "msg_1763fd81f1af4671": "dans Plats internationaux",
+    "msg_70ed044448e79158": "🌍 Plats internationaux débloqués",
+    "msg_7fc441e59ada1c10": "🎉 Plats internationaux ·",
+    "msg_c73c95a6b321403e": "Trouvez son plat le samedi ou le dimanche pour débloquer la recette 🔒"
   },
   "dishes": {
     "regular:0": {
