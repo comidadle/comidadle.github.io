@@ -2066,19 +2066,16 @@ async function openDishRecipe(name,country,emoji,flag){
   openModal("recipe-modal");
   const el=document.getElementById("recipe-content");
   if(el)el.innerHTML="<div style='text-align:center;padding:2rem;color:var(--text-muted)'>⏳ Generando receta...</div>";
-  // La receta se pide a una Edge Function de Supabase (dish-recipe), que es quien llama a
-  // la API de Anthropic con la clave guardada en secretos del servidor. La versión anterior
-  // llamaba a api.anthropic.com directamente desde el navegador con la clave expuesta en
-  // app_secrets: eso nunca podía funcionar (la API de Anthropic bloquea peticiones CORS
-  // desde el navegador) y además filtraba la clave a cualquiera que abriera las herramientas
-  // de desarrollador. Ver el bloque de despliegue de la función al final de esta respuesta.
   try{
-    const res=await fetch(SB+"/functions/v1/dish-recipe",{method:"POST",headers:SH,body:JSON.stringify({name,country,emoji})});
-    if(!res.ok)throw new Error(await res.text().catch(()=>String(res.status)));
+    _initSBClient();
+    const {data:{session},error:sessionError}=await sbClient?.auth.getSession()||{data:{session:null},error:null};
+    if(sessionError||!session?.access_token)throw new Error("Inicia sesión con tu cuenta para ver la receta.");
+    const res=await fetch(SB+"/functions/v1/dish-recipe",{method:"POST",headers:{...SH,Authorization:"Bearer "+session.access_token},body:JSON.stringify({name,country,emoji,language:currentLang})});
+    if(!res.ok){const detail=await res.json().catch(()=>({}));throw new Error(res.status===401?"Tu sesión ha caducado. Cierra sesión y vuelve a entrar.":res.status===503?"El servicio de recetas aún no está configurado en Supabase.":res.status===502?"El proveedor de recetas no respondió. Inténtalo de nuevo.":detail.error||"No se pudo generar la receta.");}
     const data=await res.json();
     const text=(data&&data.text)||"Sin respuesta.";
     if(el)el.innerHTML="<div style='padding:.5rem;line-height:1.8;font-size:14px;color:var(--text);white-space:pre-wrap'>"+escapeHtml(text)+"</div>";
-  }catch(e){if(el)el.innerHTML="<div style='text-align:center;padding:2rem;color:var(--red)'>❌ No se pudo generar la receta ahora mismo. Inténtalo de nuevo en unos segundos.</div>";}
+  }catch(e){if(el)el.innerHTML="<div style='text-align:center;padding:2rem;color:var(--red)'>❌ "+escapeHtml(e.message||"No se pudo generar la receta.")+"</div>";}
 }
 function syncRanking(){if(!myUser||isBanned)return Promise.resolve();return upsertRanking().catch(()=>{});}
 
@@ -2251,8 +2248,8 @@ function renderProfile(){
 
 // ═══ ANNOUNCEMENTS ═══
 async function fetchAnn(){try{const r=await fetch(SB+"/rest/v1/announcements?active=eq.true&order=created_at.desc&limit=1",{headers:SH});if(!r.ok)return null;const d=await r.json();return d&&d[0]?d[0]:null;}catch(e){return null;}}
-async function postAnn(msg){try{await adminAction("post_announcement",{message:msg});}catch(e){}}
-async function clearAnn(){try{await adminAction("clear_announcement",{});}catch(e){}}
+async function postAnn(msg){return adminAction("post_announcement",{message:msg});}
+async function clearAnn(){return adminAction("clear_announcement",{});}
 async function fetchReactions(id){try{return await sb("/rest/v1/announcement_reactions?announcement_id=eq."+id+"&select=*");}catch(e){return[];}}
 async function react(annId,reaction){
   const name=myUser||"Anónimo";
@@ -2353,10 +2350,8 @@ async function adminAction(action,payload){
 }
 
 // ═══ BANS ═══
-async function banUser(username,reason){
-  try{await adminAction("ban_user",{username,reason:reason||"Comportamiento inapropiado"});}catch(e){}
-}
-async function unbanUser(username){try{await adminAction("unban_user",{username});}catch(e){}}
+async function banUser(username,reason){return adminAction("ban_user",{username,reason:reason||"Comportamiento inapropiado"});}
+async function unbanUser(username){return adminAction("unban_user",{username});}
 async function checkIfBanned(){
   if(!myUser)return;
   try{
@@ -4340,19 +4335,20 @@ async function fetchSentRequests(){
   try{return await sb("/rest/v1/friends?status=eq.pending&requester_username=eq."+encodeURIComponent(myUser)+"&select=*")||[];}catch(e){return[];}
 }
 async function respondFriendRequest(id,action){
-  try{
-    const rows0=await sb("/rest/v1/friends?id=eq."+id+"&select=requester_username,recipient_username");
-    const row=rows0&&rows0[0];
-    if(action==="accept"){
-      await sb("/rest/v1/friends?id=eq."+id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({status:"accepted",updated_at:new Date().toISOString()})});
-      if(row)sendNotification(row.requester_username,"system","✅ Solicitud aceptada",myUser+" ha aceptado tu solicitud de amistad 🎉").catch(()=>{});
-    }else if(action==="reject"){
-      await sb("/rest/v1/friends?id=eq."+id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({status:"rejected",updated_at:new Date().toISOString()})});
-      if(row)sendNotification(row.requester_username,"system","❌ Solicitud rechazada",myUser+" ha rechazado tu solicitud de amistad.").catch(()=>{});
-    }else if(action==="ignore"){
-      await sb("/rest/v1/friends?id=eq."+id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({recipient_hidden:true})});
-    }
-  }catch(e){}
+  if(!["accept","reject","ignore"].includes(action))throw new Error("Acción no válida.");
+  const rows0=await sb("/rest/v1/friends?id=eq."+encodeURIComponent(id)+"&recipient_username=eq."+encodeURIComponent(myUser)+"&status=eq.pending&select=requester_username,recipient_username");
+  const row=rows0&&rows0[0];if(!row)throw new Error("La solicitud ya no está pendiente o no te pertenece.");
+  const patch=action==="ignore"?{recipient_hidden:true}:{status:action==="accept"?"accepted":"rejected",updated_at:new Date().toISOString()};
+  const changed=await sb("/rest/v1/friends?id=eq."+encodeURIComponent(id)+"&recipient_username=eq."+encodeURIComponent(myUser)+"&status=eq.pending",{method:"PATCH",headers:{...SH,"Prefer":"return=representation"},body:JSON.stringify(patch)});
+  if(!changed?.length)throw new Error("Supabase no aplicó el cambio. Comprueba los permisos RLS de friends.");
+  if(action==="accept")sendNotification(row.requester_username,"system","✅ Solicitud aceptada",myUser+" ha aceptado tu solicitud de amistad 🎉").catch(()=>{});
+  if(action==="reject")sendNotification(row.requester_username,"system","❌ Solicitud rechazada",myUser+" ha rechazado tu solicitud de amistad.").catch(()=>{});
+  friendsTab("requests");updateFriendsBadge();
+}
+async function cancelFriendRequest(id){
+  const changed=await sb("/rest/v1/friends?id=eq."+encodeURIComponent(id)+"&requester_username=eq."+encodeURIComponent(myUser)+"&status=eq.pending",{method:"DELETE",headers:{...SH,"Prefer":"return=representation"}});
+  if(!changed?.length)throw new Error("La solicitud ya no está pendiente o Supabase no permitió cancelarla.");
+  friendsTab("requests");updateFriendsBadge();
 }
 async function removeFriend(username){
   if(!myUser)return;
@@ -4396,9 +4392,10 @@ async function fetchSentDuelInvites(){
 async function acceptDuelInvite(invite){
   try{
     const duelRow=await fetchDuel(invite.duel_id);
-    if(!duelRow){await sb("/rest/v1/duel_invites?id=eq."+invite.id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({status:"cancelled"})});alert("Esta invitación ya no es válida 😔");friendsTab("invites");return;}
+    if(!duelRow){await sb("/rest/v1/duel_invites?id=eq."+encodeURIComponent(invite.id),{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({status:"cancelled"})});alert("Esta invitación ya no es válida 😔");friendsTab("invites");return;}
     if(invite.mode==="1v1"){
-      await sb("/rest/v1/duels?id=eq."+invite.duel_id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({opponent_username:myUser,status:"voting"})});
+      const claimed=await sb("/rest/v1/duels?id=eq."+encodeURIComponent(invite.duel_id)+"&status=eq.waiting&opponent_username=is.null",{method:"PATCH",headers:{...SH,"Prefer":"return=representation"},body:JSON.stringify({opponent_username:myUser,status:"voting"})});
+      if(!claimed?.length)throw new Error("Ese duelo ya fue aceptado o cancelado.");
       saveDuelLocal(invite.duel_id,"opponent");
     }else{
       const players=await fetchGroupPlayers(invite.duel_id);
@@ -4406,30 +4403,28 @@ async function acceptDuelInvite(invite){
       await sb("/rest/v1/duel_players",{method:"POST",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({duel_id:invite.duel_id,username:myUser,team})});
       saveGroupLocal(invite.duel_id);
     }
-    await sb("/rest/v1/duel_invites?id=eq."+invite.id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({status:"accepted"})});
-    closeModal("friends-modal");
-    openDuelModal();
-  }catch(e){alert("Error al aceptar el duelo 😔");}
+    const accepted=await sb("/rest/v1/duel_invites?id=eq."+encodeURIComponent(invite.id)+"&to_username=eq."+encodeURIComponent(myUser)+"&status=eq.pending",{method:"PATCH",headers:{...SH,"Prefer":"return=representation"},body:JSON.stringify({status:"accepted"})});
+    if(!accepted?.length)throw new Error("La invitación ya no está pendiente.");
+    closeModal("friends-modal");openDuelModal();
+  }catch(e){alert("No se pudo aceptar el duelo: "+(e.message||"revisa la conexión y los permisos de Supabase."));friendsTab("invites");}
 }
 async function respondDuelInvite(invite,action){
-  try{
-    if(action==="reject"){
-      await sb("/rest/v1/duel_invites?id=eq."+invite.id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({status:"rejected"})});
-      if(invite.mode==="1v1")await sb("/rest/v1/duels?id=eq."+invite.duel_id,{method:"DELETE"}).catch(()=>{});
-    }else if(action==="ignore"){
-      await sb("/rest/v1/duel_invites?id=eq."+invite.id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({recipient_hidden:true})});
-    }
-  }catch(e){}
+  if(!invite||!["reject","ignore"].includes(action))throw new Error("Invitación o acción no válida.");
+  const patch=action==="ignore"?{recipient_hidden:true}:{status:"rejected"};
+  const changed=await sb("/rest/v1/duel_invites?id=eq."+encodeURIComponent(invite.id)+"&to_username=eq."+encodeURIComponent(myUser)+"&status=eq.pending",{method:"PATCH",headers:{...SH,"Prefer":"return=representation"},body:JSON.stringify(patch)});
+  if(!changed?.length)throw new Error("La invitación ya no está pendiente o Supabase no permitió el cambio.");
+  if(action==="reject"&&invite.mode==="1v1")await sb("/rest/v1/duels?id=eq."+encodeURIComponent(invite.duel_id)+"&status=eq.waiting",{method:"DELETE"}).catch(()=>{});
   friendsTab("invites");
 }
 async function cancelSentDuelInvite(invite){
-  try{
-    await sb("/rest/v1/duel_invites?id=eq."+invite.id,{method:"PATCH",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({status:"cancelled"})});
-    if(invite.mode==="1v1")await sb("/rest/v1/duels?id=eq."+invite.duel_id,{method:"DELETE"}).catch(()=>{});
-  }catch(e){}
+  if(!invite)throw new Error("Invitación no válida.");
+  const changed=await sb("/rest/v1/duel_invites?id=eq."+encodeURIComponent(invite.id)+"&from_username=eq."+encodeURIComponent(myUser)+"&status=eq.pending",{method:"PATCH",headers:{...SH,"Prefer":"return=representation"},body:JSON.stringify({status:"cancelled"})});
+  if(!changed?.length)throw new Error("La invitación ya no está pendiente o Supabase no permitió cancelarla.");
+  if(invite.mode==="1v1")await sb("/rest/v1/duels?id=eq."+encodeURIComponent(invite.duel_id)+"&status=eq.waiting",{method:"DELETE"}).catch(()=>{});
   friendsTab("invites");
 }
 
+// ── UI: modal de Amigos ──
 // ── UI: modal de Amigos ──
 let _incomingInvitesCache=[],_sentInvitesCache=[];
 function openFriendsModal(){if(isGuest)return;openModal("friends-modal");friendsTab("list");}
@@ -4851,6 +4846,8 @@ async function resumeDuelById(id,role){
   try{
     const row=await fetchDuel(id);
     if(!row){clearDuelLocal();renderDuelHome();return;}
+    const expectedName=role==="creator"?row.creator_username:row.opponent_username;
+    if(!expectedName||expectedName!==myUser){clearDuelLocal();renderDuelHome();return;}
     routeDuelState(row,role);
   }catch(e){
     el.innerHTML='<div class="ranking-empty">Error cargando el duelo 😔</div>';
