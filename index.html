@@ -2033,21 +2033,22 @@ async function upsertRanking(){
   // ninguna fila, no lanzaba error, y el usuario nunca llegaba a insertarse en el ranking.
   // Por eso comprobamos cuántas filas afectó el PATCH y, si fueron 0 (o no había myId
   // todavía), hacemos un INSERT preservando el id de autenticación para futuras escrituras.
-  let updated=false;
+  let updated=false,lastError=null;
   if(myId){
     try{
       const r=await sb("/rest/v1/ranking?id=eq."+myId,{method:"PATCH",headers:{...SH,"Prefer":"return=representation"},body:JSON.stringify(d)});
       updated=!!(r&&r.length);
-    }catch(e){}
+    }catch(e){lastError=e;}
   }
   if(!updated){
     try{
       const body={...d,username:myUser};
-      if(myId)body.id=myId; // conserva el uid de auth como id de la fila de ranking
+      if(myId)body.id=myId;
       const r=await sb("/rest/v1/ranking?select=id",{method:"POST",headers:{...SH,"Prefer":"return=representation"},body:JSON.stringify(body)});
-      if(r&&r[0]){myId=r[0].id;localStorage.setItem(UDK,myId);}
-    }catch(e){}
+      if(r&&r[0]){myId=r[0].id;localStorage.setItem(UDK,myId);updated=true;}
+    }catch(e){lastError=e;}
   }
+  if(!updated)throw lastError||new Error("No se pudo guardar el perfil en el ranking.");
 }
 async function fetchRanking(){
   // Los jugadores con "ocultar mi posición" activado (hidden=true) no deben consumir el
@@ -2060,6 +2061,9 @@ async function fetchRanking(){
 
 // (La generación de recetas ahora pasa por la Edge Function dish-recipe; ya no se
 // obtiene ni se expone la clave de Anthropic en el cliente — ver openDishRecipe.)
+function countryCurrency(country){
+  const map={"México":"MXN","España":"EUR","Argentina":"ARS","Perú":"PEN","Colombia":"COP","Venezuela":"VES","Chile":"CLP","Cuba":"CUP","El Salvador":"USD","Honduras":"HNL","Costa Rica":"CRC","Nicaragua":"NIO","Guatemala":"GTQ","Ecuador":"USD","Bolivia":"BOB","Uruguay":"UYU","Brasil":"BRL","Panamá":"USD","Rep. Dominicana":"DOP","República Dominicana":"DOP","Puerto Rico":"USD","Paraguay":"PYG","Francia":"EUR","Italia":"EUR","Portugal":"EUR","Alemania":"EUR","Reino Unido":"GBP","Grecia":"EUR","Países Bajos":"EUR","Bélgica":"EUR","Suiza":"CHF","Austria":"EUR","Suecia":"SEK","Noruega":"NOK","Dinamarca":"DKK","Polonia":"PLN","Rusia":"RUB","Turquía":"TRY","Irlanda":"EUR","Hungría":"HUF","Rep. Checa":"CZK","Rumanía":"RON","Japón":"JPY","China":"CNY","Corea del Sur":"KRW","India":"INR","Tailandia":"THB","Vietnam":"VND","Indonesia":"IDR","Filipinas":"PHP","Malasia":"MYR","Singapur":"SGD","Israel":"ILS","Líbano":"LBP","Arabia Saudita":"SAR","Emiratos":"AED","Irán":"IRR","Pakistán":"PKR","Marruecos":"MAD","Egipto":"EGP","Sudáfrica":"ZAR","Nigeria":"NGN","Kenia":"KES","Etiopía":"ETB","Túnez":"TND","Ghana":"GHS","Senegal":"XOF","Australia":"AUD","Nueva Zelanda":"NZD","Estados Unidos":"USD","Canadá":"CAD"};return map[country]||"EUR";
+}
 async function openDishRecipe(name,country,emoji,flag){
   closeModal("passport-country-modal");closeModal("passport-modal");
   const titleEl=document.getElementById("recipe-modal-title");if(titleEl)titleEl.textContent=emoji+" "+name+" "+(flag||"");
@@ -2070,8 +2074,8 @@ async function openDishRecipe(name,country,emoji,flag){
     _initSBClient();
     const {data:{session},error:sessionError}=await sbClient?.auth.getSession()||{data:{session:null},error:null};
     if(sessionError||!session?.access_token)throw new Error("Inicia sesión con tu cuenta para ver la receta.");
-    const res=await fetch(SB+"/functions/v1/dish-recipe",{method:"POST",headers:{...SH,Authorization:"Bearer "+session.access_token},body:JSON.stringify({name,country,emoji,language:currentLang})});
-    if(!res.ok){const detail=await res.json().catch(()=>({}));throw new Error(res.status===401?"Tu sesión ha caducado. Cierra sesión y vuelve a entrar.":res.status===503?"El servicio de recetas aún no está configurado en Supabase.":res.status===502?"El proveedor de recetas no respondió. Inténtalo de nuevo.":detail.error||"No se pudo generar la receta.");}
+    const res=await fetch(SB+"/functions/v1/dish-recipe",{method:"POST",headers:{...SH,Authorization:"Bearer "+session.access_token},body:JSON.stringify({name,country,emoji,language:currentLang,userCurrency:countryCurrency(myCountry)})});
+    if(!res.ok){const detail=await res.json().catch(()=>({}));throw new Error(res.status===401?"Tu sesión ha caducado. Cierra sesión y vuelve a entrar.":detail.error==="free_recipe_key_required"?"Falta configurar la clave gratuita de Gemini en Supabase.":detail.error==="free_tier_limit"?"Se alcanzó el límite gratuito temporal de recetas. Inténtalo más tarde.":detail.error==="free_key_invalid"?"La clave gratuita de recetas de Gemini no es válida.":res.status===503?"El servicio de recetas aún no está configurado en Supabase.":"No se pudo generar la receta. Inténtalo de nuevo.");}
     const data=await res.json();
     const text=(data&&data.text)||"Sin respuesta.";
     if(el)el.innerHTML="<div style='padding:.5rem;line-height:1.8;font-size:14px;color:var(--text);white-space:pre-wrap'>"+escapeHtml(text)+"</div>";
@@ -2735,7 +2739,7 @@ async function openRanking(){
   _rankingCountryF="";
   populateCountryFilterSelects();
   document.getElementById("ranking-list").innerHTML='<div class="ranking-empty">Cargando...</div>';
-  try{renderRankingList(await fetchRanking());}catch(e){document.getElementById("ranking-list").innerHTML='<div class="ranking-empty">Error 😔</div>';}
+  try{if(myUser&&!isGuest)await upsertRanking();renderRankingList(await fetchRanking());}catch(e){document.getElementById("ranking-list").innerHTML='<div class="ranking-empty">No se pudo sincronizar tu posición. Comprueba tu conexión e inténtalo de nuevo.</div>';}
 }
 async function renderWeeklyList(rows,cache=true){
   const el=document.getElementById("weekly-list");if(!el)return;
@@ -2782,9 +2786,11 @@ async function openWeekly(){
     const wlb=document.getElementById("wk-login-btn");if(wlb)wlb.onclick=()=>{closeModal("weekly-modal");showLoginState("home");const ov=document.getElementById("login-overlay");if(ov)ov.style.display="flex";};
   }
   document.getElementById("weekly-list").innerHTML='<div class="ranking-empty">Cargando...</div>';
-  // Force sync local points before fetching
-  if(myUser&&weekly.points>0)await syncWeekly().catch(()=>{});
-  try{renderWeeklyList(await fetchWeekly());}catch(e){document.getElementById("weekly-list").innerHTML='<div class="ranking-empty">Error 😔</div>';}
+  // The weekly insert policy depends on the user row in the global ranking.
+  try{
+    if(myUser&&!isGuest){await upsertRanking();if(weekly.points>0)await syncWeekly();}
+    renderWeeklyList(await fetchWeekly());
+  }catch(e){document.getElementById("weekly-list").innerHTML='<div class="ranking-empty">No se pudo sincronizar tu puntuación. Comprueba tu conexión e inténtalo de nuevo.</div>';}
 }
 
 // ═══ TABS ═══
