@@ -1,11 +1,16 @@
-# Activación de recetas y precio orientativo
+# Recetas y precios aproximados
 
-La conexión de Supabase ya funciona. El 1 de noviembre de 2026 se desplegó dish-recipe, versión 1, en el proyecto comidadle (dacgheuzlhybesnqjqzn), con verificación de JWT activada. La comprobación real de CORS devuelve HTTP 200 y una solicitud de receta sin sesión devuelve HTTP 401. Ya no responde 404.
+La función `dish-recipe` genera una receta con Gemini 3.8 Flash usando el nivel gratuito de Google AI Studio. La clave se guarda únicamente como secreto de la Edge Function `GEMINI_API_KEY`; nunca se incluye en el cliente ni en GitHub. El nivel gratuito tiene límites de uso y sus condiciones pueden cambiar. Las solicitudes solo incluyen nombre y país del plato, idioma y código de moneda; no se envían datos de la cuenta.
 
-Todavía falta verificar la configuración de ANTHROPIC_API_KEY y una receta real con una sesión de usuario. Las herramientas disponibles no permiten consultar ni configurar los secretos de Edge Functions. El propietario debe comprobar el nombre ANTHROPIC_API_KEY en Edge Functions → Secrets y, si falta, guardar allí el valor de su clave de Anthropic. No debe compartirlo en el chat ni incluirlo en GitHub. Las pruebas de receta y precio de navegador usan respuestas simuladas; no prueban una generación real.
+Para mostrar precios, la función pide una estimación amplia del coste de ingredientes para cuatro raciones en la moneda del país del plato. Si la moneda del perfil es distinta, convierte ese rango con el tipo de referencia diario disponible de Frankfurter. Es una estimación orientativa, no un precio de tienda ni una cotización en tiempo real. Si no hay tipo de cambio para una moneda, se muestra el precio de origen.
 
-La función preparada está en supabase/functions/dish-recipe/index.ts. Verifica la sesión y solicita una receta para cuatro personas, en el idioma elegido, con una estimación explícita del coste de ingredientes en euros. El coste es orientativo, no una cotización de compra en tiempo real. La clave del proveedor permanece en el servidor.
+## Activación
 
-Para terminar la activación: comprobar la configuración del proveedor y verificar una petición real con una cuenta de prueba, revisando tanto la receta como su coste. El perfil local de demostración no equivale a una sesión real de Supabase. Al guardar el secreto no es necesario volver a desplegar la función.
+1. Crear una clave gratuita en Google AI Studio.
+2. En Supabase, abrir Edge Functions → Secrets y guardar `GEMINI_API_KEY`.
+3. Desplegar la función `dish-recipe` desde `supabase/functions/dish-recipe/index.ts` para aplicar la versión nueva.
+4. Iniciar sesión en la web y abrir un plato descubierto para comprobar la receta.
 
-También puede desplegarse desde el panel web: Edge Functions → Deploy a new function → Via Editor, usando el nombre dish-recipe y el código preparado. Los secretos se configuran en Edge Function Secrets. Fuentes: [editor y despliegue](https://supabase.com/docs/guides/functions/quickstart-dashboard), [secretos](https://supabase.com/docs/guides/functions/secrets).
+No compartir ni subir la clave a GitHub. La generación real no se ha probado porque requiere que el propietario añada su propia clave gratuita.
+
+Fuentes: [nivel gratuito de Gemini API](https://ai.google.dev/gemini-api/docs/pricing), [tipo de cambio de referencia de Frankfurter](https://frankfurter.dev/v2/).
