@@ -2174,7 +2174,7 @@ async function syncWeekly(){
     }else{
       await sb("/rest/v1/weekly_ranking",{method:"POST",headers:{...SH,"Prefer":"return=minimal"},body:JSON.stringify({username:myUser,week:weekKey,points:weekly.points,hidden:!!cfg.hideFromRanking})});
     }
-  }catch(e){console.warn("syncWeekly error:",e);}
+  }catch(e){console.warn("syncWeekly error:",e);return{error:e};}
 }
 async function fetchWeekly(){
   ensureCurrentWeek();
@@ -2788,7 +2788,7 @@ async function openWeekly(){
   document.getElementById("weekly-list").innerHTML='<div class="ranking-empty">Cargando...</div>';
   // The weekly insert policy depends on the user row in the global ranking.
   try{
-    if(myUser&&!isGuest){await upsertRanking();if(weekly.points>0)await syncWeekly();}
+    if(myUser&&!isGuest){await upsertRanking();if(weekly.points>0){const syncResult=await syncWeekly();if(syncResult?.error)throw syncResult.error;}}
     renderWeeklyList(await fetchWeekly());
   }catch(e){document.getElementById("weekly-list").innerHTML='<div class="ranking-empty">No se pudo sincronizar tu puntuación. Comprueba tu conexión e inténtalo de nuevo.</div>';}
 }
