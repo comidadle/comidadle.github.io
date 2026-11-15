@@ -5,4 +5,7 @@ ALTER TABLE public.ranking
 ALTER TABLE public.ranking
   ADD COLUMN IF NOT EXISTS country text;
 
+ALTER TABLE public.weekly_ranking
+  ADD COLUMN IF NOT EXISTS country text;
+
 NOTIFY pgrst, 'reload schema';
