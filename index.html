@@ -2054,7 +2054,7 @@ async function fetchRanking(){
   // hueco limitado del top-50 salvo el propio usuario: si no se filtran en el servidor,
   // pueden desplazar a jugadores reales fuera de la ventana devuelta y parecer "ausentes"
   // del ranking aunque tengan mejor racha.
-  const orFilter=myId?"or=(hidden.is.false,id.eq."+encodeURIComponent(myId)+")":"hidden=is.false";
+  const orFilter=myId?"or=(hidden.is.false,hidden.is.null,id.eq."+encodeURIComponent(myId)+")":"or=(hidden.is.false,hidden.is.null)";
   return await sb("/rest/v1/ranking?select=*&"+orFilter+"&order=best_streak.desc&limit=50");
 }
 
@@ -2176,7 +2176,7 @@ async function fetchWeekly(){
   ensureCurrentWeek();
   // weekly_ranking usa un id propio por fila (no el auth.uid), así que para incluirnos a
   // nosotros mismos aunque estemos ocultos filtramos por username, no por id.
-  const orFilter=myUser?"or=(hidden.is.false,username.eq."+encodeURIComponent(myUser)+")":"hidden=is.false";
+  const orFilter=myUser?"or=(hidden.is.false,hidden.is.null,username.eq."+encodeURIComponent(myUser)+")":"or=(hidden.is.false,hidden.is.null)";
   return await sb("/rest/v1/weekly_ranking?week=eq."+weekKey+"&"+orFilter+"&select=*&order=points.desc&limit=50");
 }
 
