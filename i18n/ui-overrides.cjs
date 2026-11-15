@@ -1,5 +1,11 @@
 // Redacción de controles y conceptos del juego. Orden: en, fr, de, pt-BR, pt-PT.
 module.exports={
+  '{p3} Plato {p4}':['{p3} Dish {p4}','{p3} Plat {p4}','{p3} Gericht {p4}','{p3} Prato {p4}','{p3} Prato {p4}'],
+  '{p1} — 3 platos':['{p1} — 3 dishes','{p1} — 3 plats','{p1} — 3 Gerichte','{p1} — 3 pratos','{p1} — 3 pratos'],
+  'Plato':['Dish','Plat','Gericht','Prato','Prato'],
+  'Platos':['Dishes','Plats','Gerichte','Pratos','Pratos'],
+  'Plato de ayer':['Yesterday’s dish','Plat d’hier','Gestriges Gericht','Prato de ontem','Prato de ontem'],
+  '🔥 Racha: {p0}':['🔥 Streak: {p0}','🔥 Série : {p0}','🔥 Serie: {p0}','🔥 Sequência: {p0}','🔥 Sequência: {p0}'],
   '🟩 Acierto · 🟥 Fallo':['🟩 Correct · 🟥 Wrong','🟩 Bonne réponse · 🟥 Mauvaise réponse','🟩 Richtig · 🟥 Falsch','🟩 Acerto · 🟥 Erro','🟩 Acerto · 🟥 Erro'],
   'Idioma':['Language','Langue','Sprache','Idioma','Idioma'],
   'El cambio recarga la página. Tu progreso diario se conserva.':['Changing the language reloads the page. Your daily progress is saved.','Le changement de langue recharge la page. Votre progression quotidienne est conservée.','Beim Sprachwechsel wird die Seite neu geladen. Dein täglicher Fortschritt bleibt gespeichert.','A mudança de idioma recarrega a página. Seu progresso diário é mantido.','A mudança de idioma recarrega a página. O teu progresso diário é guardado.'],
@@ -40,7 +46,9 @@ module.exports={
   'Sin items disponibles':['No items available','Aucun article disponible','Keine Artikel verfügbar','Nenhum item disponível','Nenhum artigo disponível'],
   'Modo difícil':['Hard mode','Mode difficile','Schwerer Modus','Modo difícil','Modo difícil'],
   'Modo invitado':['Guest mode','Mode invité','Gastmodus','Modo visitante','Modo convidado'],
-  'Especial Domingo':['Sunday Special','Spécial du dimanche','Sonntagsspezial','Especial de domingo','Especial de domingo'],
+  'Platos internacionales':['International dishes','Plats internationaux','Internationale Gerichte','Pratos internacionais','Pratos internacionais'],
+  '🎉 Platos internacionales':['🎉 International Dishes','🎉 Plats internationaux','🎉 Internationale Gerichte','🎉 Pratos internacionais','🎉 Pratos internacionais'],
+  'Un plato internacional disponible los sábados y domingos':['An international dish available on Saturdays and Sundays','Un plat international disponible le samedi et le dimanche','Ein internationales Gericht, samstags und sonntags verfügbar','Um prato internacional disponível aos sábados e domingos','Um prato internacional disponível aos sábados e domingos'],
   'Todos contra todos':['Free-for-all','Chacun pour soi','Jeder gegen jeden','Todos contra todos','Todos contra todos'],
   'Países desbloqueados':['Countries unlocked','Pays débloqués','Freigeschaltete Länder','Países desbloqueados','Países desbloqueados'],
   'No se pudo completar la operación. Inténtalo de nuevo.':['The action could not be completed. Please try again.','Impossible de terminer l’action. Réessayez.','Die Aktion konnte nicht abgeschlossen werden. Versuche es erneut.','Não foi possível concluir a ação. Tente novamente.','Não foi possível concluir a ação. Tenta novamente.'],

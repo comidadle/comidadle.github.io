@@ -1,9 +1,17 @@
 (async function(){
   'use strict';
+  const assetVersion=new URL(document.currentScript?.src||location.href).searchParams.get('v');
+  const assetUrl=path=>path+(assetVersion?'?v='+encodeURIComponent(assetVersion):'');
   const {I18n,LOCALES,normalizeLocale,escapeHtml}=window.ComidadleI18n;
   const isPreview=location.pathname.includes('/preview/');
   let demoActive=false;
   let demoInventory=[];
+  let passwordRecoveryActive=false;
+  // El enlace de acceso permite salir de una demo guardada sin borrar el progreso.
+  if(isPreview&&new URLSearchParams(location.search).get('login')==='1'){
+    try{localStorage.removeItem('comidadle_preview_demo');}catch(_){}
+    const url=new URL(location.href);url.searchParams.delete('login');history.replaceState(null,'',url);
+  }
   if(isPreview){
     const realFetch=window.fetch.bind(window);
     window.fetch=async(input,options={})=>{
@@ -12,9 +20,11 @@
       const method=String(options.method||input.method||'GET').toUpperCase();
       if(url.hostname.endsWith('.supabase.co')){
         const mutating=!['GET','HEAD','OPTIONS'].includes(method);
-        const safeLogin=url.pathname==='/auth/v1/token'||url.pathname==='/rest/v1/rpc/email_for_username';
+        const accountRequest=method==='POST'&&['/auth/v1/token','/auth/v1/signup','/auth/v1/resend','/auth/v1/recover','/rest/v1/rpc/email_for_username'].includes(url.pathname);
+        const passwordUpdate=method==='PUT'&&url.pathname==='/auth/v1/user'&&passwordRecoveryActive;
+        const recipeRead=url.pathname==='/functions/v1/dish-recipe'&&method==='POST';
         if(url.pathname==='/auth/v1/logout')return new Response('{}',{status:200,headers:{'Content-Type':'application/json'}});
-        if(mutating&&!safeLogin)return new Response(JSON.stringify({error:'preview_read_only'}),{status:409,headers:{'Content-Type':'application/json'}});
+        if(mutating&&!accountRequest&&!passwordUpdate&&!recipeRead)return new Response(JSON.stringify({error:'preview_read_only'}),{status:409,headers:{'Content-Type':'application/json'}});
         const publicTables=['ranking','weekly_ranking','shop_items','reviews','review_replies','announcements','announcement_reactions'];
         const table=url.pathname.split('/')[3];
         if(demoActive&&table==='user_inventory'&&method==='GET')return new Response(JSON.stringify(demoInventory),{status:200,headers:{'Content-Type':'application/json'}});
@@ -25,10 +35,12 @@
   }
   const loading=document.createElement('div');loading.setAttribute('role','status');loading.textContent='Comidadle…';loading.style.cssText='position:fixed;inset:0;z-index:10000;background:#100900;color:#fff3e0;display:grid;place-items:center;font:20px system-ui';document.body.append(loading);
   const fetchCatalog=async locale=>{
-    const response=await fetch('../locales/catalogs/'+encodeURIComponent(locale)+'.json');
+    const response=await fetch(assetUrl('../locales/catalogs/'+encodeURIComponent(locale)+'.json'));
     if(!response.ok)throw Error('No se pudo cargar el idioma.');return response.json();
   };
   try{
+    if(!window.ComidadleGeography)await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=assetUrl('../i18n/geography.js');script.onload=resolve;script.onerror=reject;document.head.append(script);});
+    if(!window.ComidadlePassport)await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=assetUrl('../i18n/passport.js');script.onload=resolve;script.onerror=reject;document.head.append(script);});
     const source=await fetchCatalog('es'),engine=new I18n(source,{fetchCatalog,preview:true});
     demoInventory=(source.publicShop||[]).map(item=>({item_id:item.id}));
     let selected='es';try{selected=normalizeLocale(localStorage.getItem('comidadle_preview_lang')||localStorage.getItem('comidadle_lang'));}catch(_){}
@@ -57,8 +69,48 @@
       pattern+=value.slice(at).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'$';return {key,names,regex:new RegExp(pattern),specificity:value.replace(/\{p\d+\}/g,'').length};
     }).sort((a,b)=>b.specificity-a.specificity);
     const format=value=>typeof value==='number'?new Intl.NumberFormat(engine.locale,{maximumFractionDigits:12}).format(value):String(value??'');
+    let geography;
+    const revealedRegions=new WeakMap();
+    const foodSelector='.dish-name,.dish-desc,.hints,.hint,#dish-desc,#hints';
+    function protectFoodText(root,reveal){
+      if(!geography)geography=ComidadleGeography.createMatcher({countries:source.flags,demonyms:typeof DEMONYMS==='undefined'?{}:DEMONYMS});
+      revealedRegions.set(root,reveal);
+      const elements=[...(root.matches?.(foodSelector)?[root]:[]),...root.querySelectorAll(foodSelector)];
+      for(const element of elements){
+        // Procesar una sola vez los contenedores que ya incluyen pistas u otros textos.
+        if(elements.some(parent=>parent!==element&&parent.contains(element)))continue;
+        let region=element,show=false;
+        while(region){if(revealedRegions.has(region)){show=revealedRegions.get(region);break;}region=region.parentNode;}
+        for(const span of element.querySelectorAll('.geography-blur,span[style*="blur(5px)"]'))span.replaceWith(document.createTextNode(span.textContent));
+        element.normalize();if(show)continue;
+        const walker=document.createTreeWalker(element,NodeFilter.SHOW_TEXT),nodes=[];
+        while(walker.nextNode())nodes.push(walker.currentNode);
+        for(const node of nodes){
+          const ranges=geography.ranges(node.nodeValue);if(!ranges.length)continue;
+          const fragment=document.createDocumentFragment();let offset=0;
+          for(const range of ranges){
+            fragment.append(document.createTextNode(node.nodeValue.slice(offset,range.start)));
+            const span=document.createElement('span');span.className='geography-blur';span.style.cssText='filter:blur(5px);user-select:none;pointer-events:none';span.setAttribute('aria-hidden','true');span.textContent=range.text;fragment.append(span);offset=range.end;
+          }
+          fragment.append(document.createTextNode(node.nodeValue.slice(offset)));node.replaceWith(fragment);
+        }
+      }
+    }
     const localization={
       get locale(){return engine.locale;},
+      leaveDemo(){
+        demoActive=false;
+        try{localStorage.removeItem('comidadle_preview_demo');}catch(_){}
+      },
+      restoreAccountFromMetadata(){
+        if(!isPreview)return false;
+        const user=_sbSession?.user,username=user?.user_metadata?.username;
+        if(!user?.id||typeof username!=='string'||username.trim().length<3||username.length>20)return false;
+        this.leaveDemo();
+        // Solo identidad visible. Los permisos siguen dependiendo de Supabase Auth.
+        _finalizeAuthenticatedAccount(user.id,username.trim());
+        return true;
+      },
       text:(key,vars={})=>engine.text(key,vars),
       raw(key,vars={}){return this.text(key,vars);},
       htmlText(key,vars={}){
@@ -72,6 +124,30 @@
         const clean=normalize(value),key=lookup[clean];if(key)return engine.text(key);
         for(const pattern of patterns){const match=pattern.regex.exec(clean);if(match){const vars=Object.fromEntries(pattern.names.map((name,index)=>[name,/^-?\d+(?:\.\d+)?$/.test(match[index+1])?Number(match[index+1]):match[index+1]]));return engine.text(pattern.key,vars);}}
         return value;
+      },
+      decorateDishNames(root=document,reveal=false){
+        root=root.closest?.('.dish-card')||root;
+        for(const element of [...(root.matches?.('.dish-name')?[root]:[]),...root.querySelectorAll('.dish-name')]){
+          element.querySelector('.dish-name-translation')?.remove();
+          const native=element.textContent.trim(),entry=dishLookup.get(native);
+          if(!entry||entry.field!=='name')continue;
+          const view=engine.dish(entry.id);let translated=view.displayName;
+          const same=text=>text.normalize('NFKC').toLocaleLowerCase(engine.locale).replace(/[\s\p{P}]+/gu,'');
+          const foreignSpanish=engine.locale==='es'&&["Shepherd's Pie",'Fish and Chips','Mac and Cheese','Irish Stew','Groundnut Soup','Hainanese Chicken Rice'].includes(native);
+          let explanation=false;
+          if((!translated||same(translated)===same(native))&&(engine.locale!=='es'||foreignSpanish)&&native.includes(' ')&&!(typeof cfg!=='undefined'&&cfg.noDesc)){translated=view.desc;explanation=true;}
+          if(!translated||same(translated)===same(native))continue;
+          const label=document.createElement('span');label.className='dish-name-translation';label.lang=engine.locale;
+          label.style.cssText='display:block;font:600 13px/1.5 system-ui;color:var(--text-muted);margin-top:5px;overflow-wrap:anywhere';
+          if(explanation)label.style.font='400 14px/1.6 system-ui';
+          label.textContent=translated;
+          if(explanation)label.dataset.explanation='true';
+          element.append(label);
+          const desc=element.closest('.dish-card')?.querySelector('.dish-desc,#dish-desc');
+          if(desc&&explanation&&desc.textContent===translated){desc.style.display='none';desc.dataset.explanationDuplicate='true';}
+          else if(desc?.dataset.explanationDuplicate){desc.style.display=typeof cfg!=='undefined'&&cfg.noDesc?'none':'';delete desc.dataset.explanationDuplicate;}
+        }
+        protectFoodText(root,reveal);
       },
       country(value){
         const code=source.flags?.[value];if(!code)return value;
@@ -96,6 +172,12 @@
         const index=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'].indexOf(value);
         return index<0?value:engine.date(new Date(2020,index,1),{month:'short'});
       },
+      changelogDate(value){
+        const match=/^(\d{1,2}) (ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic) (\d{4})$/.exec(value);
+        if(!match)return value;
+        const month=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'].indexOf(match[2]);
+        return engine.date(new Date(Number(match[3]),month,Number(match[1])),{day:'numeric',month:'short',year:'numeric'});
+      },
       relativeDate(value){
         const minutes=Math.max(0,Math.floor((Date.now()-new Date(value))/60000));
         const [amount,unit]=minutes<60?[minutes,'minute']:minutes<1440?[Math.floor(minutes/60),'hour']:[Math.floor(minutes/1440),'day'];
@@ -116,6 +198,15 @@
       },
     };
     window.ComidadleLocalization=localization;
+    Object.assign(localization,ComidadlePassport.create({
+      locale:()=>engine.locale,
+      state:()=>({normal:ALL_DISHES,international:SUNDAY_INTERNATIONAL_DISHES,countries:PASSPORT_COUNTRIES,progress:passport}),
+      country:value=>localization.country(value),
+      nameLabel:value=>{const entry=dishLookup.get(value);return entry?engine.dish(entry.id).displayName:value;},
+      decorate:(root,reveal)=>localization.decorateDishNames(root,reveal),
+      open:id=>openModal(id),close:id=>closeModal(id),
+      requestRecipe:body=>fetch(SB+'/functions/v1/dish-recipe',{method:'POST',headers:SH,body:JSON.stringify(body)}),
+    }));
     localization.applyStatic();
     const select=document.getElementById('language-select');
     if(select){
@@ -132,14 +223,15 @@
       }
     }
     const previewText={
-      es:['Versión de prueba: tu cuenta real no se modifica.','Probar sin cuenta (demostración)'],
-      en:['Preview: your real account will not be changed.','Try without an account (demo)'],
-      fr:['Version de test : votre compte réel ne sera pas modifié.','Essayer sans compte (démonstration)'],
-      de:['Testversion: Dein echtes Konto wird nicht verändert.','Ohne Konto ausprobieren (Demo)'],
-      'pt-BR':['Versão de teste: sua conta real não será alterada.','Testar sem conta (demonstração)'],
-      'pt-PT':['Versão de teste: a tua conta real não será alterada.','Experimentar sem conta (demonstração)'],
+      es:['Prueba: progreso local. El registro y el acceso usan una cuenta real.','Probar sin cuenta (demostración)','¿Olvidaste tu contraseña?','Escribe el correo de tu cuenta para recibir un enlace de recuperación.','Enviar enlace','Cancelar','Nueva contraseña','Guardar contraseña','Se envió un enlace si existe una cuenta con ese correo. Revisa también el spam.','Escribe un correo electrónico, no un nombre de usuario.','La contraseña se actualizó. Ya puedes iniciar sesión.','No se pudo actualizar la contraseña. Vuelve a solicitar el enlace.'],
+      en:['Preview: local game progress. Registration and sign-in use a real account.','Try without an account (demo)','Forgot your password?','Enter your account email to receive a recovery link.','Send link','Cancel','New password','Save password','If an account exists for that email, a recovery link was sent. Check spam too.','Enter an email address, not a username.','Password updated. You can sign in now.','Could not update the password. Request a new link.'],
+      fr:['Version de test : progression locale. L’inscription et la connexion utilisent un compte réel.','Essayer sans compte (démonstration)','Mot de passe oublié ?','Saisissez l’adresse e-mail de votre compte pour recevoir un lien de récupération.','Envoyer le lien','Annuler','Nouveau mot de passe','Enregistrer le mot de passe','Si un compte existe pour cette adresse, un lien a été envoyé. Vérifiez aussi les indésirables.','Saisissez une adresse e-mail, pas un nom d’utilisateur.','Mot de passe mis à jour. Vous pouvez vous connecter.','Impossible de modifier le mot de passe. Demandez un nouveau lien.'],
+      de:['Testversion: lokaler Spielfortschritt. Registrierung und Anmeldung verwenden ein echtes Konto.','Ohne Konto ausprobieren (Demo)','Passwort vergessen?','Gib die E-Mail-Adresse deines Kontos ein, um einen Wiederherstellungslink zu erhalten.','Link senden','Abbrechen','Neues Passwort','Passwort speichern','Falls ein Konto für diese E-Mail besteht, wurde ein Link gesendet. Prüfe auch den Spamordner.','Gib eine E-Mail-Adresse ein, keinen Benutzernamen.','Passwort aktualisiert. Du kannst dich jetzt anmelden.','Passwort konnte nicht geändert werden. Fordere einen neuen Link an.'],
+      'pt-BR':['Teste: progresso local. O cadastro e o acesso usam uma conta real.','Testar sem conta (demonstração)','Esqueceu a senha?','Digite o e-mail da sua conta para receber um link de recuperação.','Enviar link','Cancelar','Nova senha','Salvar senha','Se existir uma conta com esse e-mail, um link foi enviado. Confira também o spam.','Digite um e-mail, não um nome de usuário.','Senha atualizada. Você já pode entrar.','Não foi possível atualizar a senha. Solicite um novo link.'],
+      'pt-PT':['Teste: progresso local. A inscrição e o início de sessão usam uma conta real.','Experimentar sem conta (demonstração)','Esqueceu-se da palavra-passe?','Introduza o e-mail da sua conta para receber uma ligação de recuperação.','Enviar ligação','Cancelar','Nova palavra-passe','Guardar palavra-passe','Se existir uma conta com esse e-mail, foi enviada uma ligação. Verifique também o spam.','Introduza um e-mail, não um nome de utilizador.','Palavra-passe atualizada. Já pode iniciar sessão.','Não foi possível atualizar a palavra-passe. Peça uma nova ligação.'],
     };
-    const script=document.createElement('script');script.src='app.js';script.onload=()=>{
+    const script=document.createElement('script');script.src=assetUrl('app.js');script.onload=()=>{
+      localization.decorateDishNames();
       localization.applyStatic();loading.remove();
       if(isPreview){
         const text=previewText[engine.locale],notice=document.createElement('div');notice.id='preview-notice';notice.textContent=text[0];notice.style.cssText='width:100%;text-align:center;padding:8px 12px;background:#251a0d;border-bottom:1px solid #ffb627;color:#ffcf69;font:12px/1.4 system-ui';document.body.prepend(notice);
@@ -152,8 +244,37 @@
         };
         const authNotice=document.createElement('p');authNotice.textContent=text[0];authNotice.style.cssText='font:12px/1.5 system-ui;color:var(--text-muted);text-align:center;margin-top:16px';
         button.addEventListener('click',startDemo);document.querySelector('#login-overlay>div')?.append(authNotice,button);
+        const recoveryText={
+          es:{sent:text[8],email:text[9],saved:text[10],failed:text[11]},en:{sent:text[8],email:text[9],saved:text[10],failed:text[11]},fr:{sent:text[8],email:text[9],saved:text[10],failed:text[11]},de:{sent:text[8],email:text[9],saved:text[10],failed:text[11]},'pt-BR':{sent:text[8],email:text[9],saved:text[10],failed:text[11]},'pt-PT':{sent:text[8],email:text[9],saved:text[10],failed:text[11]}
+        }[engine.locale];
+        const forgot=document.createElement('button');forgot.id='preview-forgot-password';forgot.type='button';forgot.textContent=text[2];forgot.style.cssText='display:block;margin:10px auto 0;background:none;border:0;color:var(--accent);text-decoration:underline;font:13px system-ui;cursor:pointer';
+        document.querySelector('#auth-state-login #login-submit-btn')?.after(forgot);
+        const recover=async()=>{
+          const id=document.getElementById('login-email'),email=(id?.value||'').trim();
+          if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){_showAuthErr('login-err',recoveryText.email);return;}
+          forgot.disabled=true;
+          try{const result=await sbClient.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});if(result.error)throw result.error;_showAuthErr('login-err',recoveryText.sent);}
+          catch(error){_showAuthErr('login-err',/redirect.*(allowed|url)/i.test(error.message||'')?recoveryText.failed:_friendlyAuthError(error.message));}
+          finally{forgot.disabled=false;}
+        };
+        forgot.addEventListener('click',recover);
+        const showPasswordForm=()=>{
+          passwordRecoveryActive=true;
+          const overlay=document.createElement('div');overlay.id='preview-password-recovery';overlay.style.cssText='position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,.85);display:grid;place-items:center;padding:20px';
+          const box=document.createElement('div');box.style.cssText='width:min(100%,360px);padding:24px;background:var(--surface);border:1px solid var(--border-strong);border-radius:18px';
+          const title=document.createElement('h2');title.textContent=text[6];
+          const input=document.createElement('input');input.type='password';input.autocomplete='new-password';input.minLength=6;input.placeholder=text[6];input.setAttribute('aria-label',text[6]);input.style.cssText='width:100%;box-sizing:border-box;padding:12px;margin:10px 0;background:var(--surface2);color:var(--text);border:1px solid var(--border-strong);border-radius:8px;font:16px system-ui';
+          const status=document.createElement('p');status.setAttribute('role','status');
+          const save=document.createElement('button');save.type='button';save.textContent=text[7];save.className='play-btn';save.style.width='100%';
+          const cancel=document.createElement('button');cancel.type='button';cancel.textContent=text[5];cancel.style.cssText='display:block;margin:10px auto;background:none;border:0;color:var(--text-muted);font:14px system-ui';
+          save.addEventListener('click',async()=>{if(input.value.length<6){input.focus();return;}save.disabled=true;const{error}=await sbClient.auth.updateUser({password:input.value});if(error){status.textContent=recoveryText.failed;save.disabled=false;return;}passwordRecoveryActive=false;overlay.remove();_closeLoginOverlay();});
+          cancel.addEventListener('click',()=>{passwordRecoveryActive=false;overlay.remove();});box.append(title,input,status,save,cancel);overlay.append(box);document.body.append(overlay);input.focus();
+        };
+        if(sbClient){
+          sbClient.auth.onAuthStateChange((event,session)=>{passwordRecoveryActive=event==='PASSWORD_RECOVERY';if(event==='PASSWORD_RECOVERY'&&session)showPasswordForm();if(session){demoActive=false;try{localStorage.removeItem('comidadle_preview_demo');}catch(_){}}});
+          if(location.hash.includes('type=recovery')||new URLSearchParams(location.search).get('type')==='recovery')sbClient.auth.getSession().then(({data})=>{if(data?.session)showPasswordForm();}).catch(()=>{});
+        }
         try{if(localStorage.getItem('comidadle_preview_demo')==='1'&&!_sbSession)startDemo();}catch(_){}
-        if(sbClient)sbClient.auth.onAuthStateChange((_event,session)=>{if(session){demoActive=false;try{localStorage.removeItem('comidadle_preview_demo');}catch(_){}}});
       }
     };script.onerror=()=>{loading.textContent='No se pudo cargar Comidadle. Recarga la página.';};document.body.append(script);
   }catch(error){loading.textContent='No se pudo preparar el juego. Recarga la página con conexión.';console.error(error);}

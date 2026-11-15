@@ -41,6 +41,17 @@ const sdk='window.supabase={createClient(){return {auth:{onAuthStateChange(){ret
     const result=await page.evaluate(()=>({count:ALL_DISHES.length,country:ALL_DISHES[0].country,name:ALL_DISHES[0].name,previewName:ComidadleLocalization.display(ALL_DISHES[0].name)}));
     console.log(result);assert.equal(result.count,1082);assert.equal(result.country,'México');assert.equal(result.name,'Tacos al Pastor');
     await page.evaluate(()=>{enterGuestMode();closeModal('how-modal');cfg.soundOn=false;cfg.hapticsOn=false;});
+    const bilingual=await page.evaluate(()=>{
+      const previous=dish;dish=ALL_DISHES[64];renderAll();renderAll();
+      const title=document.getElementById('dish-name'),subtitles=title.querySelectorAll('.dish-name-translation');
+      const value={native:title.textContent.includes(ALL_DISHES[64].name),subtitles:subtitles.length,translation:subtitles[0]?.textContent};
+      dish=ALL_DISHES[9];renderAll();value.masked=!!document.querySelector('#dish-name .dish-name-translation span[style*="blur"]');
+      dish=previous;renderAll();return value;
+    });
+    assert.equal(bilingual.native,true);assert.equal(bilingual.subtitles,locale==='es'?0:1);
+    if(locale!=='es')assert.equal(bilingual.masked,true,'La traducción no debe revelar el país oculto.');
+    if(locale!=='es')assert.equal(bilingual.translation,require('../locales/catalogs/'+locale+'.json').dishes['regular:64'].displayName);
+    console.log('Nombre original y segunda línea traducida comprobados, sin duplicados.');
     const daily=await page.evaluate(()=>({name:dish.name,country:dish.country,options:getOpts()}));
     const labels=await page.locator('#grid .country-btn').allTextContents();
     assert.equal(labels.length,daily.options.length);

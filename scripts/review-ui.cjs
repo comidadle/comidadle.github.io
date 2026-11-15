@@ -20,7 +20,7 @@ for(const [index,locale] of locales.entries()){
       for(const [pattern,value] of patterns[locale])translated=translated.replace(pattern,value);
     }
     if(/platos?/i.test(original)){
-      const patterns={en:[[/\bplates\b/g,'dishes'],[/\bplate\b/g,'dish']],fr:[[/\bassiettes\b/g,'plats'],[/\bassiette\b/g,'plat']],de:[[/\bTeller\b/g,'Gerichte']], 'pt-BR':[], 'pt-PT':[]};
+      const patterns={en:[[/\bplates\b/g,'dishes'],[/\bplate\b/g,'dish']],fr:[[/\bassiettes\b/gi,'plats'],[/\bassiette\b/gi,'plat'],[/\bplaques\b/gi,'plats'],[/\bplaque\b/gi,'plat'],[/\btôles\b/gi,'plats'],[/\btôle\b/gi,'plat']],de:[[/\bTeller\b/g,'Gerichte']], 'pt-BR':[], 'pt-PT':[]};
       for(const [pattern,value] of patterns[locale])translated=translated.replace(pattern,value);
     }
     if(/rachas?/i.test(original)){

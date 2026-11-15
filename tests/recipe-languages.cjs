@@ -17,6 +17,7 @@ test('las seis recetas solicitan el idioma correcto y distinguen las variantes d
     const response=await handler(new Request('https://fixture.invalid',{method:'POST',headers:{Authorization:'Bearer fixture-session','Content-Type':'application/json'},body:JSON.stringify({name:'Paella',country:'España',language})}));
     assert.equal(response.status,200);
     const provider=JSON.parse(calls[1].options.body);assert.ok(provider.system.includes(label));
+    assert.ok(provider.system.includes('cost range in EUR'));assert.ok(provider.system.includes('not a live shop quote'));
     assert.equal(JSON.parse(provider.messages[0].content).name,'Paella');
     const body=await response.json();assert.equal(body.language,language);assert.ok(!JSON.stringify(body).includes('fixture-private'));
   }

@@ -746,6 +746,15 @@
         "javascript-review"
       ]
     },
+    "msg_12b42d9651f1cbf6": {
+      "source": "sábados y domingos",
+      "origins": [
+        "index.html:script-6:2870"
+      ],
+      "types": [
+        "html-text"
+      ]
+    },
     "msg_12bea46ec6060ce5": {
       "source": "Racha de 7 días",
       "origins": [
@@ -1028,6 +1037,15 @@
       "source": "Comidadle nació en",
       "origins": [
         "index.html"
+      ],
+      "types": [
+        "html-text"
+      ]
+    },
+    "msg_1763fd81f1af4671": {
+      "source": "como Plato internacional",
+      "origins": [
+        "index.html:script-6:2870"
       ],
       "types": [
         "html-text"
@@ -1947,15 +1965,6 @@
         "javascript-review"
       ]
     },
-    "msg_2adaf32e7cfa2328": {
-      "source": "domingos",
-      "origins": [
-        "index.html:script-6:2870"
-      ],
-      "types": [
-        "html-text"
-      ]
-    },
     "msg_2b0bfc6f43b6070d": {
       "source": "Ocultar descripción",
       "origins": [
@@ -2057,6 +2066,15 @@
       ],
       "types": [
         "javascript-review"
+      ]
+    },
+    "msg_2d97689563064255": {
+      "source": "Un plato internacional disponible los sábados y domingos",
+      "origins": [
+        "index.html:script-6:1992"
+      ],
+      "types": [
+        "html-text"
       ]
     },
     "msg_2dcf93110e7e6e00": {
@@ -2202,17 +2220,6 @@
         "index.html:script-6:1848"
       ],
       "types": [
-        "javascript-review"
-      ]
-    },
-    "msg_32246062f47d48a1": {
-      "source": "🎉 Especial Domingo",
-      "origins": [
-        "index.html:script-6:1992",
-        "index.html:script-6:2170"
-      ],
-      "types": [
-        "html-text",
         "javascript-review"
       ]
     },
@@ -5593,6 +5600,15 @@
         "html-text"
       ]
     },
+    "msg_70ed044448e79158": {
+      "source": "🌍 Platos internacionales desbloqueados",
+      "origins": [
+        "index.html:script-6:2868"
+      ],
+      "types": [
+        "html-text"
+      ]
+    },
     "msg_710e0dbdd4229985": {
       "source": "Bearer",
       "origins": [
@@ -6316,6 +6332,15 @@
       "source": "25 jun 2026",
       "origins": [
         "index.html:script-6:789"
+      ],
+      "types": [
+        "javascript-review"
+      ]
+    },
+    "msg_7fc441e59ada1c10": {
+      "source": "🎉 Platos internacionales ·",
+      "origins": [
+        "index.html:script-6:2211"
       ],
       "types": [
         "javascript-review"
@@ -9568,15 +9593,6 @@
         "javascript-review"
       ]
     },
-    "msg_b98a6bd7e7a9cbee": {
-      "source": "🎉 Especial Domingo ·",
-      "origins": [
-        "index.html:script-6:2211"
-      ],
-      "types": [
-        "javascript-review"
-      ]
-    },
     "msg_b9bc242cd707e1fd": {
       "source": "&claimed=eq.false",
       "origins": [
@@ -10148,15 +10164,6 @@
         "javascript-review"
       ]
     },
-    "msg_c0cfcfc8e6c4de42": {
-      "source": "Un plato festivo solo disponible los domingos",
-      "origins": [
-        "index.html:script-6:1992"
-      ],
-      "types": [
-        "html-text"
-      ]
-    },
     "msg_c0f66b48fa6cd49c": {
       "source": "✕ Rechazar",
       "origins": [
@@ -10360,6 +10367,15 @@
       ],
       "types": [
         "attribute"
+      ]
+    },
+    "msg_c73c95a6b321403e": {
+      "source": "Acierta su plato en sábado o domingo para desbloquear la receta 🔒",
+      "origins": [
+        "index.html:script-6:2870"
+      ],
+      "types": [
+        "html-text"
       ]
     },
     "msg_c8179a174e508391": {
@@ -11774,15 +11790,6 @@
         "javascript-review"
       ]
     },
-    "msg_e12a9f51255b1e4b": {
-      "source": "como Especial Domingo",
-      "origins": [
-        "index.html:script-6:2870"
-      ],
-      "types": [
-        "html-text"
-      ]
-    },
     "msg_e1391fe87e23c169": {
       "source": "&claimed=eq.false&select=*",
       "origins": [
@@ -12299,15 +12306,6 @@
       ],
       "types": [
         "javascript-review"
-      ]
-    },
-    "msg_e9efa7cb3d03855d": {
-      "source": "Acierta su plato en domingo para desbloquear la receta 🔒",
-      "origins": [
-        "index.html:script-6:2870"
-      ],
-      "types": [
-        "html-text"
       ]
     },
     "msg_ea31fa819f1e1cec": {
@@ -13213,6 +13211,17 @@
         "javascript-review"
       ]
     },
+    "msg_faf4754397706687": {
+      "source": "🎉 Platos internacionales",
+      "origins": [
+        "index.html:script-6:1992",
+        "index.html:script-6:2170"
+      ],
+      "types": [
+        "html-text",
+        "javascript-review"
+      ]
+    },
     "msg_fb1ba2096139e4aa": {
       "source": "Repite la contraseña",
       "origins": [
@@ -13286,15 +13295,6 @@
       ],
       "types": [
         "javascript-review"
-      ]
-    },
-    "msg_fc7aa9eae20ebc6c": {
-      "source": "🌍 Especial Domingo desbloqueado",
-      "origins": [
-        "index.html:script-6:2868"
-      ],
-      "types": [
-        "html-text"
       ]
     },
     "msg_fc8842c641d91506": {

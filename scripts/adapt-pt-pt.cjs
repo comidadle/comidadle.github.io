@@ -37,7 +37,7 @@ for(const key of Object.keys(source.ui)){
   target.ui[key]=!key.startsWith('msg_')&&old.ui[key]?old.ui[key]:mapValues(brazil.ui[key],true);
 }
 for(const [id,dish] of Object.entries(source.dishes)){
-  const translated=brazil.dishes[id];target.dishes[id]={name:dish.name,desc:adapt(translated.desc),hints:translated.hints.map(hint=>adapt(hint))};
+  const translated=brazil.dishes[id];target.dishes[id]={name:dish.name,desc:adapt(translated.desc),hints:translated.hints.map(hint=>adapt(hint)),...(translated.displayName?{displayName:adapt(translated.displayName)}:{})};
 }
 target.review={controlsReviewed:false,fullEditorialReview:false,regionalVocabularyAdapted:true};
 fs.writeFileSync(path.join(dir,'pt-PT.json'),JSON.stringify(target,null,2)+'\n');

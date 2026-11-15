@@ -1717,19 +1717,19 @@ const SUNDAY_INTERNATIONAL_DISHES=[
 ];
 const SUNDAY_SPECIAL_NAMES=[];
 function getWeekNumber(d){const onejan=new Date(d.getFullYear(),0,1);return Math.ceil((((d-onejan)/86400000)+onejan.getDay()+1)/7);}
-const isSundaySpecial=_now.getDay()===0||new URLSearchParams(location.search).get("special")==="1";
+const isInternationalDay=_now.getDay()===0||_now.getDay()===6||new URLSearchParams(location.search).get("special")==="1";
 const SUNDAY_POOL=SUNDAY_INTERNATIONAL_DISHES;
 
 
-function pickSundaySpecialDish(){
+function pickInternationalDish(){
   if(!SUNDAY_POOL.length)return null;
   const wk=getWeekNumber(_now);
   const shuffled=shuffleWithSeed(SUNDAY_POOL,_year*7777+wk*131);
   return shuffled[wk%shuffled.length];
 }
-const SUNDAY_SPECIAL_DISH=isSundaySpecial?pickSundaySpecialDish():null;
+const INTERNATIONAL_DISH_OF_DAY=isInternationalDay?pickInternationalDish():null;
 
-const DAILY=[YEARLY[dayOfYear*3%1095],YEARLY[(dayOfYear*3+1)%1095],SUNDAY_SPECIAL_DISH||YEARLY[(dayOfYear*3+2)%1095]];
+const DAILY=[YEARLY[dayOfYear*3%1095],YEARLY[(dayOfYear*3+1)%1095],INTERNATIONAL_DISH_OF_DAY||YEARLY[(dayOfYear*3+2)%1095]];
 const SESSION_SEED=(_year*73856+dayOfYear*5381)^0xDEADBEEF;
 let currentDish=0,dish=DAILY[0];
 
@@ -2593,7 +2593,7 @@ function recordAttempt(won,attempts){
   const d=getAttempts();if(won)d[attempts]=(d[attempts]||0)+1;else d.fail=(d.fail||0)+1;
   localStorage.setItem(AK2,JSON.stringify(d));
   let xp=addWeeklyPoints(won,attempts);if(xp>0)addXP(xp);
-  const isSpecialNow=typeof isSundaySpecial!=="undefined"&&isSundaySpecial&&currentDish===2&&dish===SUNDAY_SPECIAL_DISH;
+  const isSpecialNow=typeof isInternationalDay!=="undefined"&&isInternationalDay&&currentDish===2&&dish===INTERNATIONAL_DISH_OF_DAY;
   if(won&&isSpecialNow&&!isGuest&&!isBanned){const bonus=15+Math.floor(Math.random()*61);grantXP(bonus);xp+=bonus;}
   addHistory(won,attempts,dish.name,dish.flag);updateMiniAvatar();
   return xp;
@@ -2797,7 +2797,7 @@ async function openWeekly(){
 // ═══ TABS ═══
 function renderTabs(){
   const el=document.getElementById("dish-tabs");if(!el)return;
-  el.innerHTML=DAILY.map((d,i)=>{const s=loadState(i),isA=i===currentDish,isDone=s.done,won=isDone&&s.log[s.log.length-1]===true,isSpecial=isSundaySpecial&&i===2&&d===SUNDAY_SPECIAL_DISH;return`<button class="dish-tab${isA?" active":""}${isDone?" completed":""}" data-i="${i}">${isDone?(won?"✅":"❌"):(isSpecial?"🎉":"🌶️")} Plato ${i+1}</button>`;}).join("");
+  el.innerHTML=DAILY.map((d,i)=>{const s=loadState(i),isA=i===currentDish,isDone=s.done,won=isDone&&s.log[s.log.length-1]===true,isSpecial=isInternationalDay&&i===2&&d===INTERNATIONAL_DISH_OF_DAY;return`<button class="dish-tab${isA?" active":""}${isDone?" completed":""}" data-i="${i}">${isDone?(won?"✅":"❌"):(isSpecial?"🎉":"🌶️")} Plato ${i+1}</button>`;}).join("");
   el.querySelectorAll(".dish-tab").forEach(btn=>btn.addEventListener("click",()=>switchDish(+btn.dataset.i)));
 }
 function switchDish(i){
@@ -2815,8 +2815,8 @@ function renderAll(){
   if(gb_)gb_.innerHTML=isGuest?`<div style="background:var(--surface2);border:1px solid var(--border-strong);border-radius:var(--r-sm);padding:.6rem .9rem;text-align:center;margin-bottom:.875rem"><span style="font-size:12px;font-weight:600;color:var(--text-muted)">👀 Jugando como invitado — no recibirás XP</span></div>`:"";
   const sb_=document.getElementById("special-banner");
   if(sb_){
-    const isSpecialNow=isSundaySpecial&&currentDish===2&&dish===SUNDAY_SPECIAL_DISH;
-    sb_.innerHTML=isSpecialNow?`<div style="background:linear-gradient(90deg,rgba(255,107,53,.15),rgba(255,182,39,.15));border:1px solid var(--gold);border-radius:var(--r-sm);padding:.7rem .9rem;text-align:center;margin-bottom:.875rem"><span style="font-size:13px;font-weight:700;color:var(--gold)">🎉 Especial Domingo</span><div style="font-size:11px;color:var(--text-muted);margin-top:2px">Un plato festivo solo disponible los domingos</div></div>`:"";
+    const isSpecialNow=isInternationalDay&&currentDish===2&&dish===INTERNATIONAL_DISH_OF_DAY;
+    sb_.innerHTML=isSpecialNow?`<div style="background:linear-gradient(90deg,rgba(255,107,53,.15),rgba(255,182,39,.15));border:1px solid var(--gold);border-radius:var(--r-sm);padding:.7rem .9rem;text-align:center;margin-bottom:.875rem"><span style="font-size:13px;font-weight:700;color:var(--gold)">🎉 Platos internacionales</span><div style="font-size:11px;color:var(--text-muted);margin-top:2px">Un plato internacional disponible los sábados y domingos</div></div>`:"";
   }
   document.getElementById("dish-emoji").textContent=dish.emoji;
   const nameEl=document.getElementById("dish-name");
@@ -2993,8 +2993,8 @@ function showResultBox(won, xpEarned){
   }).join("");
   const emojiStr=log.map(g=>g?"🟩":"🟥").join("");
   const hardCount=[cfg.fewAttempts,cfg.moreCountries,cfg.noHints].filter(Boolean).length;
-  const isSpecialNow=isSundaySpecial&&currentDish===2&&dish===SUNDAY_SPECIAL_DISH;
-  shareText="🌶️ Comidadle — Plato "+(currentDish+1)+"/3"+(isSpecialNow?" 🎉 Especial Domingo":"")+"\n"+dish.name+"\n"+emojiStr+"\n"+(won?"¡Acertaste en "+log.length+" intento"+(log.length!==1?"s":"")+"!":"¡No lo conseguí hoy!")+(streak.streak>1?" · 🔥 Racha de "+streak.streak+" días":"")+(hardCount>0?"\n🔥 Modo difícil x"+hardCount:"")+"\n👉 comidadle.github.io";
+  const isSpecialNow=isInternationalDay&&currentDish===2&&dish===INTERNATIONAL_DISH_OF_DAY;
+  shareText="🌶️ Comidadle — Plato "+(currentDish+1)+"/3"+(isSpecialNow?" 🎉 Platos internacionales":"")+"\n"+dish.name+"\n"+emojiStr+"\n"+(won?"¡Acertaste en "+log.length+" intento"+(log.length!==1?"s":"")+"!":"¡No lo conseguí hoy!")+(streak.streak>1?" · 🔥 Racha de "+streak.streak+" días":"")+(hardCount>0?"\n🔥 Modo difícil x"+hardCount:"")+"\n👉 comidadle.github.io";
   const box=document.createElement("div");box.className="result-box";
   box.innerHTML=`
     <span class="result-big">${won?"🎉":"😔"}</span>
@@ -3034,8 +3034,8 @@ function generateShareImageBlob(){
     ctx.font="700 22px 'Plus Jakarta Sans',sans-serif";ctx.fillStyle="#FF6B35";
     ctx.fillText("🌶️ COMIDADLE",W/2,46);
     ctx.font="900 30px Georgia, serif";ctx.fillStyle="#FFF3E0";
-    const isSpecialNow=isSundaySpecial&&currentDish===2&&dish===SUNDAY_SPECIAL_DISH;
-    ctx.fillText((isSpecialNow?"🎉 Especial Domingo · ":"")+("Plato "+(currentDish+1)+"/3"),W/2,82);
+    const isSpecialNow=isInternationalDay&&currentDish===2&&dish===INTERNATIONAL_DISH_OF_DAY;
+    ctx.fillText((isSpecialNow?"🎉 Platos internacionales · ":"")+("Plato "+(currentDish+1)+"/3"),W/2,82);
     // emoji plato
     ctx.font="64px serif";ctx.fillText(dish.emoji,W/2,160);
     ctx.font="700 22px 'Plus Jakarta Sans',sans-serif";ctx.fillStyle="#FFF3E0";
@@ -3643,7 +3643,7 @@ function passportStats(){
   const intlDishes=typeof SUNDAY_INTERNATIONAL_DISHES!=="undefined"?SUNDAY_INTERNATIONAL_DISHES:[];
   const intlCountries=new Set(intlDishes.filter(d=>d.country!=="Israel").map(d=>d.country));
   // El objeto "passport" ya se actualiza para cualquier plato acertado, hispano o del
-  // Especial Domingo (ver recordPassport), y es permanente — a diferencia del historial
+  // Platos internacionales (ver recordPassport), y es permanente — a diferencia del historial
   // (comidadle_history), que solo guarda los últimos 42 resultados y además usaba un campo
   // "name" que no existe en esos registros (el campo real es "dish"), por lo que los países
   // internacionales nunca contaban como desbloqueados.
@@ -3692,9 +3692,9 @@ function openPassportCountry(name,active,unlocked){
     const _intlD=(typeof SUNDAY_INTERNATIONAL_DISHES!=="undefined"?SUNDAY_INTERNATIONAL_DISHES:[]).filter(d=>d.country===name);
     const _solvedD=_intlD.filter(d=>(passport[name]||[]).includes(d.name));
     if(_solvedD.length>0){
-      el.innerHTML=`<div style="text-align:center;margin-bottom:1rem"><div style="font-size:48px">${flag}</div><div style="font-size:18px;font-weight:700;color:var(--text);margin-top:.25rem">${name}</div><div style="font-size:12px;color:var(--text-muted);margin-top:.25rem">🌍 Especial Domingo desbloqueado</div></div>`+_solvedD.map(d=>`<div class="dish-card" style="margin-bottom:.6rem;padding:.75rem;cursor:pointer" onclick="openDishRecipe('${d.name.replace(/'/g,"\\'")}','${d.country}','${d.emoji}','${d.flag||""}')"><span style="font-size:24px">${d.emoji}</span><div style="font-size:13px;font-weight:600">${d.name}</div><div style="font-size:11px;color:var(--accent)">🍳 Ver receta</div></div>`).join("");
+      el.innerHTML=`<div style="text-align:center;margin-bottom:1rem"><div style="font-size:48px">${flag}</div><div style="font-size:18px;font-weight:700;color:var(--text);margin-top:.25rem">${name}</div><div style="font-size:12px;color:var(--text-muted);margin-top:.25rem">🌍 Platos internacionales desbloqueados</div></div>`+_solvedD.map(d=>`<div class="dish-card" style="margin-bottom:.6rem;padding:.75rem;cursor:pointer" onclick="openDishRecipe('${d.name.replace(/'/g,"\\'")}','${d.country}','${d.emoji}','${d.flag||""}')"><span style="font-size:24px">${d.emoji}</span><div style="font-size:13px;font-weight:600">${d.name}</div><div style="font-size:11px;color:var(--accent)">🍳 Ver receta</div></div>`).join("");
     }else{
-      el.innerHTML=`<div style="text-align:center;padding:1.5rem 0"><div style="font-size:48px;margin-bottom:.5rem">${flag}</div><div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:.5rem">${name}</div><div style="font-size:13px;color:var(--text-muted)">🌍 Este país aparece los <strong>domingos</strong> como Especial Domingo</div><div style="font-size:12px;color:var(--text-muted);margin-top:.5rem">Acierta su plato en domingo para desbloquear la receta 🔒</div></div>`;
+      el.innerHTML=`<div style="text-align:center;padding:1.5rem 0"><div style="font-size:48px;margin-bottom:.5rem">${flag}</div><div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:.5rem">${name}</div><div style="font-size:13px;color:var(--text-muted)">🌍 Este país aparece los <strong>sábados y domingos</strong> como Plato internacional</div><div style="font-size:12px;color:var(--text-muted);margin-top:.5rem">Acierta su plato en sábado o domingo para desbloquear la receta 🔒</div></div>`;
     }
     return;
   }else if(!unlocked){

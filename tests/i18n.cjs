@@ -14,6 +14,13 @@ const english = {
 };
 const clone = value => structuredClone(value);
 
+test('el título traducido se mantiene separado del nombre auténtico y del identificador',async()=>{
+  const translated=clone(english);translated.dishes.taco.displayName='Tacos with a translated label';
+  const engine=new I18n(source,{fetchCatalog:async()=>translated});await engine.setLocale('en');
+  assert.equal(engine.dish('taco').name,'Tacos');assert.equal(engine.dish('taco').displayName,'Tacos with a translated label');
+  assert.equal(source.dishes.taco.name,'Tacos');await engine.setLocale('es');assert.equal(engine.dish('taco').displayName,'Tacos');
+});
+
 test('se reconocen seis idiomas y las dos variantes de portugués', () => {
   assert.equal(normalizeLocale('pt_PT'), 'pt-PT');
   assert.equal(normalizeLocale('pt-br'), 'pt-BR');

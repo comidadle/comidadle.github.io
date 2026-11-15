@@ -50,6 +50,7 @@
       for(const [id,dish] of Object.entries(source.dishes)){
         const targetDish=target.dishes[id];
         for(const field of ['name','desc'])items.push({key:id+'.'+field,source:dish[field],translated:targetDish?.[field]||null});
+        items.push({key:id+'.displayName',source:dish.name,translated:targetDish?.displayName||targetDish?.name||null});
         dish.hints.forEach((hint,index)=>items.push({key:id+'.hints.'+index,source:hint,translated:targetDish?.hints?.[index]||null}));
       }
       const filtered=items.filter(item=>(item.key+' '+item.source+' '+(item.translated||'')).toLocaleLowerCase('es').includes(query));

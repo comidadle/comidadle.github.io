@@ -4,7 +4,7 @@
   else root.ComidadleI18n = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
-  const LOCALES = Object.freeze({ es: 'Español', en: 'English', fr: 'Français', 'pt-BR': 'Português (Brasil)', 'pt-PT': 'Português (Portugal)', de: 'Deutsch' });
+  const LOCALES = Object.freeze({ es: '🇪🇸 Español', en: '🇬🇧 English', fr: '🇫🇷 Français', 'pt-BR': '🇧🇷 Português (Brasil)', 'pt-PT': '🇵🇹 Português (Portugal)', de: '🇩🇪 Deutsch' });
   function normalizeLocale(value) {
     const normalized = String(value || '').replace('_', '-').toLowerCase();
     const exact = Object.keys(LOCALES).find(locale => locale.toLowerCase() === normalized);
@@ -72,6 +72,7 @@
       const field = key => typeof translated?.[key] === 'string' && translated[key].trim() ? translated[key] : original[key];
       return {
         name: field('name'),
+        displayName: typeof translated?.displayName === 'string' && translated.displayName.trim() ? translated.displayName : original.name,
         desc: field('desc'),
         hints: original.hints.map((hint, index) => translated?.hints?.[index]?.trim() ? translated.hints[index] : hint),
       };
