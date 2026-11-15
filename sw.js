@@ -1,7 +1,7 @@
 // Comidadle service worker — offline play support
 // Bump CACHE_VERSION whenever you release a new version of index.html so
 // clients pick up the fresh copy instead of serving a stale cached one.
-const CACHE_VERSION = "v3.3.0";
+const CACHE_VERSION = "v3.3.1";
 const CACHE_NAME = "comidadle-" + CACHE_VERSION + "-shell-1";
 
 // The app shell: index.html is a single self-contained file with ALL game
@@ -73,20 +73,23 @@ function isCdnAsset(url) {
 // Stale-while-revalidate: serve the cached copy immediately for instant
 // load + offline support, and update the cache in the background whenever
 // the network is available so the next load gets fresh content.
-async function staleWhileRevalidate(request) {
+async function networkFirst(request) {
   const cache = await caches.open(CACHE_NAME);
-  const cached = await cache.match(request);
-  const networkPromise = fetch(request)
-    .then((response) => {
-      if (response && response.ok) cache.put(request, response.clone());
-      return response;
-    })
-    .catch(() => null);
-  return cached || (await networkPromise) || new Response(
-    "Sin conexión y sin copia guardada todavía. Abre Comidadle una vez con internet para poder jugar sin conexión después.",
-    { status: 503, headers: { "Content-Type": "text/plain; charset=utf-8" } }
-  );
+  try {
+    const response = await fetch(request, { cache: "no-cache" });
+    if (response && response.ok) await cache.put(request, response.clone());
+    return response;
+  } catch (e) {
+    const cached = await cache.match(request) || await cache.match("./index.html") || await cache.match("./");
+    return cached || new Response(
+      "Sin conexión y sin copia guardada todavía. Abre Comidadle una vez con internet para poder jugar sin conexión después.",
+      { status: 503, headers: { "Content-Type": "text/plain; charset=utf-8" } }
+    );
+  }
 }
+
+// Use a network-first policy for navigations so published app changes appear on
+// the next visit. Keep stale-while-revalidate for same-origin static resources.
 
 // Cache-first: good for pinned/versioned library files and font assets that
 // essentially never change once fetched.
@@ -129,7 +132,11 @@ self.addEventListener("fetch", (event) => {
   // Same-origin navigations and the app shell files themselves.
   const isSameOrigin = url.origin === self.location.origin;
   const isNavigation = req.mode === "navigate";
-  if (isSameOrigin || isNavigation) {
+  if (isNavigation) {
+    event.respondWith(networkFirst(req));
+    return;
+  }
+  if (isSameOrigin) {
     event.respondWith(staleWhileRevalidate(req));
   }
   // Anything else (e.g. other third-party requests) is left to the browser's
