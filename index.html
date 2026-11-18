@@ -234,6 +234,9 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
 @media (max-width:600px){
   input,select,textarea{font-size:16px!important}
 }
+
+.owner-badge{display:inline-flex;margin-left:.35rem;padding:.12rem .45rem;border:1px solid rgba(255,182,39,.55);border-radius:99px;background:rgba(255,182,39,.12);color:var(--gold);font-size:10px;font-weight:800;white-space:nowrap;vertical-align:middle}.recipe-toolbar{display:flex;gap:.5rem;margin:.25rem 0 .8rem}.recipe-toolbar button{flex:1;min-height:40px;border:1px solid var(--border-strong);border-radius:var(--r-sm);background:var(--surface2);color:var(--text);font:600 12px 'Plus Jakarta Sans',sans-serif;cursor:pointer}
+@media(min-width:900px){.header-inner,.footer-inner{max-width:1200px}.header-inner{padding:1rem 2rem}.game{max-width:1120px;padding:2.25rem 3rem 4rem;gap:1.25rem}.dish-card{padding:2.5rem 3rem}.dish-emoji{font-size:72px}.dish-name{font-size:30px}.dish-desc,.hint{font-size:15px}.hints{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.country-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.country-btn{min-height:58px;padding:.85rem 1rem;font-size:15px}.side-menu{width:360px;max-width:38vw}.side-menu-item{padding:.9rem}#passport-modal .modal,#passport-country-modal .modal{max-width:1050px!important}#passport-grid{grid-template-columns:repeat(auto-fill,minmax(145px,1fr))!important;gap:12px!important}.passport-card{min-height:124px;padding:1rem .6rem}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" defer></script>
@@ -317,7 +320,7 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
   </div>
 </div>
 <div class="modal-overlay hidden" id="recipe-modal">
-  <div class="modal" style="max-width:480px"><div class="modal-header"><span id="recipe-modal-title" style="font-size:15px;font-weight:700">Receta</span><button class="modal-close" onclick="closeModal('recipe-modal')">✕</button></div><div class="modal-body" style="max-height:72vh;overflow-y:auto" id="recipe-content"></div></div>
+  <div class="modal" style="max-width:480px"><div class="modal-header"><span id="recipe-modal-title" style="font-size:15px;font-weight:700">Receta</span><button class="modal-close" onclick="closeModal('recipe-modal')">✕</button></div><div class="recipe-toolbar"><button type="button" onclick="returnToRecipeCountry()">← Volver a países</button><button type="button" onclick="retryDishRecipe()">↻ Recargar receta</button></div><div class="modal-body" style="max-height:72vh;overflow-y:auto" id="recipe-content"></div></div>
 </div>
 
 <!-- SPLASH -->
@@ -364,7 +367,7 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
     <div class="setting-row"><div class="setting-info"><div class="setting-label">Sonido</div><div class="setting-desc">Efectos de sonido al acertar o fallar, independiente de la vibración.</div></div><label class="toggle"><input type="checkbox" id="sound-toggle" checked><div class="toggle-track"></div></label></div>
     <div class="setting-row"><div class="setting-info"><div class="setting-label">Vibración</div><div class="setting-desc">Feedback háptico al acertar o fallar. <strong>No funciona en iPhone</strong> — es una limitación de iOS, no del juego.</div></div><label class="toggle"><input type="checkbox" id="haptics-toggle" checked><div class="toggle-track"></div></label></div>
     <div class="setting-row"><div class="setting-info"><div class="setting-label">Modo daltónico</div><div class="setting-desc">Cambia el verde/rojo de aciertos por colores más distinguibles.</div></div><label class="toggle"><input type="checkbox" id="colorblind-toggle"><div class="toggle-track"></div></label></div>
-    <div class="setting-row"><div class="setting-info"><div class="setting-label">Ocultar mi posición en rankings</div><div class="setting-desc">Sigues jugando y guardando tu progreso, pero nadie más te verá en el Ranking Global ni Semanal.</div></div><label class="toggle"><input type="checkbox" id="hide-ranking-toggle"><div class="toggle-track"></div></label></div>
+    <div class="setting-row"><div class="setting-info"><div class="setting-label">Ocultar mi posición en rankings</div><div class="setting-desc">Sigues jugando y guardando tu progreso, pero nadie más te verá en el Ranking Global ni Semanal.</div></div><label class="toggle"><input type="checkbox" id="hide-ranking-toggle"><div class="toggle-track"></div></label></div><div class="setting-row"><div class="setting-info"><div class="setting-label">Ver mi posición si me oculto</div><div class="setting-desc">Decide si aparece en tus propias listas cuando ocultas tu perfil.</div></div><label class="toggle"><input type="checkbox" id="show-hidden-self-toggle"><div class="toggle-track"></div></label></div>
     <div class="modal-divider"></div>
     <div class="settings-section-label">💾 Datos</div>
     <button class="ranking-btn" id="export-progress-btn" style="width:100%">⬇️ Exportar mi progreso (.json)</button>
@@ -1735,7 +1738,7 @@ let currentDish=0,dish=DAILY[0];
 
 // ═══ CONFIG ═══
 const CFG_KEY="comidadle_cfg_v3";
-let cfg={fewAttempts:false,moreCountries:false,noHints:false,progressive:true,noDesc:false,showYesterday:true,hapticsOn:true,colorblind:false,hideFromRanking:false,soundOn:true,showHowToPlay:true};
+let cfg={fewAttempts:false,moreCountries:false,noHints:false,progressive:true,noDesc:false,showYesterday:true,hapticsOn:true,colorblind:false,hideFromRanking:false,showSelfWhenHidden:true,soundOn:true,showHowToPlay:true};
 try{const s=JSON.parse(localStorage.getItem(CFG_KEY));if(s)cfg={...cfg,...s};}catch(e){}
 const saveCfg=()=>{try{localStorage.setItem(CFG_KEY,JSON.stringify(cfg));}catch(e){}};
 document.body.classList.toggle("colorblind",!!cfg.colorblind);
@@ -2065,6 +2068,7 @@ function countryCurrency(country){
   const map={"México":"MXN","España":"EUR","Argentina":"ARS","Perú":"PEN","Colombia":"COP","Venezuela":"VES","Chile":"CLP","Cuba":"CUP","El Salvador":"USD","Honduras":"HNL","Costa Rica":"CRC","Nicaragua":"NIO","Guatemala":"GTQ","Ecuador":"USD","Bolivia":"BOB","Uruguay":"UYU","Brasil":"BRL","Panamá":"USD","Rep. Dominicana":"DOP","República Dominicana":"DOP","Puerto Rico":"USD","Paraguay":"PYG","Francia":"EUR","Italia":"EUR","Portugal":"EUR","Alemania":"EUR","Reino Unido":"GBP","Grecia":"EUR","Países Bajos":"EUR","Bélgica":"EUR","Suiza":"CHF","Austria":"EUR","Suecia":"SEK","Noruega":"NOK","Dinamarca":"DKK","Polonia":"PLN","Rusia":"RUB","Turquía":"TRY","Irlanda":"EUR","Hungría":"HUF","Rep. Checa":"CZK","Rumanía":"RON","Japón":"JPY","China":"CNY","Corea del Sur":"KRW","India":"INR","Tailandia":"THB","Vietnam":"VND","Indonesia":"IDR","Filipinas":"PHP","Malasia":"MYR","Singapur":"SGD","Israel":"ILS","Líbano":"LBP","Arabia Saudita":"SAR","Emiratos":"AED","Irán":"IRR","Pakistán":"PKR","Marruecos":"MAD","Egipto":"EGP","Sudáfrica":"ZAR","Nigeria":"NGN","Kenia":"KES","Etiopía":"ETB","Túnez":"TND","Ghana":"GHS","Senegal":"XOF","Australia":"AUD","Nueva Zelanda":"NZD","Estados Unidos":"USD","Canadá":"CAD"};return map[country]||"EUR";
 }
 async function openDishRecipe(name,country,emoji,flag){
+  _activeRecipe={name,country,emoji,flag};
   closeModal("passport-country-modal");closeModal("passport-modal");
   const titleEl=document.getElementById("recipe-modal-title");if(titleEl)titleEl.textContent=emoji+" "+name+" "+(flag||"");
   openModal("recipe-modal");
@@ -2081,6 +2085,10 @@ async function openDishRecipe(name,country,emoji,flag){
     if(el)el.innerHTML="<div style='padding:.5rem;line-height:1.8;font-size:14px;color:var(--text);white-space:pre-wrap'>"+escapeHtml(text)+"</div>";
   }catch(e){if(el)el.innerHTML="<div style='text-align:center;padding:2rem;color:var(--red)'>❌ "+escapeHtml(e.message||"No se pudo generar la receta.")+"</div>";}
 }
+let _activeRecipe=null;
+function retryDishRecipe(){if(_activeRecipe)openDishRecipe(_activeRecipe.name,_activeRecipe.country,_activeRecipe.emoji,_activeRecipe.flag);}
+function returnToRecipeCountry(){if(!_activeRecipe)return;const r={..._activeRecipe};closeModal("recipe-modal");openModal("passport-country-modal");openPassportCountry(r.country,ALL_COUNTRIES.includes(r.country),true);}
+
 function syncRanking(){if(!myUser||isBanned)return Promise.resolve();return upsertRanking().catch(()=>{});}
 
 const RENAME_COST=100;
@@ -2692,7 +2700,7 @@ function filterWeeklyCountry(c){_weeklyCountryF=c;applyWeeklyFilters();}
 
 async function renderRankingList(rows,cache=true){
   const el=document.getElementById("ranking-list");if(!el)return;
-  rows=(rows||[]).filter(r=>!r.hidden||r.id===myId||r.username===myUser);
+  rows=(rows||[]).filter(r=>!r.hidden||((r.id===myId||r.username===myUser)&&cfg.showSelfWhenHidden!==false));
   if(cache)_rankingRows=rows||[];
   if(!rows||rows.length===0){el.innerHTML='<div class="ranking-empty">'+(_rankingRows.length>0?"Sin resultados 🔍":"¡Sé el primero! 🌶️")+'</div>';return;}
   // Fetch equip data for visible players
@@ -2710,11 +2718,12 @@ async function renderRankingList(rows,cache=true){
     const color=eq.avatar_color||aColor(r.username);
     const emoji=eq.emoji||r.username[0]?.toUpperCase()||"?";
     const frameClass=eq.avatar_frame?"avatar-frame-"+eq.avatar_frame:"";
+    const ownerBadge=String(r.username).trim().toLowerCase()==="anas"?'<span class="owner-badge">👑 Owner de Comidadle</span>':"";
     return`<div onclick="openPlayerProfile('${r.username}')" style="display:flex;align-items:center;gap:10px;padding:.65rem .75rem;background:${isMe?"rgba(255,107,53,.08)":"var(--surface2)"};border:1px solid ${isMe?"var(--accent)":"var(--border)"};border-radius:var(--r-sm);margin-bottom:.4rem;cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='${isMe?"var(--accent)":"var(--border)"}'">
       <span style="font-family:'Fraunces',serif;font-size:16px;font-weight:900;color:${pClass==="gold"?"#FFB627":pClass==="silver"?"#C0C0C0":pClass==="bronze"?"#CD7F32":"var(--text-muted)"};width:22px;flex-shrink:0">${pos}</span>
       <div class="${frameClass}" style="width:32px;height:32px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0">${emoji}</div>
       <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:700;color:${isMe?"var(--accent)":"var(--text)"};display:flex;align-items:center;gap:5px">${r.username}${isMe?" (tú)":""}</div>
+        <div style="font-size:13px;font-weight:700;color:${isMe?"var(--accent)":"var(--text)"};display:flex;align-items:center;gap:5px">${r.username}${isMe?" (tú)":""}${ownerBadge}</div>
         ${eq.title||eq.badge?`<div style="font-size:10px;color:var(--text-muted)">${eq.badge||""}${eq.badge&&eq.title?" · ":""}${eq.title||""}</div>`:""}
       </div>
       <div style="text-align:right;flex-shrink:0"><div style="font-size:13px;font-weight:700;color:var(--accent)">🔥${r.best_streak}</div><div style="font-size:11px;color:var(--text-muted)">${r.wins}/${r.played} (${pct}%)</div></div>
@@ -2743,7 +2752,7 @@ async function openRanking(){
 }
 async function renderWeeklyList(rows,cache=true){
   const el=document.getElementById("weekly-list");if(!el)return;
-  rows=(rows||[]).filter(r=>!r.hidden||r.username===myUser);
+  rows=(rows||[]).filter(r=>!r.hidden||(r.username===myUser&&cfg.showSelfWhenHidden!==false));
   if(cache)_weeklyRows=rows||[];
   if(!rows||rows.length===0){el.innerHTML='<div class="ranking-empty">'+(_weeklyRows.length>0?"Sin resultados 🔍":"¡Sé el primero esta semana! 📅")+'</div>';return;}
   let equipMap={};
@@ -2759,11 +2768,12 @@ async function renderWeeklyList(rows,cache=true){
     const color=eq.avatar_color||aColor(r.username);
     const emoji=eq.emoji||r.username[0]?.toUpperCase()||"?";
     const frameClass=eq.avatar_frame?"avatar-frame-"+eq.avatar_frame:"";
+    const ownerBadge=String(r.username).trim().toLowerCase()==="anas"?'<span class="owner-badge">👑 Owner de Comidadle</span>':"";
     return`<div onclick="openWeeklyPlayerProfile('${r.username}')" style="display:flex;align-items:center;gap:10px;padding:.65rem .75rem;background:${isMe?"rgba(255,107,53,.08)":"var(--surface2)"};border:1px solid ${isMe?"var(--accent)":"var(--border)"};border-radius:var(--r-sm);margin-bottom:.4rem;cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='${isMe?"var(--accent)":"var(--border)"}'">
       <span style="font-family:'Fraunces',serif;font-size:16px;font-weight:900;color:${pClass==="gold"?"#FFB627":pClass==="silver"?"#C0C0C0":pClass==="bronze"?"#CD7F32":"var(--text-muted)"};width:22px;flex-shrink:0">${pos}</span>
       <div class="${frameClass}" style="width:32px;height:32px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0">${emoji}</div>
       <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:700;color:${isMe?"var(--accent)":"var(--text)"}">${r.username}${isMe?" (tú)":""}</div>
+        <div style="font-size:13px;font-weight:700;color:${isMe?"var(--accent)":"var(--text)"}">${r.username}${isMe?" (tú)":""}${ownerBadge}</div>
         ${eq.title||eq.badge?`<div style="font-size:10px;color:var(--text-muted)">${eq.badge||""}${eq.badge&&eq.title?" · ":""}${eq.title||""}</div>`:""}
       </div>
       <div style="font-family:'Fraunces',serif;font-size:15px;font-weight:900;color:var(--gold);flex-shrink:0">⭐${r.points}</div>
@@ -4199,7 +4209,7 @@ function importProgress(file){
 const sndEl=document.getElementById("sound-toggle");if(sndEl){sndEl.checked=cfg.soundOn;sndEl.onchange=()=>{cfg.soundOn=sndEl.checked;saveCfg();if(cfg.soundOn)playCorrect();};}
 const hapEl=document.getElementById("haptics-toggle");if(hapEl){hapEl.checked=cfg.hapticsOn;hapEl.onchange=()=>{cfg.hapticsOn=hapEl.checked;saveCfg();if(cfg.hapticsOn)vibrate(30);};}
 const cbEl=document.getElementById("colorblind-toggle");if(cbEl){cbEl.checked=cfg.colorblind;cbEl.onchange=()=>{cfg.colorblind=cbEl.checked;saveCfg();document.body.classList.toggle("colorblind",cfg.colorblind);};}
-const hrEl=document.getElementById("hide-ranking-toggle");if(hrEl){hrEl.checked=cfg.hideFromRanking;hrEl.onchange=()=>{cfg.hideFromRanking=hrEl.checked;saveCfg();syncRanking().catch(()=>{});syncWeekly().catch(()=>{});};}
+const hrEl=document.getElementById("hide-ranking-toggle");if(hrEl){hrEl.checked=cfg.hideFromRanking;hrEl.onchange=()=>{cfg.hideFromRanking=hrEl.checked;saveCfg();syncRanking().catch(()=>{});syncWeekly().catch(()=>{});};}const shsEl=document.getElementById("show-hidden-self-toggle");if(shsEl){shsEl.checked=cfg.showSelfWhenHidden!==false;shsEl.onchange=()=>{cfg.showSelfWhenHidden=shsEl.checked;saveCfg();applyRankingFilters();applyWeeklyFilters();};}
 const expBtn=document.getElementById("export-progress-btn");if(expBtn)expBtn.onclick=exportProgress;
 const impBtn=document.getElementById("import-progress-btn"),impFile=document.getElementById("import-progress-file");
 if(impBtn&&impFile){
