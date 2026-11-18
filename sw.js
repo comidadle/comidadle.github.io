@@ -1,7 +1,7 @@
 // Comidadle service worker — offline play support
 // Bump CACHE_VERSION whenever you release a new version of index.html so
 // clients pick up the fresh copy instead of serving a stale cached one.
-const CACHE_VERSION = "v3.4.0";
+const CACHE_VERSION = "v3.4.1";
 const CACHE_NAME = "comidadle-" + CACHE_VERSION + "-shell-1";
 
 // The app shell: index.html is a single self-contained file with ALL game
