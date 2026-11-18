@@ -237,6 +237,10 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
 
 .owner-badge{display:inline-flex;margin-left:.35rem;padding:.12rem .45rem;border:1px solid rgba(255,182,39,.55);border-radius:99px;background:rgba(255,182,39,.12);color:var(--gold);font-size:10px;font-weight:800;white-space:nowrap;vertical-align:middle}.recipe-toolbar{display:flex;gap:.5rem;margin:.25rem 0 .8rem}.recipe-toolbar button{flex:1;min-height:40px;border:1px solid var(--border-strong);border-radius:var(--r-sm);background:var(--surface2);color:var(--text);font:600 12px 'Plus Jakarta Sans',sans-serif;cursor:pointer}
 @media(min-width:900px){.header-inner,.footer-inner{max-width:1200px}.header-inner{padding:1rem 2rem}.game{max-width:1120px;padding:2.25rem 3rem 4rem;gap:1.25rem}.dish-card{padding:2.5rem 3rem}.dish-emoji{font-size:72px}.dish-name{font-size:30px}.dish-desc,.hint{font-size:15px}.hints{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.country-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.country-btn{min-height:58px;padding:.85rem 1rem;font-size:15px}.side-menu{width:360px;max-width:38vw}.side-menu-item{padding:.9rem}#passport-modal .modal,#passport-country-modal .modal{max-width:1050px!important}#passport-grid{grid-template-columns:repeat(auto-fill,minmax(145px,1fr))!important;gap:12px!important}.passport-card{min-height:124px;padding:1rem .6rem}}
+
+#passport-modal .modal{display:flex;flex-direction:column;align-items:stretch;min-height:0}
+#passport-grid{display:grid!important;grid-auto-flow:row!important;grid-auto-rows:min-content!important;align-content:start!important;align-items:start!important;justify-content:stretch!important;gap:8px!important;height:auto!important;min-height:0!important}#passport-grid .passport-card{height:auto!important;min-height:96px;align-self:start;justify-content:space-between;gap:5px;padding:.65rem .35rem}.passport-card-progress{width:100%;height:4px;border-radius:99px;background:var(--bg);overflow:hidden}.passport-card-progress>span{display:block;height:100%;background:var(--gold);border-radius:99px}.passport-back-btn{display:block;width:100%;min-height:42px;margin:0 0 .85rem;padding:.55rem .75rem;border:1px solid var(--border-strong);border-radius:var(--r-sm);background:var(--surface2);color:var(--text);font:600 13px 'Plus Jakarta Sans',sans-serif;text-align:left;cursor:pointer}
+@media(min-width:900px){.side-menu{width:430px;max-width:34vw}.side-menu-header{padding:1.5rem}.side-menu-section{padding:1rem 1.5rem}.side-menu-item{padding:1rem;font-size:15px}#profile-modal .modal,#player-modal .modal{width:min(760px,calc(100vw - 3rem));max-width:760px!important;padding:2rem}.passport-back-btn{font-size:14px}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" defer></script>
@@ -320,7 +324,7 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
   </div>
 </div>
 <div class="modal-overlay hidden" id="recipe-modal">
-  <div class="modal" style="max-width:480px"><div class="modal-header"><span id="recipe-modal-title" style="font-size:15px;font-weight:700">Receta</span><button class="modal-close" onclick="closeModal('recipe-modal')">✕</button></div><div class="recipe-toolbar"><button type="button" onclick="returnToRecipeCountry()">← Volver a países</button><button type="button" onclick="retryDishRecipe()">↻ Recargar receta</button></div><div class="modal-body" style="max-height:72vh;overflow-y:auto" id="recipe-content"></div></div>
+  <div class="modal" style="max-width:480px"><div class="modal-header"><span id="recipe-modal-title" style="font-size:15px;font-weight:700">Receta</span><button class="modal-close" onclick="closeModal('recipe-modal')">✕</button></div><div class="recipe-toolbar"><button type="button" onclick="returnToRecipeCountry()">← Volver al país</button></div><div class="modal-body" style="max-height:72vh;overflow-y:auto" id="recipe-content"></div></div>
 </div>
 
 <!-- SPLASH -->
@@ -554,6 +558,7 @@ footer{width:100%;border-top:1px solid var(--border);padding:1rem 1.25rem;positi
 <div class="modal-overlay hidden" id="passport-country-modal">
   <div class="modal" style="max-height:90vh;overflow-y:auto">
     <button class="modal-close" id="passport-country-close">✕</button>
+    <button class="passport-back-btn" type="button" onclick="backToPassport()">← Volver al pasaporte</button>
     <div id="passport-detail"></div>
   </div>
 </div>
@@ -1599,8 +1604,9 @@ const ALL_DISHES=[{name:"Tacos al Pastor",emoji:"🌮",country:"México",flag:"�
 const DEMONYMS={"México":["Mexicano","Mexicana","Mexicanos","Mexicanas"],"España":["Español","Española","Españoles","Españolas"],"Argentina":["Argentino","Argentinas","Argentinos"],"Perú":["Peruano","Peruana","Peruanos","Peruanas"],"Colombia":["Colombiano","Colombiana","Colombianos","Colombianas"],"Venezuela":["Venezolano","Venezolana","Venezolanos","Venezolanas"],"Chile":["Chileno","Chilena","Chilenos","Chilenas"],"Cuba":["Cubano","Cubana","Cubanos","Cubanas"],"El Salvador":["Salvadoreño","Salvadoreña","Salvadoreños","Salvadoreñas"],"Honduras":["Hondureño","Hondureña","Hondureños","Hondureñas"],"Costa Rica":["Costarricense","Tico","Tica"],"Nicaragua":["Nicaragüense","Nicaragüenses"],"Guatemala":["Guatemalteco","Guatemalteca","Guatemaltecos","Guatemaltecas"],"Ecuador":["Ecuatoriano","Ecuatoriana","Ecuatorianos","Ecuatorianas"],"Bolivia":["Boliviano","Boliviana","Bolivianos","Bolivianas"],"Uruguay":["Uruguayo","Uruguaya","Uruguayos","Uruguayas"],"Brasil":["Brasileño","Brasileña","Brasileños","Brasileñas"],"Panamá":["Panameño","Panameña","Panameños","Panameñas"],"Rep. Dominicana":["Dominicano","Dominicana","Dominicanos","Dominicanas"],"Puerto Rico":["Puertorriqueño","Puertorriqueña","Boricua","Boricuas"],"Paraguay":["Paraguayo","Paraguaya","Paraguayos","Paraguayas"],
 "Francia":["Francés","Francesa","Franceses","Francesas"],"Italia":["Italiano","Italiana","Italianos","Italianas"],"Japón":["Japonés","Japonesa","Japoneses","Japonesas"],"India":["Indio","India","Indios","Indias"],"China":["Chino","China","Chinos","Chinas"],"Marruecos":["Marroquí","Marroquíes"],"Grecia":["Griego","Griega","Griegos","Griegas"],"Turquía":["Turco","Turca","Turcos","Turcas"],"Corea del Sur":["Coreano","Coreana","Coreanos","Coreanas"],"Vietnam":["Vietnamita","Vietnamitas"],"Tailandia":["Tailandés","Tailandesa","Tailandeses"],"Alemania":["Alemán","Alemana","Alemanes","Alemanas"],"Portugal":["Portugués","Portuguesa","Portugueses","Portuguesas"],"Reino Unido":["Británico","Británica","Inglés","Inglesa","Ingleses"],"Estados Unidos":["Americano","Americana","Estadounidense","Estadounidenses"],"Líbano":["Libanés","Libanesa","Libaneses","Libanesas"],"Etiopía":["Etíope","Etíopes"],"Nigeria":["Nigeriano","Nigeriana","Nigerianos","Nigerianas"],"Jamaica":["Jamaicano","Jamaicana","Jamaiquino","Jamaiquina"],"Indonesia":["Indonesio","Indonesia","Indonesios","Indonesias"],"Israel":["Israelí","Israelíes"],"Rusia":["Ruso","Rusa","Rusos","Rusas"],"Polonia":["Polaco","Polaca","Polacos","Polacas"],"Sudáfrica":["Sudafricano","Sudafricana","Sudafricanos","Sudafricanas"],"Egipto":["Egipcio","Egipcia","Egipcios","Egipcias"],"Arabia Saudí":["Saudí","Saudita","Saudíes","Sauditas","Árabe"],"Filipinas":["Filipino","Filipina","Filipinos","Filipinas"],"Canadá":["Canadiense","Canadienses"],"Haití":["Haitiano","Haitiana","Haitianos","Haitianas"],"Túnez":["Tunecino","Tunecina","Tunecinos","Tunecinas"],"Senegal":["Senegalés","Senegalesa","Senegaleses"],"Malasia":["Malayo","Malaya","Malayos","Malayas"],"Ucrania":["Ucraniano","Ucraniana","Ucranianos","Ucranianas"],"Países Bajos":["Holandés","Holandesa","Holandeses","Neerlandés"],"Suecia":["Sueco","Sueca","Suecos","Suecas"],"Suiza":["Suizo","Suiza","Suizos","Suizas"],"Austria":["Austriaco","Austriaca","Austriacos","Austriacas"],"Bélgica":["Belga","Belgas"],"Irlanda":["Irlandés","Irlandesa","Irlandeses","Irlandesas"],"Trinidad y Tobago":["Trinitense","Trinitenses"],"Guyana":["Guyanés","Guyanesa","Guyaneses"],"Belice":["Beliceño","Beliceña","Beliceños","Beliceñas"],"Irán":["Iraní","Iraníes","Persa","Persas"],"Pakistán":["Pakistaní","Pakistaníes"],"Singapur":["Singapurense","Singapurenses"],"Kenia":["Keniano","Keniana","Kenianos","Kenianas"],"Ghana":["Ghanés","Ghanesa","Ghaneses"],"Birmania":["Birmano","Birmana","Birmanos","Birmanas","Birmano"],"Bangladesh":["Bangladeshí","Bangladeshíes"]};
 // ═══ VERSION ═══
-const VERSION="3.3.0";
+const VERSION="3.4.0";
 const CHANGELOG=[
+  {v:"3.4.0",date:"18 nov 2026",changes:["📖 Pasaporte rediseñado: tarjetas compactas con progreso, sin filas de signos de interrogación y botón para volver.","👑 Distintivo Owner de Comidadle asociado al usuario Anas (👑).","🤝 Reinicio de amistades e invitaciones; reparación de acciones para aceptar, rechazar, cancelar e ignorar.","🖥️ Paneles Extras y Perfil ampliados en escritorio; recetas estáticas sin botón de recarga."]},
   {v:"1.0.0",date:"20 dic 2025",changes:["🎉 Lanzamiento de Comidadle: 3 platos diarios, pistas progresivas y grid de países para adivinar el origen."]},
   {v:"1.1.0",date:"5 ene 2026",changes:["Modo difícil configurable: menos intentos, más países en la tabla, sin pistas.","Pistas progresivas activables/desactivables."]},
   {v:"1.2.0",date:"15 ene 2026",changes:["Sistema de rachas diarias y estadísticas personales con distribución de intentos."]},
@@ -2096,7 +2102,6 @@ async function openDishRecipe(name,country,emoji,flag){
   el.innerHTML="<div style='font-size:12px;color:var(--gold);margin-bottom:.75rem'>✍️ Receta editorial · "+c.ready+"/"+c.total+" platos de "+escapeHtml(country)+" ("+c.percent+"%)</div><h3 style='font-size:14px;margin:.5rem 0'>Ingredientes · 4 raciones</h3><ul style='padding-left:1.25rem;line-height:1.8;font-size:13px;color:var(--text-muted)'>"+r.i.map(x=>"<li>"+escapeHtml(x)+"</li>").join("")+"</ul><h3 style='font-size:14px;margin:1rem 0 .5rem'>Preparación</h3><ol style='padding-left:1.25rem;line-height:1.8;font-size:13px;color:var(--text-muted)'>"+r.s.map(x=>"<li style='margin-bottom:.4rem'>"+escapeHtml(x)+"</li>").join("")+"</ol><p style='font-size:12px;color:var(--text-muted);line-height:1.6;margin-top:.75rem'>"+escapeHtml(r.n)+"</p><div style='margin-top:1rem;padding:.8rem;border-radius:var(--r-sm);background:var(--surface2);font-size:13px;color:var(--gold)'>💰 Coste aproximado de ingredientes · 4 raciones: "+money.format(r.l)+"–"+money.format(r.h)+converted+"<div style='font-size:11px;color:var(--text-muted);margin-top:.3rem'>Orientativo para cocinar en casa; puede variar según región y temporada. La conversión usa un cambio de referencia cuando está disponible.</div></div>";
 }
 let _activeRecipe=null;
-function retryDishRecipe(){if(_activeRecipe)openDishRecipe(_activeRecipe.name,_activeRecipe.country,_activeRecipe.emoji,_activeRecipe.flag);}
 function returnToRecipeCountry(){if(!_activeRecipe)return;const r={..._activeRecipe};closeModal("recipe-modal");openModal("passport-country-modal");openPassportCountry(r.country,ALL_COUNTRIES.includes(r.country),true);}
 
 function syncRanking(){if(!myUser||isBanned)return Promise.resolve();return upsertRanking().catch(()=>{});}
@@ -2728,7 +2733,7 @@ async function renderRankingList(rows,cache=true){
     const color=eq.avatar_color||aColor(r.username);
     const emoji=eq.emoji||r.username[0]?.toUpperCase()||"?";
     const frameClass=eq.avatar_frame?"avatar-frame-"+eq.avatar_frame:"";
-    const ownerBadge=String(r.username).trim().toLowerCase()==="anas"?'<span class="owner-badge">👑 Owner de Comidadle</span>':"";
+    const ownerBadge=["anas","anas (👑)"].includes(String(r.username).trim().toLowerCase())?'<span class="owner-badge">👑 Owner de Comidadle</span>':"";
     return`<div onclick="openPlayerProfile('${r.username}')" style="display:flex;align-items:center;gap:10px;padding:.65rem .75rem;background:${isMe?"rgba(255,107,53,.08)":"var(--surface2)"};border:1px solid ${isMe?"var(--accent)":"var(--border)"};border-radius:var(--r-sm);margin-bottom:.4rem;cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='${isMe?"var(--accent)":"var(--border)"}'">
       <span style="font-family:'Fraunces',serif;font-size:16px;font-weight:900;color:${pClass==="gold"?"#FFB627":pClass==="silver"?"#C0C0C0":pClass==="bronze"?"#CD7F32":"var(--text-muted)"};width:22px;flex-shrink:0">${pos}</span>
       <div class="${frameClass}" style="width:32px;height:32px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0">${emoji}</div>
@@ -2778,7 +2783,7 @@ async function renderWeeklyList(rows,cache=true){
     const color=eq.avatar_color||aColor(r.username);
     const emoji=eq.emoji||r.username[0]?.toUpperCase()||"?";
     const frameClass=eq.avatar_frame?"avatar-frame-"+eq.avatar_frame:"";
-    const ownerBadge=String(r.username).trim().toLowerCase()==="anas"?'<span class="owner-badge">👑 Owner de Comidadle</span>':"";
+    const ownerBadge=["anas","anas (👑)"].includes(String(r.username).trim().toLowerCase())?'<span class="owner-badge">👑 Owner de Comidadle</span>':"";
     return`<div onclick="openWeeklyPlayerProfile('${r.username}')" style="display:flex;align-items:center;gap:10px;padding:.65rem .75rem;background:${isMe?"rgba(255,107,53,.08)":"var(--surface2)"};border:1px solid ${isMe?"var(--accent)":"var(--border)"};border-radius:var(--r-sm);margin-bottom:.4rem;cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='${isMe?"var(--accent)":"var(--border)"}'">
       <span style="font-family:'Fraunces',serif;font-size:16px;font-weight:900;color:${pClass==="gold"?"#FFB627":pClass==="silver"?"#C0C0C0":pClass==="bronze"?"#CD7F32":"var(--text-muted)"};width:22px;flex-shrink:0">${pos}</span>
       <div class="${frameClass}" style="width:32px;height:32px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0">${emoji}</div>
@@ -3679,28 +3684,24 @@ function openPassportModal(){
 }
 function renderPassportGrid(){
   const el=document.getElementById("passport-grid");if(!el)return;
-  const st=passportStats();
-  const head=document.getElementById("passport-progress");
-  if(head)head.innerHTML=`<div style="text-align:center;margin-bottom:1rem"><div style="font-size:28px;font-weight:900;font-family:'Fraunces',serif;color:var(--gold)">${st.unlocked}/${st.total}</div><div style="font-size:12px;color:var(--text-muted)">países desbloqueados</div><div style="background:var(--surface2);border-radius:99px;height:8px;overflow:hidden;margin-top:.6rem"><div style="width:${st.total?Math.round(st.unlocked/st.total*100):0}%;height:100%;background:var(--gold);border-radius:99px"></div></div></div>`;
-  const _recipeCountryRows=[...new Set(ALL_DISHES.map(d=>d.country))].map(n=>({name:n,coverage:editorialRecipeCoverage(n)})).filter(x=>x.coverage.ready>0).sort((a,b)=>a.name.localeCompare(b.name,"es"));
-  if(head)head.innerHTML+="<div style=\"margin:.8rem 0 1rem;padding:.75rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);text-align:left\"><div style=\"font-size:11px;font-weight:700;color:var(--text);margin-bottom:.4rem\">📖 Recetas escritas · cobertura por país</div><div style=\"display:flex;flex-wrap:wrap;gap:.35rem\">"+_recipeCountryRows.map(x=>"<span style=\"font-size:10px;color:var(--gold);background:var(--surface);padding:.25rem .45rem;border-radius:99px\">"+getFlag(x.name)+" "+escapeHtml(x.name)+" "+x.coverage.ready+"/"+x.coverage.total+" ("+x.coverage.percent+"%)</span>").join("")+"</div></div>";
+  const st=passportStats(),head=document.getElementById("passport-progress");
+  if(head)head.innerHTML="<div style='text-align:center;margin-bottom:1rem'><div style='font-size:28px;font-weight:900;font-family:Fraunces,serif;color:var(--gold)'>"+st.unlocked+"/"+st.total+"</div><div style='font-size:12px;color:var(--text-muted)'>países desbloqueados</div><div style='background:var(--surface2);border-radius:99px;height:8px;overflow:hidden;margin-top:.6rem'><div style='width:"+(st.total?Math.round(st.unlocked/st.total*100):0)+"%;height:100%;background:var(--gold)'></div></div></div>";
+  const recipeRows=[...new Set(ALL_DISHES.map(d=>d.country))].map(n=>({name:n,coverage:editorialRecipeCoverage(n)})).filter(x=>x.coverage.ready>0).sort((a,b)=>a.name.localeCompare(b.name,"es"));
+  if(head)head.innerHTML+="<div style='margin:.8rem 0 1rem;padding:.75rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm)'><div style='font-size:11px;font-weight:700;color:var(--text);margin-bottom:.45rem'>📖 Recetas editoriales · cobertura por país</div><div style='display:flex;flex-wrap:wrap;gap:.35rem'>"+recipeRows.map(x=>"<span style='font-size:10px;color:var(--gold);background:var(--surface);padding:.25rem .45rem;border-radius:99px'>"+getFlag(x.name)+" "+escapeHtml(x.name)+" "+x.coverage.ready+"/"+x.coverage.total+" ("+x.coverage.percent+"%)</span>").join("")+"</div></div>";
+  const international=typeof SUNDAY_INTERNATIONAL_DISHES!=="undefined"?SUNDAY_INTERNATIONAL_DISHES:[];
   el.innerHTML=PASSPORT_COUNTRIES.map(c=>{
-    const flag=isoFlag(c.iso);
-    if(!c.active){
-      if(c.name==="Israel"){
-        return `<button class="passport-card locked" disabled style="opacity:.75;cursor:not-allowed;position:relative;overflow:hidden"><div style="position:absolute;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;z-index:2;border-radius:inherit"><span style="font-size:9px;font-weight:900;color:#e63946;letter-spacing:1px">#FreeGaza</span></div><div style="font-size:28px">${flag}</div><div style="font-size:10px;font-weight:700;margin-top:2px">${c.name}</div></button>`;
-      }
-      const _iD=(typeof SUNDAY_INTERNATIONAL_DISHES!=="undefined"?SUNDAY_INTERNATIONAL_DISHES:[]).filter(d=>d.country===c.name);
-      if(_iD.length>0){
-        const _ok=passport[c.name]&&passport[c.name].length>0;
-        return `<button class="passport-card${_ok?" unlocked":""}" onclick="openPassportCountry('${c.name.replace(/'/g,"\\'")}',false,false)" style="${_ok?"":"filter:grayscale(1);opacity:.4"}"><div style="font-size:28px">${flag}</div><div style="font-size:10px;font-weight:700;margin-top:2px">${c.name}</div><div style="font-size:9px;color:var(--text-muted)">${_ok?"✅":"🌍"}</div></button>`;
-      }
-      return `<button class="passport-card locked" onclick="openPassportCountry('${c.name.replace(/'/g,"\\'")}',false,false)" style="opacity:.35;filter:grayscale(1)"><div style="font-size:28px">${flag}</div><div style="font-size:10px;font-weight:700;margin-top:2px">${c.name}</div><div style="font-size:9px;color:var(--text-muted)">🔒</div></button>`;
-    }
-    const done=passport[c.name]&&passport[c.name].length>0;
-    return `<button class="passport-card${done?" unlocked":""}" onclick="openPassportCountry('${c.name.replace(/'/g,"\\'")}',true,${done})" style="${done?"":"opacity:.45;filter:grayscale(.7)"}"><div style="font-size:28px">${flag}</div><div style="font-size:10px;font-weight:700;margin-top:2px">${c.name}</div><div style="font-size:9px;color:${done?"var(--gold)":"var(--text-muted)"}">${done?"✅ "+passport[c.name].length+" plato"+(passport[c.name].length>1?"s":""):"🔒 sin acertar"}</div></button>`;
+    const flag=isoFlag(c.iso),safe=c.name.replace(/\\/g,"\\\\").replace(/'/g,"\\'");
+    const dishes=(c.active?ALL_DISHES:international).filter(d=>d.country===c.name);
+    const solved=passport[c.name]||[],done=solved.length,total=dishes.length,pct=total?Math.min(100,Math.round(done/total*100)):0;
+    if(c.name==="Israel")return "<button class='passport-card locked' disabled aria-label='Israel no disponible'><span style='font-size:28px'>"+flag+"</span><strong style='font-size:11px'>Israel</strong><span style='font-size:9px;color:var(--red)'>No disponible</span></button>";
+    const active=!!c.active,unlocked=done>0,canOpen=active||total>0;
+    const label=total?done+"/"+total+" platos":(canOpen?"Especial internacional":"Próximamente");
+    const state=unlocked?"unlocked":(canOpen?"":"locked");
+    return "<button class='passport-card "+state+"' "+(canOpen?"onclick=\"openPassportCountry('"+safe+"',"+active+","+unlocked+")\"":"disabled")+" aria-label='"+escapeHtml(c.name)+", "+escapeHtml(label)+"' style='"+(unlocked?"":"opacity:.72;filter:grayscale(.6)")+"'><span style='font-size:28px;line-height:1'>"+flag+"</span><strong style='font-size:11px;line-height:1.2'>"+escapeHtml(c.name)+"</strong><span style='font-size:9px;color:"+(unlocked?"var(--gold)":"var(--text-muted)")+"'>"+escapeHtml(label)+"</span><span class='passport-card-progress'><span style='width:"+pct+"%'></span></span></button>";
   }).join("");
 }
+function backToPassport(){closeModal("passport-country-modal");openModal("passport-modal");renderPassportGrid();}
+
 function openPassportCountry(name,active,unlocked){
   const el=document.getElementById("passport-detail");if(!el)return;
   const iso=ACTIVE_ISO[name]||FUTURE_ISO[name];
@@ -3727,17 +3728,14 @@ function openPassportCountry(name,active,unlocked){
   }else{
     const dishes=ALL_DISHES.filter(d=>d.country===name);
     const solved=passport[name]||[];
-    const cards=dishes.map(d=>{
-      if(solved.includes(d.name)){
-        return `<button type="button" class="dish-card" style="display:block;width:100%;margin-bottom:.6rem;padding:.75rem;cursor:pointer;color:inherit;font:inherit" onclick="openDishRecipe('${d.name.replace(/\\/g,"\\\\").replace(/'/g,"\\'")}','${d.country.replace(/\\/g,"\\\\").replace(/'/g,"\\'")}','${d.emoji}','${d.flag||flag}')"><span class="dish-emoji" style="font-size:24px">${d.emoji}</span><div class="dish-name" style="font-size:13px">${escapeHtml(d.name)}</div><div style="font-size:11px;color:var(--accent);margin-top:.25rem">🍳 Ver receta y precio aproximado</div></button>`;
-      }
-      return `<div class="dish-card" style="margin-bottom:.6rem;padding:.75rem;opacity:.5"><span class="dish-emoji" style="font-size:24px">❓</span><div class="dish-name" style="font-size:13px;filter:blur(1px);user-select:none">?????????</div></div>`;
-    }).join("");
-    el.innerHTML=`<div style="text-align:center;margin-bottom:1rem">
-      <div style="font-size:40px">${flag}</div>
-      <div style="font-size:17px;font-weight:700;color:var(--text)">${name}</div>
-      <div style="font-size:12px;color:var(--gold);font-weight:700">${solved.length}/${dishes.length} platos descubiertos</div><div style="font-size:11px;color:var(--text-muted);margin-top:.25rem">📖 Recetas editoriales: ${editorialRecipeCoverage(name).ready}/${dishes.length} (${editorialRecipeCoverage(name).percent}%)</div>
-    </div>${cards}`;
+    const discovered=dishes.filter(d=>solved.includes(d.name));
+    const remaining=Math.max(0,dishes.length-discovered.length);
+    el.innerHTML="<div style='text-align:center;margin-bottom:1rem'><div style='font-size:40px'>"+flag+"</div><div style='font-size:17px;font-weight:700;color:var(--text)'>"+escapeHtml(name)+"</div><div style='font-size:12px;color:var(--gold);font-weight:700'>"+discovered.length+"/"+dishes.length+" platos descubiertos</div><div style='font-size:11px;color:var(--text-muted);margin-top:.25rem'>📖 Recetas editoriales: "+editorialRecipeCoverage(name).ready+"/"+dishes.length+" ("+editorialRecipeCoverage(name).percent+"%)</div>"+(remaining?"<div style='font-size:12px;color:var(--text-muted);margin-top:.6rem'>"+remaining+" platos por descubrir. Aparecerán aquí cuando los aciertes.</div>":"<div style='font-size:12px;color:var(--green);margin-top:.6rem'>¡Pasaporte completo! 🎉</div>")+"</div>";
+    discovered.forEach(d=>{
+      const card=document.createElement("button");card.type="button";card.className="dish-card passport-dish-card";card.style.cssText="display:block;width:100%;margin-bottom:.6rem;padding:.75rem;cursor:pointer;color:inherit;font:inherit;text-align:center";
+      card.innerHTML="<span class='dish-emoji' style='font-size:24px'>"+escapeHtml(d.emoji)+"</span><div class='dish-name' style='font-size:13px'>"+escapeHtml(d.name)+"</div><div style='font-size:11px;color:var(--accent);margin-top:.25rem'>🍳 Ver receta y precio aproximado</div>";
+      card.addEventListener("click",()=>openDishRecipe(d.name,d.country,d.emoji,d.flag||flag));el.appendChild(card);
+    });
   }
   openModal("passport-country-modal");
 }
@@ -4381,7 +4379,10 @@ async function cancelFriendRequest(id){
 async function removeFriend(username){
   if(!myUser)return;
   if(!confirm("¿Eliminar a "+username+" de tus amigos?"))return;
-  try{await sb("/rest/v1/friends?status=eq.accepted&or=(and(requester_username.eq."+encodeURIComponent(myUser)+",recipient_username.eq."+encodeURIComponent(username)+"),and(requester_username.eq."+encodeURIComponent(username)+",recipient_username.eq."+encodeURIComponent(myUser)+"))",{method:"DELETE"});}catch(e){}
+  try{
+    const removed=await sb("/rest/v1/friends?status=eq.accepted&or=(and(requester_username.eq."+encodeURIComponent(myUser)+",recipient_username.eq."+encodeURIComponent(username)+"),and(requester_username.eq."+encodeURIComponent(username)+",recipient_username.eq."+encodeURIComponent(myUser)+"))",{method:"DELETE",headers:{...SH,"Prefer":"return=representation"}});
+    if(!removed?.length)throw new Error("No se pudo quitar la amistad. Actualiza la lista y vuelve a intentarlo.");
+  }catch(e){alert(e.message||"No se pudo eliminar la amistad.");}
   friendsTab("list");
 }
 async function searchUsers(query){
