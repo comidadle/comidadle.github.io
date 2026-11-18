@@ -40,7 +40,7 @@ Deno.serve(async(request:Request)=>{
   const response=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent",{
    method:"POST",signal:AbortSignal.timeout(45000),
    headers:{"Content-Type":"application/json","x-goog-api-key":apiKey},
-   body:JSON.stringify({systemInstruction:{parts:[{text:systemPrompt}]},contents:[{role:"user",parts:[{text:JSON.stringify({name:name.trim(),country:country.trim(),servings:4})}]}],generationConfig:{responseMimeType:"application/json",responseSchema:{type:"OBJECT",properties:{recipe:{type:"STRING"},costLow:{type:"NUMBER"},costHigh:{type:"NUMBER"},costAssumptions:{type:"STRING"}},required:["recipe","costLow","costHigh","costAssumptions"]},maxOutputTokens:1300,temperature:0.3})
+   body:JSON.stringify({systemInstruction:{parts:[{text:systemPrompt}]},contents:[{role:"user",parts:[{text:JSON.stringify({name:name.trim(),country:country.trim(),servings:4})}]}],generationConfig:{responseMimeType:"application/json",responseSchema:{type:"OBJECT",properties:{recipe:{type:"STRING"},costLow:{type:"NUMBER"},costHigh:{type:"NUMBER"},costAssumptions:{type:"STRING"}},required:["recipe","costLow","costHigh","costAssumptions"]},maxOutputTokens:1300,temperature:0.3}})
   });
   if(!response.ok){
    console.error("[dish-recipe] Gemini HTTP "+response.status+" request_id="+(response.headers.get("x-goog-request-id")||"unknown"));
